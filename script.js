@@ -2,8 +2,8 @@
 class GitHubSyncManager {
     constructor() {
         this.GITHUB_TOKEN = '';
-        this.REPO_OWNER = 'Sh1k1kate'; // Ваш username на GitHub
-        this.REPO_NAME = 'arkham-horizon'; // Название репозитория
+        this.REPO_OWNER = ''; // Ваш username на GitHub
+        this.REPO_NAME = ''; // Название репозитория
         this.SYNC_FILE_PATH = 'data/arkham_progress.json';
         this.isSyncing = false;
         this.syncInterval = null;
