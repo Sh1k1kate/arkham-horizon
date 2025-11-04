@@ -1,6 +1,406 @@
+// Автоматическая синхронизация через GitHub репозиторий
+class GitHubSyncManager {
+    constructor() {
+        this.GITHUB_TOKEN = '';
+        this.REPO_OWNER = 'Sh1k1kate'; // Ваш username на GitHub
+        this.REPO_NAME = 'arkham-horizon'; // Название репозитория
+        this.SYNC_FILE_PATH = 'data/arkham_progress.json';
+        this.isSyncing = false;
+        this.syncInterval = null;
+    }
+
+    // Инициализация синхронизации
+    async initialize() {
+        // Пытаемся получить сохраненные настройки
+        this.GITHUB_TOKEN = localStorage.getItem('github_sync_token');
+        this.REPO_OWNER = localStorage.getItem('github_repo_owner');
+        this.REPO_NAME = localStorage.getItem('github_repo_name');
+
+        if (this.GITHUB_TOKEN && this.REPO_OWNER && this.REPO_NAME) {
+            tracker.showNotification('🔗 Синхронизация подключена', 'success');
+            this.startAutoSync();
+            return true;
+        }
+
+        return false;
+    }
+
+    // Настройка синхронизации
+    async setupSync() {
+        const config = await this.showSetupModal();
+        if (!config) return false;
+
+        this.GITHUB_TOKEN = config.token;
+        this.REPO_OWNER = config.owner;
+        this.REPO_NAME = config.repo;
+
+        // Сохраняем настройки
+        localStorage.setItem('github_sync_token', this.GITHUB_TOKEN);
+        localStorage.setItem('github_repo_owner', this.REPO_OWNER);
+        localStorage.setItem('github_repo_name', this.REPO_NAME);
+
+        // Проверяем доступность репозитория
+        const isValid = await this.validateRepository();
+        if (!isValid) {
+            this.clearSettings();
+            return false;
+        }
+
+        tracker.showNotification('✅ Синхронизация настроена!', 'success');
+        this.startAutoSync();
+        return true;
+    }
+
+    // Модальное окно настройки
+    async showSetupModal() {
+        return new Promise((resolve) => {
+            const modalHTML = `
+                <div class="sync-setup-modal">
+                    <h3>⚙️ Настройка автосинхронизации</h3>
+                    <div class="setup-steps">
+                        <div class="setup-step">
+                            <strong>1. Создайте GitHub Token:</strong>
+                            <p>GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)</p>
+                            <p>Выберите права: <code>repo</code> (полный доступ к репозиториям)</p>
+                        </div>
+                        <div class="setup-step">
+                            <strong>2. Введите данные:</strong>
+                            <div class="setup-form">
+                                <div class="form-group">
+                                    <label>GitHub Token:</label>
+                                    <input type="password" id="github-token" placeholder="ghp_..." class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Username:</label>
+                                    <input type="text" id="github-owner" placeholder="your-username" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Repository:</label>
+                                    <input type="text" id="github-repo" placeholder="arkham-tracker" class="form-input">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="setup-actions">
+                        <button id="confirm-setup" class="control-btn">✅ Настроить</button>
+                        <button id="cancel-setup" class="control-btn secondary">❌ Отмена</button>
+                    </div>
+                </div>
+            `;
+
+            const modal = document.getElementById('record-modal');
+            const modalContent = document.getElementById('modal-content');
+
+            modalContent.innerHTML = modalHTML;
+            modal.style.display = 'block';
+
+            document.getElementById('confirm-setup').addEventListener('click', () => {
+                const token = document.getElementById('github-token').value.trim();
+                const owner = document.getElementById('github-owner').value.trim();
+                const repo = document.getElementById('github-repo').value.trim();
+
+                if (token && owner && repo) {
+                    modal.style.display = 'none';
+                    resolve({ token, owner, repo });
+                } else {
+                    tracker.showNotification('❌ Заполните все поля', 'error');
+                }
+            });
+
+            document.getElementById('cancel-setup').addEventListener('click', () => {
+                modal.style.display = 'none';
+                resolve(null);
+            });
+        });
+    }
+
+    // Проверка доступности репозитория
+    async validateRepository() {
+        try {
+            const response = await this.githubRequest(`/repos/${this.REPO_OWNER}/${this.REPO_NAME}`);
+            if (response.ok) {
+                return true;
+            } else {
+                tracker.showNotification('❌ Репозиторий не найден', 'error');
+                return false;
+            }
+        } catch (error) {
+            tracker.showNotification('❌ Ошибка доступа к репозиторию', 'error');
+            return false;
+        }
+    }
+
+    // Запрос к GitHub API
+    async githubRequest(endpoint, options = {}) {
+        const url = `https://api.github.com${endpoint}`;
+
+        const defaultOptions = {
+            headers: {
+                'Authorization': `token ${this.GITHUB_TOKEN}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            }
+        };
+
+        return await fetch(url, { ...defaultOptions, ...options });
+    }
+
+    // Получить SHA существующего файла (если есть)
+    async getFileSHA() {
+        try {
+            const response = await this.githubRequest(`/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.SYNC_FILE_PATH}`);
+
+            if (response.status === 404) {
+                return null; // Файл не существует
+            }
+
+            if (response.ok) {
+                const fileData = await response.json();
+                return fileData.sha;
+            }
+        } catch (error) {
+            console.error('Error getting file SHA:', error);
+        }
+        return null;
+    }
+
+    // Загрузить данные из репозитория
+    async pullData() {
+        if (this.isSyncing) return false;
+
+        try {
+            const response = await this.githubRequest(`/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.SYNC_FILE_PATH}`);
+
+            if (response.status === 404) {
+                console.log('Sync file not found, will create on next push');
+                return false;
+            }
+
+            if (response.ok) {
+                const fileData = await response.json();
+                const content = JSON.parse(atob(fileData.content));
+
+                // Проверяем актуальность данных
+                const localTimestamp = localStorage.getItem('last_sync_timestamp');
+                const remoteTimestamp = content.timestamp;
+
+                if (!localTimestamp || new Date(remoteTimestamp) > new Date(localTimestamp)) {
+                    this.applyRemoteData(content);
+                    return true;
+                }
+            }
+        } catch (error) {
+            console.error('Pull error:', error);
+        }
+        return false;
+    }
+
+    // Применить данные из репозитория
+    applyRemoteData(data) {
+        if (data && data.progress) {
+            // Умное объединение данных
+            const localProgress = tracker.progress;
+            const remoteProgress = data.progress;
+
+            // Создаем Map для быстрого поиска по ID
+            const localMap = new Map(localProgress.map(item => [item.id, item]));
+            const remoteMap = new Map(remoteProgress.map(item => [item.id, item]));
+
+            // Объединяем данные, приоритет у более новых записей
+            const mergedProgress = [];
+            const allIds = new Set([...localMap.keys(), ...remoteMap.keys()]);
+
+            allIds.forEach(id => {
+                const localItem = localMap.get(id);
+                const remoteItem = remoteMap.get(id);
+
+                if (localItem && remoteItem) {
+                    // Берем более новую запись
+                    const localTime = new Date(localItem.timestamp);
+                    const remoteTime = new Date(remoteItem.timestamp);
+                    mergedProgress.push(remoteTime > localTime ? remoteItem : localItem);
+                } else if (localItem) {
+                    mergedProgress.push(localItem);
+                } else {
+                    mergedProgress.push(remoteItem);
+                }
+            });
+
+            // Сортируем по времени
+            mergedProgress.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            tracker.progress = mergedProgress;
+            tracker.achievements = data.achievements || tracker.achievements;
+
+            tracker.saveProgress();
+            tracker.renderHexagonGrid();
+            tracker.renderStats();
+            tracker.updateAchievements();
+
+            localStorage.setItem('last_sync_timestamp', data.timestamp);
+            tracker.showNotification('🔁 Данные синхронизированы из облака', 'success');
+        }
+    }
+
+    // Отправить данные в репозиторий
+    async pushData() {
+        if (this.isSyncing) return false;
+
+        this.isSyncing = true;
+
+        try {
+            const data = {
+                progress: tracker.progress,
+                achievements: tracker.achievements,
+                timestamp: new Date().toISOString(),
+                version: '3.0',
+                app: 'Arkham Horror Tracker'
+            };
+
+            const fileSHA = await this.getFileSHA();
+            const content = btoa(JSON.stringify(data, null, 2));
+
+            const body = {
+                message: `Auto-sync: ${new Date().toLocaleString('ru-RU')}`,
+                content: content,
+                sha: fileSHA // Если null, файл будет создан
+            };
+
+            const response = await this.githubRequest(
+                `/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.SYNC_FILE_PATH}`,
+                {
+                    method: 'PUT',
+                    body: JSON.stringify(body)
+                }
+            );
+
+            if (response.ok) {
+                localStorage.setItem('last_sync_timestamp', data.timestamp);
+                tracker.showNotification('☁️ Данные сохранены в облако', 'success');
+                return true;
+            } else {
+                throw new Error('Push failed');
+            }
+        } catch (error) {
+            console.error('Push error:', error);
+            tracker.showNotification('❌ Ошибка синхронизации', 'error');
+            return false;
+        } finally {
+            this.isSyncing = false;
+        }
+    }
+
+    // Ручная синхронизация
+    async manualSync() {
+        if (!this.isConfigured()) {
+            tracker.showNotification('❌ Сначала настройте синхронизацию', 'error');
+            return;
+        }
+
+        tracker.showNotification('🔄 Синхронизация...', 'info');
+
+        // Сначала pull, потом push
+        await this.pullData();
+        await this.pushData();
+    }
+
+    // Автоматическая синхронизация
+    startAutoSync() {
+        // Синхронизация при загрузке
+        setTimeout(() => {
+            this.pullData();
+        }, 2000);
+
+        // Периодическая синхронизация каждые 2 минуты
+        this.syncInterval = setInterval(() => {
+            this.pullData();
+        }, 2 * 60 * 1000);
+
+        // Синхронизация перед закрытием страницы
+        window.addEventListener('beforeunload', () => {
+            this.pushData();
+        });
+    }
+
+    // Остановка синхронизации
+    stopAutoSync() {
+        if (this.syncInterval) {
+            clearInterval(this.syncInterval);
+            this.syncInterval = null;
+        }
+        this.clearSettings();
+        tracker.showNotification('🔌 Синхронизация отключена', 'info');
+    }
+
+    // Проверка настройки
+    isConfigured() {
+        return !!(this.GITHUB_TOKEN && this.REPO_OWNER && this.REPO_NAME);
+    }
+
+    // Очистка настроек
+    clearSettings() {
+        localStorage.removeItem('github_sync_token');
+        localStorage.removeItem('github_repo_owner');
+        localStorage.removeItem('github_repo_name');
+        localStorage.removeItem('last_sync_timestamp');
+
+        this.GITHUB_TOKEN = '';
+        this.REPO_OWNER = '';
+        this.REPO_NAME = '';
+    }
+
+    // Показать статус синхронизации
+    showStatus() {
+        const statusHTML = `
+            <div class="sync-status">
+                <h3>📡 Статус синхронизации</h3>
+                <div class="status-info">
+                    <div class="status-item">
+                        <strong>Репозиторий:</strong> ${this.REPO_OWNER}/${this.REPO_NAME}
+                    </div>
+                    <div class="status-item">
+                        <strong>Файл данных:</strong> ${this.SYNC_FILE_PATH}
+                    </div>
+                    <div class="status-item">
+                        <strong>Записей:</strong> ${tracker.progress.length}
+                    </div>
+                    <div class="status-item">
+                        <strong>Последняя синхронизация:</strong> 
+                        ${localStorage.getItem('last_sync_timestamp') ?
+                new Date(localStorage.getItem('last_sync_timestamp')).toLocaleString('ru-RU') :
+                'Никогда'}
+                    </div>
+                </div>
+                <div class="status-actions">
+                    <button id="manual-sync-now" class="control-btn">🔄 Синхронизировать сейчас</button>
+                    <button id="stop-sync" class="control-btn secondary">🔌 Отключить синхронизацию</button>
+                </div>
+            </div>
+        `;
+
+        const modal = document.getElementById('record-modal');
+        const modalContent = document.getElementById('modal-content');
+
+        modalContent.innerHTML = statusHTML;
+        modal.style.display = 'block';
+
+        document.getElementById('manual-sync-now').addEventListener('click', () => {
+            this.manualSync();
+            modal.style.display = 'none';
+        });
+
+        document.getElementById('stop-sync').addEventListener('click', () => {
+            this.stopAutoSync();
+            modal.style.display = 'none';
+        });
+    }
+}
+
+
 // Основной класс трекера
 class ArkhamHorizonTracker {
     constructor() {
+        this.githubSync = new GitHubSyncManager();
         this.progress = JSON.parse(localStorage.getItem('arkhamProgress')) || [];
         this.investigators = {
             'agnes': {
@@ -324,7 +724,9 @@ class ArkhamHorizonTracker {
                 this.init();
             }
 
-            init() {
+    init() {
+                // Инициализация автосинхронизации
+                this.githubSync.initialize();
                 this.renderPlayerCountSelector();
                 this.renderInvestigatorFields();
                 this.renderScenarioOptions();
@@ -344,7 +746,11 @@ class ArkhamHorizonTracker {
                 }
             }
 
-            setupEventListeners() {
+    setupEventListeners() {
+        // Автосинхронизация
+        document.getElementById('setup-sync').addEventListener('click', () => this.githubSync.setupSync());
+        document.getElementById('manual-sync').addEventListener('click', () => this.githubSync.manualSync());
+        document.getElementById('sync-status').addEventListener('click', () => this.githubSync.showStatus());
                 // Форма добавления
                 document.getElementById('progress-form').addEventListener('submit', (e) => {
                     e.preventDefault();
@@ -889,9 +1295,13 @@ class ArkhamHorizonTracker {
                 }
             }
 
-            saveProgress() {
-                localStorage.setItem('arkhamProgress', JSON.stringify(this.progress));
-            }
+    saveProgress() {
+        localStorage.setItem('arkhamProgress', JSON.stringify(this.progress));
+        // Автосинхронизация при сохранении
+        if (this.githubSync.isConfigured()) {
+            setTimeout(() => this.githubSync.pushData(), 1000);
+        }
+    }
 
             resetForm() {
                 document.getElementById('progress-form').reset();

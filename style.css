@@ -1690,3 +1690,110 @@ section {
         min-width: 60px;
     }
 }
+/* Стили для автосинхронизации */
+.sync-setup-modal {
+    max-width: 600px;
+}
+
+.setup-steps {
+    margin: 20px 0;
+}
+
+.setup-step {
+    background: rgba(15, 15, 26, 0.5);
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--accent);
+}
+
+    .setup-step strong {
+        color: var(--accent);
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .setup-step code {
+        background: rgba(218, 165, 32, 0.2);
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: monospace;
+    }
+
+.setup-form {
+    margin-top: 15px;
+}
+
+    .setup-form .form-group {
+        margin: 10px 0;
+    }
+
+    .setup-form label {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--text-light);
+        font-weight: bold;
+    }
+
+.setup-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Статус синхронизации */
+.sync-status {
+    max-width: 500px;
+}
+
+.status-info {
+    background: rgba(15, 15, 26, 0.5);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    margin: 15px 0;
+    border: 1px solid rgba(218, 165, 32, 0.3);
+}
+
+.status-item {
+    margin: 10px 0;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+    .status-item:last-child {
+        border-bottom: none;
+    }
+
+.status-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Индикатор синхронизации */
+.sync-indicator {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: var(--success);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    z-index: 10000;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
