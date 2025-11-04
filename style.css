@@ -1797,3 +1797,144 @@ section {
         opacity: 1;
     }
 }
+/* Улучшенные стили синхронизации */
+.sync-setup-modal {
+    max-width: 700px;
+}
+
+.setup-instructions {
+    margin: 15px 0;
+}
+
+    .setup-instructions details {
+        background: rgba(15, 15, 26, 0.6);
+        border-radius: var(--border-radius);
+        padding: 10px;
+        border: 1px solid rgba(218, 165, 32, 0.3);
+    }
+
+    .setup-instructions summary {
+        cursor: pointer;
+        font-weight: bold;
+        color: var(--accent);
+        padding: 5px;
+    }
+
+.instructions-content {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--border-radius);
+}
+
+    .instructions-content ol {
+        margin-left: 20px;
+    }
+
+    .instructions-content li {
+        margin: 8px 0;
+    }
+
+    .instructions-content a {
+        color: var(--accent);
+        text-decoration: underline;
+    }
+
+.setup-form .form-group {
+    margin: 15px 0;
+}
+
+.setup-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.setup-form small {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.8rem;
+    color: var(--text-dark);
+    font-style: italic;
+}
+
+.setup-form code {
+    background: rgba(218, 165, 32, 0.2);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+.setup-example {
+    background: rgba(15, 15, 26, 0.5);
+    padding: 12px;
+    border-radius: var(--border-radius);
+    margin: 15px 0;
+    border-left: 3px solid var(--accent);
+}
+
+.example-url {
+    font-family: monospace;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+.example-owner, .example-repo {
+    color: var(--accent);
+    font-weight: bold;
+}
+
+/* Статус синхронизации */
+.status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.status-item {
+    background: rgba(15, 15, 26, 0.5);
+    padding: 12px;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-ok {
+    border-left: 4px solid var(--success);
+}
+
+.status-error {
+    border-left: 4px solid var(--danger);
+}
+
+.status-help {
+    background: rgba(255, 152, 0, 0.1);
+    padding: 12px;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 152, 0, 0.3);
+    margin-top: 15px;
+}
+
+.status-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .status-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .status-actions {
+        flex-direction: column;
+    }
+
+    .setup-actions {
+        flex-direction: column;
+    }
+}
