@@ -1,19 +1,6 @@
 {
   "progress": [
     {
-      "id": 1762306960878,
-      "investigator": [
-        "dexter",
-        "rex"
-      ],
-      "scenario": "echo_deep",
-      "date": "2025-10-30",
-      "result": "win",
-      "notes": "",
-      "timestamp": "2025-11-05T01:42:40.878Z",
-      "playerCount": 2
-    },
-    {
       "id": 1762262379833,
       "investigator": [
         "dexter",
@@ -43,7 +30,7 @@
       "target": 5,
       "icon": "🏕️",
       "unlocked": false,
-      "progress": 2
+      "progress": 1
     },
     "veteran": {
       "name": "Ветеран Аркхема",
@@ -51,7 +38,7 @@
       "target": 10,
       "icon": "🎖️",
       "unlocked": false,
-      "progress": 2
+      "progress": 1
     },
     "expert": {
       "name": "Эксперт по Древним",
@@ -59,7 +46,7 @@
       "target": 20,
       "icon": "👑",
       "unlocked": false,
-      "progress": 2
+      "progress": 1
     },
     "specialist": {
       "name": "Мастер одного пути",
@@ -67,7 +54,7 @@
       "target": 5,
       "icon": "🎯",
       "unlocked": false,
-      "progress": 2
+      "progress": 1
     },
     "collector": {
       "name": "Собиратель опыта",
@@ -83,7 +70,7 @@
       "target": 10,
       "icon": "🏆",
       "unlocked": false,
-      "progress": 2
+      "progress": 1
     },
     "survivor": {
       "name": "Выживший",
@@ -99,7 +86,7 @@
       "target": 10,
       "icon": "👥",
       "unlocked": false,
-      "progress": 2
+      "progress": 1
     },
     "fullteam": {
       "name": "Полная команда",
@@ -134,7 +121,7 @@
       "progress": 0
     }
   },
-  "timestamp": "2025-11-05T02:48:49.796Z",
+  "timestamp": "2025-11-05T02:49:00.357Z",
   "version": "3.0",
   "app": "Arkham Horror Tracker"
 }
