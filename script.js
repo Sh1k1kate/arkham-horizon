@@ -1855,7 +1855,7 @@ class GitHubSyncManager {
         }
 
         this.notify('✅ Данные актуальны', 'info');
-    
+    }
 
         // Сортируем по времени (новые сверху)
         mergedProgress.sort((a, b) => {
