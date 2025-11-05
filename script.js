@@ -907,9 +907,12 @@ class ArkhamHorizonTracker {
     }
 
     deleteProgress(id) {
+        // Преобразуем ID к числу на всякий случай
+        const numericId = Number(id);
+
         if (confirm('Удалить эту запись из архивов?')) {
-            this.progress = this.progress.filter(item => item.id !== id);
-            this.saveProgress(); // Добавляем сохранение
+            this.progress = this.progress.filter(item => Number(item.id) !== numericId);
+            this.saveProgress();
             this.renderHexagonGrid();
             this.renderStats();
             this.updateAchievements();
