@@ -1,19 +1,6 @@
 {
   "progress": [
     {
-      "id": 1762306960878,
-      "investigator": [
-        "dexter",
-        "rex"
-      ],
-      "scenario": "echo_deep",
-      "date": "2025-10-30",
-      "result": "win",
-      "notes": "",
-      "timestamp": "2025-11-05T01:42:40.878Z",
-      "playerCount": 2
-    },
-    {
       "id": 1762262379833,
       "investigator": [
         "dexter",
