@@ -617,6 +617,14 @@ class GitHubSyncManager {
             modal.style.display = 'none';
         });
     }
+    // Отладочный метод для проверки методов класса
+    debugMethods() {
+        console.log('Available methods:', {
+            pullData: typeof this.pullData,
+            pushData: typeof this.pushData,
+            manualSync: typeof this.manualSync,
+            isConfigured: typeof this.isConfigured
+        });
 }
 
 // Основной класс трекера
