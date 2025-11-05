@@ -1,6 +1,8 @@
 // Улучшенный менеджер синхронизации с обработкой ошибок
+// Улучшенный менеджер синхронизации с обработкой ошибок
 class GitHubSyncManager {
-    constructor() {
+    constructor(trackerInstance) {
+        this.tracker = trackerInstance; // Сохраняем ссылку на трекер
         this.GITHUB_TOKEN = '';
         this.REPO_OWNER = '';
         this.REPO_NAME = '';
@@ -9,6 +11,15 @@ class GitHubSyncManager {
         this.syncInterval = null;
         this.retryCount = 0;
         this.maxRetries = 3;
+    }
+
+    // Вспомогательный метод для показа уведомлений
+    showNotification(message, type = 'info') {
+        if (this.tracker && this.tracker.showNotification) {
+            this.tracker.showNotification(message, type);
+        } else {
+            console.log(`[Notification ${type}]: ${message}`);
+        }
     }
 
     // Инициализация с улучшенной обработкой ошибок
@@ -22,7 +33,7 @@ class GitHubSyncManager {
                 console.log('🔗 Синхронизация настроена, проверяем подключение...');
                 const isValid = await this.validateConnection();
                 if (isValid) {
-                    tracker.showNotification('🔗 Автосинхронизация активна', 'success');
+                    this.showNotification('🔗 Автосинхронизация активна', 'success');
                     this.startAutoSync();
                     return true;
                 } else {
@@ -64,7 +75,7 @@ class GitHubSyncManager {
         this.REPO_NAME = config.repo;
 
         // Проверяем подключение
-        tracker.showNotification('🔍 Проверка подключения...', 'info');
+        this.showNotification('🔍 Проверка подключения...', 'info');
         const isValid = await this.validateConnection();
 
         if (!isValid) {
@@ -78,11 +89,40 @@ class GitHubSyncManager {
         localStorage.setItem('github_repo_owner', this.REPO_OWNER);
         localStorage.setItem('github_repo_name', this.REPO_NAME);
 
-        tracker.showNotification('✅ Синхронизация настроена!', 'success');
+        this.showNotification('✅ Синхронизация настроена!', 'success');
         this.startAutoSync();
         return true;
     }
+    // Запуск автосинхронизации
+    startAutoSync() {
+        if (!this.tracker) {
+            console.error('Tracker not available for auto-sync');
+            return;
+        }
 
+        // Первая синхронизация при загрузке
+        setTimeout(() => {
+            this.pullData();
+        }, 3000);
+
+        // Периодическая синхронизация
+        this.syncInterval = setInterval(() => {
+            this.pullData();
+        }, 2 * 60 * 1000);
+
+        // Синхронизация при изменении данных
+        const originalSaveProgress = this.tracker.saveProgress;
+        const self = this;
+
+        this.tracker.saveProgress = function () {
+            originalSaveProgress.call(this);
+            if (self.isConfigured()) {
+                setTimeout(() => self.pushData(), 2000);
+            }
+        };
+
+        console.log('🔄 Автосинхронизация запущена');
+    }
     // Модальное окно настройки с примерами
     async showSetupModal() {
         return new Promise((resolve) => {
@@ -303,7 +343,7 @@ class GitHubSyncManager {
             localStorage.setItem('last_sync_timestamp', data.timestamp);
 
             console.log('✅ Push successful:', result.commit.html_url);
-            tracker.showNotification('☁️ Данные сохранены в облако', 'success');
+            this.showNotification('☁️ Данные сохранены в облако', 'success');
 
             this.retryCount = 0;
             return true;
@@ -342,13 +382,14 @@ class GitHubSyncManager {
     }
 
     // Применение данных с улучшенным мержем
+    // Применение данных с улучшенным мержем
     applyRemoteData(data) {
         if (!data || !Array.isArray(data.progress)) {
             this.showError('Неверный формат данных синхронизации');
             return;
         }
 
-        const localProgress = tracker.progress;
+        const localProgress = this.tracker.progress;
         const remoteProgress = data.progress;
 
         // Простой мерж - добавляем только новые записи
@@ -356,16 +397,16 @@ class GitHubSyncManager {
         const newRecords = remoteProgress.filter(item => !localIds.has(item.id));
 
         if (newRecords.length > 0) {
-            tracker.progress = [...localProgress, ...newRecords].sort((a, b) =>
+            this.tracker.progress = [...localProgress, ...newRecords].sort((a, b) =>
                 new Date(b.timestamp) - new Date(a.timestamp)
             );
 
-            tracker.saveProgress();
-            tracker.renderHexagonGrid();
-            tracker.renderStats();
-            tracker.updateAchievements();
+            this.tracker.saveProgress();
+            this.tracker.renderHexagonGrid();
+            this.tracker.renderStats();
+            this.tracker.updateAchievements();
 
-            tracker.showNotification(`🔁 Добавлено ${newRecords.length} новых записей`, 'success');
+            this.showNotification(`🔁 Добавлено ${newRecords.length} новых записей`, 'success');
         }
 
         localStorage.setItem('last_sync_timestamp', data.timestamp);
@@ -374,11 +415,11 @@ class GitHubSyncManager {
     // Ручная синхронизация
     async manualSync() {
         if (!this.isConfigured()) {
-            tracker.showNotification('❌ Сначала настройте синхронизацию', 'error');
+            this.showNotification('❌ Сначала настройте синхронизацию', 'error');
             return;
         }
 
-        tracker.showNotification('🔄 Синхронизация...', 'info');
+        this.showNotification('🔄 Синхронизация...', 'info');
 
         try {
             await this.pullData();
@@ -415,7 +456,7 @@ class GitHubSyncManager {
     // Показать детальную ошибку
     showError(message) {
         console.error('Sync Error:', message);
-        tracker.showNotification(`❌ ${message}`, 'error');
+        this.showNotification(`❌ ${message}`, 'error');
 
         // Показываем детали в консоли
         if (console && console.error) {
@@ -500,18 +541,18 @@ class GitHubSyncManager {
         });
 
         document.getElementById('test-connection').addEventListener('click', async () => {
-            tracker.showNotification('🔍 Проверка подключения...', 'info');
+            this.showNotification('🔍 Проверка подключения...', 'info');
             const isValid = await this.validateConnection();
             modal.style.display = 'none';
 
             if (isValid) {
-                tracker.showNotification('✅ Подключение успешно', 'success');
+                this.showNotification('✅ Подключение успешно', 'success');
             }
         });
 
         document.getElementById('stop-sync').addEventListener('click', () => {
             this.clearSettings();
-            tracker.showNotification('🔌 Синхронизация отключена', 'info');
+            this.showNotification('🔌 Синхронизация отключена', 'info');
             modal.style.display = 'none';
         });
     }
@@ -840,7 +881,8 @@ class ArkhamHorizonTracker {
                 };
 
                 this.selectedInvestigators = [];
-                this.currentPlayerCount = 2;
+        this.currentPlayerCount = 2;
+        this.githubSync = new GitHubSyncManager(this); // Передаем this в конструктор
                 this.init();
             }
 
@@ -1431,7 +1473,7 @@ class ArkhamHorizonTracker {
     saveProgress() {
         localStorage.setItem('arkhamProgress', JSON.stringify(this.progress));
         // Автосинхронизация при сохранении
-        if (this.githubSync.isConfigured()) {
+        if (this.githubSync && this.githubSync.isConfigured()) {
             setTimeout(() => this.githubSync.pushData(), 1000);
         }
     }
