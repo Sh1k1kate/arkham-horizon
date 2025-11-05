@@ -1,14 +1,9 @@
-// Отладка - покажет текущую строку при ошибках
-window.addEventListener('error', function (e) {
-    console.error('Ошибка в строке:', e.lineno);
-    console.error('Файл:', e.filename);
-    console.error('Текст ошибки:', e.message);
-});
-
 // Основной класс трекера
 class ArkhamHorizonTracker {
     constructor() {
-        this.progress = JSON.parse(localStorage.getItem('arkhamProgress')) || [];
+        // Не используем localStorage, только облачные данные
+        this.progress = [];
+
         this.investigators = {
             'agnes': {
                 name: 'Агнес Бейкер',
@@ -347,19 +342,17 @@ class ArkhamHorizonTracker {
         this.setupEventListeners();
         this.setupModal();
 
-        // Автозагрузка данных при запуске
+        // Загружаем данные только из облака
         setTimeout(() => {
             if (this.syncManager.isConfigured()) {
-                this.syncManager.pull();
+                this.syncManager.pull(); // Загружаем данные при запуске
+            } else {
+                // Если синхронизация не настроена, показываем пустые данные
+                this.renderHexagonGrid();
+                this.renderStats();
+                this.updateAchievements();
             }
-        }, 2000);
-
-        if (this.progress.length === 0 && !localStorage.getItem('welcomeShown')) {
-            setTimeout(() => {
-                this.showNotification('Добро пожаловать! Выберите количество сыщиков и заполните форму.', 'info');
-                localStorage.setItem('welcomeShown', 'true');
-            }, 1000);
-        }
+        }, 1000);
     }
 
     setupEventListeners() {
@@ -387,19 +380,13 @@ class ArkhamHorizonTracker {
         document.getElementById('filter-result').addEventListener('change', () => this.applyFilters());
         document.getElementById('reset-filters').addEventListener('click', () => this.resetFilters());
 
-        // Экспорт/импорт
-        document.getElementById('export-json').addEventListener('click', () => this.exportToJSON());
-        document.getElementById('export-csv').addEventListener('click', () => this.exportToCSV());
-        document.getElementById('import-data').addEventListener('click', () => document.getElementById('import-file').click());
-        document.getElementById('import-file').addEventListener('change', (e) => this.importData(e));
-
         // Синхронизация
         document.getElementById('setup-sync').addEventListener('click', () => {
             this.syncManager.setup();
         });
 
         document.getElementById('manual-sync').addEventListener('click', () => {
-            this.syncManager.sync();
+            this.syncManager.pull();
         });
 
         document.getElementById('sync-status').addEventListener('click', () => {
@@ -903,77 +890,62 @@ class ArkhamHorizonTracker {
             playerCount: investigators.length
         };
 
+        // Добавляем в локальный массив (только для отображения)
         this.progress.push(progressItem);
-        this.saveProgress();
-        this.renderHexagonGrid();
-        this.renderStats();
-        this.updateAchievements();
-        this.resetForm();
 
-        this.showNotification(`Запись успешно добавлена для команды из ${investigators.length} сыщиков!`, 'success');
+        // Немедленно сохраняем в облако
+        if (this.syncManager.isConfigured()) {
+            this.syncManager.push().then(success => {
+                if (success) {
+                    this.showNotification(`Запись успешно добавлена в облачные архивы!`, 'success');
+                    this.renderHexagonGrid();
+                    this.renderStats();
+                    this.updateAchievements();
+                    this.resetForm();
+                } else {
+                    // Если не удалось сохранить в облако, убираем из локального массива
+                    this.progress = this.progress.filter(item => item.id !== progressItem.id);
+                    this.showNotification('Ошибка сохранения в облако', 'error');
+                }
+            });
+        } else {
+            this.showNotification('Синхронизация не настроена', 'error');
+            // Убираем запись, так как не можем сохранить
+            this.progress = this.progress.filter(item => item.id !== progressItem.id);
+        }
     }
 
     deleteProgress(id) {
-        if (confirm('Удалить эту запись из архивов?')) {
+        if (confirm('Удалить эту запись из облачных архивов?')) {
             // Удаляем из локального массива
             this.progress = this.progress.filter(item => item.id !== id);
 
-            // Сохраняем в localStorage
-            this.saveProgress();
-
-            // Немедленно синхронизируем с GitHub (перезаписываем файл)
-            if (this.syncManager && this.syncManager.isConfigured && this.syncManager.isConfigured()) {
-                if (this.syncManager.push) {
-                    this.syncManager.push().then(success => {
-                        if (success) {
-                            this.showNotification('Запись удалена из всех архивов', 'error');
-                        } else {
-                            this.showNotification('Запись удалена локально, но ошибка синхронизации с облаком', 'warning');
-                        }
-                    }).catch(error => {
-                        console.error('Sync error after delete:', error);
-                        this.showNotification('Запись удалена локально, но ошибка синхронизации', 'warning');
-                    });
-                }
+            // Немедленно сохраняем в облако
+            if (this.syncManager.isConfigured()) {
+                this.syncManager.push().then(success => {
+                    if (success) {
+                        this.showNotification('Запись удалена из облачных архивов', 'error');
+                        this.renderHexagonGrid();
+                        this.renderStats();
+                        this.updateAchievements();
+                    } else {
+                        // Если не удалось удалить из облака, перезагружаем данные
+                        this.syncManager.pull();
+                        this.showNotification('Ошибка удаления из облака', 'error');
+                    }
+                });
             } else {
-                this.showNotification('Запись удалена из локальных архивов', 'error');
+                this.showNotification('Синхронизация не настроена', 'error');
             }
-
-            this.renderHexagonGrid();
-            this.renderStats();
-            this.updateAchievements();
         }
     }
 
+    // Сохраняем только в облако
     saveProgress() {
-        // Убираем возможные дубликаты перед сохранением
-        const uniqueProgress = this.removeDuplicates(this.progress);
-
-        if (uniqueProgress.length !== this.progress.length) {
-            console.log(`🧹 Удалено ${this.progress.length - uniqueProgress.length} дубликатов`);
-            this.progress = uniqueProgress;
-        }
-
-        localStorage.setItem('arkhamProgress', JSON.stringify(this.progress));
-
-        // Автосинхронизация при сохранении
+        // Сохраняем только в облако
         if (this.syncManager.isConfigured()) {
-            setTimeout(() => this.syncManager.push(), 1000);
+            this.syncManager.push();
         }
-    }
-
-    // Новый метод для удаления дубликатов
-    removeDuplicates(progressArray) {
-        const seen = new Set();
-        return progressArray.filter(item => {
-            // Используем комбинацию ID и timestamp для идентификации дубликатов
-            const identifier = `${item.id}-${item.timestamp}`;
-            if (seen.has(identifier)) {
-                return false;
-            }
-            seen.add(identifier);
-            return true;
-        });
     }
 
     resetForm() {
@@ -1051,7 +1023,7 @@ class ArkhamHorizonTracker {
                     <div class="hexagon-inner" ${backgroundStyle}>
                         <div class="hexagon-actions">
                             <button class="hexagon-delete" onclick="event.stopPropagation(); tracker.deleteProgress(${item.id})" title="Удалить запись">
-                            ×
+                                ×
                             </button>
                         </div>
                         
@@ -1075,21 +1047,6 @@ class ArkhamHorizonTracker {
                 </div>
             `;
         }).join('');
-    }
-
-    // Mетод для принудительной синхронизации
-    forceSync() {
-        if (this.syncManager.isConfigured()) {
-            this.syncManager.push().then(success => {
-                if (success) {
-                    this.showNotification('✅ Данные синхронизированы с облаком', 'success');
-                } else {
-                    this.showNotification('❌ Ошибка синхронизации', 'error');
-                }
-            });
-        } else {
-            this.showNotification('⚠️ Синхронизация не настроена', 'warning');
-        }
     }
 
     getFilteredProgress() {
@@ -1404,95 +1361,6 @@ class ArkhamHorizonTracker {
         }).join('');
     }
 
-    exportToJSON() {
-        const data = {
-            progress: this.progress,
-            exportDate: new Date().toISOString(),
-            totalRecords: this.progress.length,
-            version: '3.0',
-            features: ['dynamic_investigator_selection', 'search', 'achievements']
-        };
-
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `аркхем-архивы-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        this.showNotification('Архивы экспортированы в свиток знаний!', 'success');
-    }
-
-    exportToCSV() {
-        const headers = ['Сыщики', 'Сюжет', 'Дата', 'Результат', 'Размер команды', 'Заметки', 'Дата добавления'];
-        const csvData = this.progress.map(item => {
-            const investigators = Array.isArray(item.investigator)
-                ? item.investigator.map(key => this.investigators[key].name).join('; ')
-                : this.investigators[item.investigator].name;
-
-            const teamSize = Array.isArray(item.investigator) ? item.investigator.length : 1;
-
-            return [
-                `"${investigators}"`,
-                this.scenarios[item.scenario].name,
-                item.date,
-                item.result === 'win' ? 'Победа' : item.result === 'loss' ? 'Поражение' : 'Другое',
-                teamSize,
-                `"${(item.notes || '').replace(/"/g, '""')}"`,
-                new Date(item.timestamp).toLocaleDateString('ru-RU')
-            ];
-        });
-
-        const csvContent = [headers, ...csvData]
-            .map(row => row.join(','))
-            .join('\n');
-
-        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `аркхем-таблицы-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        this.showNotification('Таблицы экспортированы для анализа!', 'success');
-    }
-
-    importData(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = JSON.parse(e.target.result);
-
-                if (data.progress && Array.isArray(data.progress)) {
-                    if (confirm(`Импортировать ${data.progress.length} записей из архивов? Текущие данные будут заменены.`)) {
-                        this.progress = data.progress;
-                        this.saveProgress();
-                        this.renderHexagonGrid();
-                        this.renderStats();
-                        this.updateAchievements();
-                        this.showNotification('Архивы успешно импортированы!', 'success');
-                    }
-                } else {
-                    throw new Error('Неверный формат свитка знаний');
-                }
-            } catch (error) {
-                this.showNotification('Ошибка при чтении свитка: ' + error.message, 'error');
-            }
-        };
-
-        reader.readAsText(file);
-        event.target.value = '';
-    }
-
     showNotification(message, type = 'info') {
         const container = document.getElementById('notification-container');
         const notification = document.createElement('div');
@@ -1522,7 +1390,7 @@ class ArkhamHorizonTracker {
     }
 }
 
-// Полностью рабочий менеджер синхронизации через GitHub API
+// Менеджер синхронизации через GitHub API
 class GitHubSyncManager {
     constructor(tracker) {
         this.tracker = tracker;
@@ -1619,6 +1487,8 @@ class GitHubSyncManager {
                         localStorage.setItem('github_repo', repo);
 
                         this.notify('✅ Синхронизация настроена!', 'success');
+                        // Загружаем данные после настройки
+                        this.pull();
                         resolve(true);
                     } else {
                         this.notify('❌ Не удалось подключиться к репозиторию', 'error');
@@ -1723,6 +1593,7 @@ class GitHubSyncManager {
         }
     }
 
+    // Загружаем данные из облака
     async pull() {
         if (!this.isConfigured() || this.syncing) return false;
 
@@ -1731,11 +1602,13 @@ class GitHubSyncManager {
             this.notify('🔁 Загрузка данных из облака...', 'info');
 
             const response = await this.githubRequest(
-                `/repos/${this.owner}/${this.repo}/contents/data/arkham_progress.json`
+                `/repos/${this.owner}/${this.repo}/contents/arkham_progress.json`
             );
 
             if (response.status === 404) {
+                // Файла нет - создаем пустой
                 this.notify('📝 Файл данных не найден. Будет создан при сохранении.', 'warning');
+                this.tracker.progress = [];
                 return false;
             }
 
@@ -1747,19 +1620,16 @@ class GitHubSyncManager {
             const content = this.decodeBase64(data.content);
             const remoteData = JSON.parse(content);
 
-            // Проверяем временную метку
-            const lastSync = localStorage.getItem('last_sync_timestamp');
-            const remoteTimestamp = remoteData.timestamp;
-
-            console.log('⏰ Временные метки:', {
-                lastSync,
-                remoteTimestamp,
-                isNewer: !lastSync || new Date(remoteTimestamp) > new Date(lastSync)
-            });
-
             if (remoteData && Array.isArray(remoteData.progress)) {
-                this.mergeData(remoteData);
-                localStorage.setItem('last_sync_timestamp', remoteData.timestamp);
+                // Облачные данные - единственный источник истины
+                this.tracker.progress = remoteData.progress;
+
+                // Обновляем интерфейс
+                this.tracker.renderHexagonGrid();
+                this.tracker.renderStats();
+                this.tracker.updateAchievements();
+
+                this.notify(`✅ Загружено ${remoteData.progress.length} записей из облака`, 'success');
                 return true;
             } else {
                 throw new Error('Неверный формат данных');
@@ -1774,6 +1644,7 @@ class GitHubSyncManager {
         }
     }
 
+    // Сохраняем данные в облако
     async push() {
         if (!this.isConfigured() || this.syncing) return false;
 
@@ -1789,12 +1660,10 @@ class GitHubSyncManager {
             };
 
             const content = this.encodeBase64(JSON.stringify(syncData, null, 2));
-
-            // Получаем текущий SHA файла для обновления
             const sha = await this.getFileSHA();
 
             const body = {
-                message: `Update: ${new Date().toLocaleString('ru-RU')} (${syncData.progress.length} records)`,
+                message: `Sync: ${new Date().toLocaleString('ru-RU')} (${syncData.progress.length} records)`,
                 content: content
             };
 
@@ -1815,7 +1684,7 @@ class GitHubSyncManager {
                 throw new Error(errorData.message || `Ошибка ${response.status}`);
             }
 
-            localStorage.setItem('last_sync_timestamp', syncData.timestamp);
+            this.notify('✅ Данные сохранены в облако', 'success');
             return true;
 
         } catch (error) {
@@ -1824,73 +1693,6 @@ class GitHubSyncManager {
             return false;
         } finally {
             this.syncing = false;
-        }
-    }
-
-    // Правильное объединение данных без дублирования
-    mergeData(remoteData) {
-        const local = this.tracker.progress || [];
-        const remote = remoteData && remoteData.progress ? remoteData.progress : [];
-
-        console.log('🔁 Объединение данных:', {
-            local: local.length,
-            remote: remote.length
-        });
-
-        // Если локальные данные есть, используем их как основу (приоритет локальным данным)
-        if (local.length > 0) {
-            console.log('🎯 Приоритет локальным данным');
-            this.tracker.progress = local;
-            if (this.tracker.saveProgress) this.tracker.saveProgress();
-            if (this.tracker.renderHexagonGrid) this.tracker.renderHexagonGrid();
-            if (this.tracker.renderStats) this.tracker.renderStats();
-            if (this.tracker.updateAchievements) this.tracker.updateAchievements();
-            this.notify('✅ Использованы локальные данные', 'info');
-            return;
-        }
-
-        // Если локальных данных нет, используем удаленные
-        if (remote.length > 0 && local.length === 0) {
-            console.log('📥 Загрузка данных из облака');
-            this.tracker.progress = remote;
-            if (this.tracker.saveProgress) this.tracker.saveProgress();
-            if (this.tracker.renderHexagonGrid) this.tracker.renderHexagonGrid();
-            if (this.tracker.renderStats) this.tracker.renderStats();
-            if (this.tracker.updateAchievements) this.tracker.updateAchievements();
-            this.notify('✅ Загружено ' + remote.length + ' записей из облака', 'success');
-            return;
-        }
-
-        this.notify('✅ Данные актуальны', 'info');
-    }
-
-
-       
-    async sync() {
-        if (!this.isConfigured()) {
-            this.notify('❌ Сначала настройте синхронизацию', 'error');
-            return false;
-        }
-
-        this.notify('🔄 Синхронизация...', 'info');
-
-        try {
-            console.log('🔄 Начало синхронизации...');
-
-            const pullResult = await this.pull();
-            const pushResult = await this.push();
-
-            if (pullResult || pushResult) {
-                this.notify('✅ Синхронизация завершена', 'success');
-            } else {
-                this.notify('ℹ️ Данные уже актуальны', 'info');
-            }
-
-            return pullResult || pushResult;
-        } catch (error) {
-            console.error('Sync error:', error);
-            this.notify('❌ Ошибка синхронизации: ' + error.message, 'error');
-            return false;
         }
     }
 
@@ -1905,7 +1707,7 @@ class GitHubSyncManager {
 
             const syncData = {
                 progress: [],
-                achievements: {},
+                achievements: this.tracker.achievements,
                 timestamp: new Date().toISOString(),
                 version: '3.0',
                 app: 'Arkham Horror Tracker'
@@ -1961,7 +1763,7 @@ class GitHubSyncManager {
                     </div>
                 </div>
                 <div class="status-actions">
-                    <button id="manual-sync-now" class="control-btn">🔄 Синхронизировать сейчас</button>
+                    <button id="manual-sync-now" class="control-btn">🔄 Загрузить из облака</button>
                     <button id="test-connection" class="control-btn">🔍 Проверить подключение</button>
                     <button id="clear-sync" class="control-btn secondary">🗑️ Очистить настройки</button>
                 </div>
@@ -1975,7 +1777,7 @@ class GitHubSyncManager {
         modal.style.display = 'block';
 
         document.getElementById('manual-sync-now').addEventListener('click', () => {
-            this.sync();
+            this.pull();
             modal.style.display = 'none';
         });
 
