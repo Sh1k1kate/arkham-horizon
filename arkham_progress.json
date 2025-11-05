@@ -1,21 +1,6 @@
 {
   "progress": [
     {
-      "id": 1762319728455,
-      "investigator": [
-        "agnes",
-        "daniela",
-        "pete",
-        "calvin"
-      ],
-      "scenario": "children_ithaqua",
-      "date": "2025-11-05",
-      "result": "win",
-      "notes": "",
-      "timestamp": "2025-11-05T05:15:28.455Z",
-      "playerCount": 4
-    },
-    {
       "id": 1762262379833,
       "investigator": [
         "dexter",
@@ -136,7 +121,7 @@
       "progress": 0
     }
   },
-  "timestamp": "2025-11-05T05:16:00.787Z",
+  "timestamp": "2025-11-05T05:16:30.054Z",
   "version": "3.0",
   "app": "Arkham Horror Tracker"
 }
