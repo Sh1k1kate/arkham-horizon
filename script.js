@@ -368,6 +368,70 @@ class GitHubSyncManager {
         }
         return null;
     }
+    // Отправка данных в репозиторий
+    async pushData() {
+        if (this.isSyncing || !this.isConfigured()) {
+            console.log('Push skipped: syncing=', this.isSyncing, 'configured=', this.isConfigured());
+            return false;
+        }
+
+        this.isSyncing = true;
+
+        try {
+            console.log('☁️ Pushing data to GitHub...');
+            const data = {
+                progress: this.tracker.progress,
+                achievements: this.tracker.achievements,
+                timestamp: new Date().toISOString(),
+                version: '3.0',
+                app: 'Arkham Horror Tracker'
+            };
+
+            const fileSHA = await this.getFileSHA();
+            const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+
+            const body = {
+                message: `Auto-sync: ${new Date().toLocaleString('ru-RU')} (${this.tracker.progress.length} records)`,
+                content: content,
+                sha: fileSHA
+            };
+
+            const response = await this.githubRequest(
+                `/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.SYNC_FILE_PATH}`,
+                {
+                    method: 'PUT',
+                    body: JSON.stringify(body)
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+            localStorage.setItem('last_sync_timestamp', data.timestamp);
+
+            console.log('✅ Push successful');
+            this.showNotification('☁️ Данные сохранены в облако', 'success');
+
+            this.retryCount = 0;
+            return true;
+
+        } catch (error) {
+            console.error('Push error:', error);
+            this.retryCount++;
+
+            if (this.retryCount >= this.maxRetries) {
+                this.showError(`Ошибка сохранения: ${error.message}`);
+                this.retryCount = 0;
+            }
+
+            return false;
+        } finally {
+            this.isSyncing = false;
+        }
+    }
 
     // Применение данных с улучшенным мержем
     // Применение данных с улучшенным мержем
@@ -419,22 +483,31 @@ class GitHubSyncManager {
 
     // Запуск автосинхронизации
     startAutoSync() {
+        if (!this.tracker) {
+            console.error('Tracker not available for auto-sync');
+            return;
+        }
+
+        // Сохраняем контекст
+        const self = this;
+
         // Первая синхронизация при загрузке
         setTimeout(() => {
-            this.pullData();
+            self.pullData();
         }, 3000);
 
         // Периодическая синхронизация
         this.syncInterval = setInterval(() => {
-            this.pullData();
+            self.pullData();
         }, 2 * 60 * 1000);
 
         // Синхронизация при изменении данных
-        const originalSaveProgress = tracker.saveProgress;
-        tracker.saveProgress = function () {
-            originalSaveProgress.call(this);
-            if (tracker.githubSync.isConfigured()) {
-                setTimeout(() => tracker.githubSync.pushData(), 2000);
+        const originalSaveProgress = this.tracker.saveProgress.bind(this.tracker);
+
+        this.tracker.saveProgress = function () {
+            originalSaveProgress();
+            if (self.isConfigured()) {
+                setTimeout(() => self.pushData(), 2000);
             }
         };
 
