@@ -1,45 +1,53 @@
-// Улучшенный менеджер синхронизации с обработкой ошибок
-// Улучшенный менеджер синхронизации с обработкой ошибок
+// Улучшенный менеджер синхронизации с правильной привязкой контекста
 class GitHubSyncManager {
     constructor(trackerInstance) {
-        this.tracker = trackerInstance; // Сохраняем ссылку на трекер
+        this.tracker = trackerInstance;
         this.GITHUB_TOKEN = '';
         this.REPO_OWNER = '';
         this.REPO_NAME = '';
-        this.SYNC_FILE_PATH = 'arkham_progress.json';
+        this.SYNC_FILE_PATH = 'data/arkham_progress.json';
         this.isSyncing = false;
         this.syncInterval = null;
         this.retryCount = 0;
         this.maxRetries = 3;
+
+        // Жесткая привязка методов к контексту
+        this.initialize = this.initialize.bind(this);
+        this.setupSync = this.setupSync.bind(this);
+        this.manualSync = this.manualSync.bind(this);
+        this.pullData = this.pullData.bind(this);
+        this.pushData = this.pushData.bind(this);
+        this.showStatus = this.showStatus.bind(this);
+        this.showNotification = this.showNotification.bind(this);
+        this.showError = this.showError.bind(this);
     }
 
     // Вспомогательный метод для показа уведомлений
     showNotification(message, type = 'info') {
-        if (this.tracker && this.tracker.showNotification) {
+        console.log(`[Notification ${type}]: ${message}`);
+        if (this.tracker && typeof this.tracker.showNotification === 'function') {
             this.tracker.showNotification(message, type);
-        } else {
-            console.log(`[Notification ${type}]: ${message}`);
         }
     }
 
-    // Инициализация с улучшенной обработкой ошибок
+    // Показать детальную ошибку
+    showError(message) {
+        console.error('Sync Error:', message);
+        this.showNotification(`❌ ${message}`, 'error');
+    }
+
+    // Инициализация
     async initialize() {
         try {
-            this.GITHUB_TOKEN = localStorage.getItem('github_sync_token');
-            this.REPO_OWNER = localStorage.getItem('github_repo_owner');
-            this.REPO_NAME = localStorage.getItem('github_repo_name');
+            this.GITHUB_TOKEN = localStorage.getItem('github_sync_token') || '';
+            this.REPO_OWNER = localStorage.getItem('github_repo_owner') || '';
+            this.REPO_NAME = localStorage.getItem('github_repo_name') || '';
 
             if (this.isConfigured()) {
-                console.log('🔗 Синхронизация настроена, проверяем подключение...');
-                const isValid = await this.validateConnection();
-                if (isValid) {
-                    this.showNotification('🔗 Автосинхронизация активна', 'success');
-                    this.startAutoSync();
-                    return true;
-                } else {
-                    this.showError('Настройки синхронизации невалидны');
-                    this.clearSettings();
-                }
+                console.log('🔗 Синхронизация настроена');
+                this.showNotification('🔗 Автосинхронизация активна', 'success');
+                this.startAutoSync();
+                return true;
             }
         } catch (error) {
             console.error('Initialization error:', error);
@@ -47,42 +55,19 @@ class GitHubSyncManager {
         return false;
     }
 
-    // Проверка подключения
-    async validateConnection() {
-        try {
-            const response = await this.githubRequest(`/repos/${this.REPO_OWNER}/${this.REPO_NAME}`);
-            if (response.ok) {
-                console.log('✅ Подключение к репозиторию успешно');
-                return true;
-            } else {
-                console.error('❌ Ошибка репозитория:', response.status, response.statusText);
-                return false;
-            }
-        } catch (error) {
-            console.error('❌ Ошибка подключения:', error);
-            return false;
-        }
+    // Проверка конфигурации
+    isConfigured() {
+        return !!(this.GITHUB_TOKEN && this.REPO_OWNER && this.REPO_NAME);
     }
 
-    // Настройка синхронизации с проверкой
+    // Настройка синхронизации
     async setupSync() {
         const config = await this.showSetupModal();
         if (!config) return false;
 
-        // Временно сохраняем настройки для проверки
         this.GITHUB_TOKEN = config.token;
         this.REPO_OWNER = config.owner;
         this.REPO_NAME = config.repo;
-
-        // Проверяем подключение
-        this.showNotification('🔍 Проверка подключения...', 'info');
-        const isValid = await this.validateConnection();
-
-        if (!isValid) {
-            this.showError('Не удалось подключиться к репозиторию. Проверьте токен и название репозитория.');
-            this.clearSettings();
-            return false;
-        }
 
         // Сохраняем настройки
         localStorage.setItem('github_sync_token', this.GITHUB_TOKEN);
@@ -93,101 +78,29 @@ class GitHubSyncManager {
         this.startAutoSync();
         return true;
     }
-    // Запуск автосинхронизации
-    startAutoSync() {
-        if (!this.tracker) {
-            console.error('Tracker not available for auto-sync');
-            return;
-        }
 
-        // Первая синхронизация при загрузке
-        setTimeout(() => {
-            this.pullData();
-        }, 3000);
-
-        // Периодическая синхронизация
-        this.syncInterval = setInterval(() => {
-            this.pullData();
-        }, 2 * 60 * 1000);
-
-        // Синхронизация при изменении данных
-        const originalSaveProgress = this.tracker.saveProgress;
-        const self = this;
-
-        this.tracker.saveProgress = function () {
-            originalSaveProgress.call(this);
-            if (self.isConfigured()) {
-                setTimeout(() => self.pushData(), 2000);
-            }
-        };
-
-        console.log('🔄 Автосинхронизация запущена');
-    }
-    // Модальное окно настройки с примерами
+    // Модальное окно настройки (упрощенная версия)
     async showSetupModal() {
         return new Promise((resolve) => {
-            // Получаем текущий URL для определения репозитория
-            const currentUrl = window.location.href;
-            let suggestedRepo = '';
-
-            try {
-                const urlParts = currentUrl.split('/');
-                if (urlParts[2] === 'github.io') {
-                    suggestedRepo = urlParts[3] || 'arkham-tracker';
-                }
-            } catch (e) {
-                suggestedRepo = 'arkham-tracker';
-            }
-
             const modalHTML = `
                 <div class="sync-setup-modal">
-                    <h3>⚙️ Настройка автосинхронизации</h3>
-                    
-                    <div class="setup-instructions">
-                        <details>
-                            <summary>📋 Как получить GitHub Token</summary>
-                            <div class="instructions-content">
-                                <ol>
-                                    <li>Зайдите на <a href="https://github.com/settings/tokens" target="_blank">GitHub Tokens</a></li>
-                                    <li>Нажмите "Generate new token" → "Generate new token (classic)"</li>
-                                    <li>Введите название: "Arkham Tracker Sync"</li>
-                                    <li>Выберите срок действия (recommended: 90 days)</li>
-                                    <li>В разделе "scopes" выберите: <strong>repo</strong> (полный доступ)</li>
-                                    <li>Нажмите "Generate token" и скопируйте токен</li>
-                                </ol>
-                            </div>
-                        </details>
-                    </div>
-
+                    <h3>⚙️ Настройка синхронизации</h3>
                     <div class="setup-form">
                         <div class="form-group">
-                            <label for="github-token">GitHub Token:</label>
-                            <input type="password" id="github-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="form-input" required>
-                            <small>Токен должен иметь права <code>repo</code></small>
+                            <label>GitHub Token:</label>
+                            <input type="password" id="github-token" placeholder="ghp_..." class="form-input">
                         </div>
-                        
                         <div class="form-group">
-                            <label for="github-owner">Ваш GitHub Username:</label>
-                            <input type="text" id="github-owner" placeholder="your-username" class="form-input" required>
-                            <small>Тот же, что и в URL репозитория</small>
+                            <label>Username:</label>
+                            <input type="text" id="github-owner" placeholder="your-username" class="form-input">
                         </div>
-                        
                         <div class="form-group">
-                            <label for="github-repo">Название репозитория:</label>
-                            <input type="text" id="github-repo" placeholder="${suggestedRepo}" value="${suggestedRepo}" class="form-input" required>
-                            <small>Репозиторий где хостится этот сайт</small>
+                            <label>Repository:</label>
+                            <input type="text" id="github-repo" placeholder="arkham-horizon" class="form-input">
                         </div>
                     </div>
-
-                    <div class="setup-example">
-                        <strong>Пример:</strong>
-                        <div class="example-url">
-                            https://github.com/<span class="example-owner">your-username</span>/<span class="example-repo">${suggestedRepo}</span>
-                        </div>
-                    </div>
-
                     <div class="setup-actions">
-                        <button id="confirm-setup" class="control-btn">✅ Настроить синхронизацию</button>
+                        <button id="confirm-setup" class="control-btn">✅ Настроить</button>
                         <button id="cancel-setup" class="control-btn secondary">❌ Отмена</button>
                     </div>
                 </div>
@@ -199,23 +112,17 @@ class GitHubSyncManager {
             modalContent.innerHTML = modalHTML;
             modal.style.display = 'block';
 
-            document.getElementById('confirm-setup').addEventListener('click', async () => {
+            document.getElementById('confirm-setup').addEventListener('click', () => {
                 const token = document.getElementById('github-token').value.trim();
                 const owner = document.getElementById('github-owner').value.trim();
                 const repo = document.getElementById('github-repo').value.trim();
 
-                if (!token || !owner || !repo) {
-                    this.showError('Заполните все поля');
-                    return;
+                if (token && owner && repo) {
+                    modal.style.display = 'none';
+                    resolve({ token, owner, repo });
+                } else {
+                    this.showNotification('Заполните все поля', 'error');
                 }
-
-                if (!token.startsWith('ghp_')) {
-                    this.showError('Токен должен начинаться с ghp_');
-                    return;
-                }
-
-                modal.style.display = 'none';
-                resolve({ token, owner, repo });
             });
 
             document.getElementById('cancel-setup').addEventListener('click', () => {
@@ -225,7 +132,7 @@ class GitHubSyncManager {
         });
     }
 
-    // Запрос к GitHub API с улучшенной обработкой ошибок
+    // Запрос к GitHub API
     async githubRequest(endpoint, options = {}) {
         const url = `https://api.github.com${endpoint}`;
 
@@ -239,24 +146,6 @@ class GitHubSyncManager {
 
         try {
             const response = await fetch(url, { ...defaultOptions, ...options });
-
-            if (response.status === 401) {
-                throw new Error('Неверный токен. Проверьте его правильность и срок действия.');
-            }
-
-            if (response.status === 403) {
-                const rateLimit = response.headers.get('X-RateLimit-Remaining');
-                if (rateLimit === '0') {
-                    throw new Error('Лимит запросов к GitHub API исчерпан. Попробуйте позже.');
-                }
-                throw new Error('Доступ запрещен. Убедитесь что токен имеет права repo.');
-            }
-
-            if (response.status === 404) {
-                // Не бросаем ошибку для 404, пусть вызывающий код решает что делать
-                return response;
-            }
-
             return response;
         } catch (error) {
             console.error('GitHub API Error:', error);
@@ -264,134 +153,76 @@ class GitHubSyncManager {
         }
     }
 
-    // Загрузка данных с репозитория
+    // Загрузка данных
     async pullData() {
-        if (this.isSyncing || !this.isConfigured()) return false;
+        if (this.isSyncing || !this.isConfigured()) {
+            console.log('Pull skipped');
+            return false;
+        }
 
         try {
-            console.log('🔁 Pulling data from GitHub...');
+            console.log('🔁 Pulling data...');
             const response = await this.githubRequest(`/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.SYNC_FILE_PATH}`);
 
             if (response.status === 404) {
-                console.log('📝 Файл синхронизации не найден, создаем...');
-                // Создаем файл при первом запуске
-                const created = await this.createInitialFile();
-                if (created) {
-                    this.showNotification('📁 Файл синхронизации создан', 'success');
-                }
+                console.log('Файл не найден');
                 return false;
             }
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                throw new Error(`HTTP ${response.status}`);
             }
 
             const fileData = await response.json();
+            const content = JSON.parse(atob(fileData.content.replace(/\n/g, '')));
 
-            if (!fileData.content) {
-                throw new Error('Файл не содержит данных');
+            // Применяем данные
+            if (content && Array.isArray(content.progress)) {
+                this.applyRemoteData(content);
             }
 
-            const content = JSON.parse(atob(fileData.content.replace(/\n/g, '')));
-            this.applyRemoteData(content);
-
-            this.retryCount = 0;
             return true;
 
         } catch (error) {
             console.error('Pull error:', error);
-            this.retryCount++;
-
-            if (this.retryCount >= this.maxRetries) {
-                this.showError(`Ошибка синхронизации: ${error.message}`);
-                this.retryCount = 0;
-            }
-
             return false;
         }
     }
 
-    // Создание начального файла
-    async createInitialFile() {
-        try {
-            const data = {
-                progress: this.tracker.progress,
-                achievements: this.tracker.achievements,
-                timestamp: new Date().toISOString(),
-                version: '3.0',
-                app: 'Arkham Horror Tracker'
-            };
-
-            const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
-
-            const body = {
-                message: 'Initial sync file creation',
-                content: content
-            };
-
-            const response = await this.githubRequest(
-                `/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.SYNC_FILE_PATH}`,
-                {
-                    method: 'PUT',
-                    body: JSON.stringify(body)
-                }
-            );
-
-            if (response.ok) {
-                console.log('✅ Initial file created successfully');
-                return true;
-            } else {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to create file');
-            }
-        } catch (error) {
-            console.error('Create file error:', error);
-            this.showError(`Не удалось создать файл: ${error.message}`);
-            return false;
-        }
-    }
-
-    // Получить SHA файла
-    async getFileSHA() {
-        try {
-            const response = await this.githubRequest(`/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.SYNC_FILE_PATH}`);
-            if (response.ok) {
-                const fileData = await response.json();
-                return fileData.sha;
-            }
-        } catch (error) {
-            // Файл не существует - это нормально для первого запуска
-            if (error.message.includes('404')) {
-                return null;
-            }
-            throw error;
-        }
-        return null;
-    }
-    // Отправка данных в репозиторий
+    // Отправка данных
     async pushData() {
         if (this.isSyncing || !this.isConfigured()) {
-            console.log('Push skipped: syncing=', this.isSyncing, 'configured=', this.isConfigured());
+            console.log('Push skipped');
             return false;
         }
 
         this.isSyncing = true;
 
         try {
-            console.log('☁️ Pushing data to GitHub...');
+            console.log('☁️ Pushing data...');
             const data = {
-                progress: this.tracker.progress,
-                achievements: this.tracker.achievements,
+                progress: this.tracker.progress || [],
+                achievements: this.tracker.achievements || {},
                 timestamp: new Date().toISOString(),
-                version: '3.0',
-                app: 'Arkham Horror Tracker'
+                version: '3.0'
             };
 
-            const fileSHA = await this.getFileSHA();
+            // Получаем SHA существующего файла
+            let fileSHA = null;
+            try {
+                const response = await this.githubRequest(`/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.SYNC_FILE_PATH}`);
+                if (response.ok) {
+                    const fileData = await response.json();
+                    fileSHA = fileData.sha;
+                }
+            } catch (error) {
+                // Файл не существует - это нормально
+            }
+
             const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
 
             const body = {
-                message: `Auto-sync: ${new Date().toLocaleString('ru-RU')} (${this.tracker.progress.length} records)`,
+                message: `Sync: ${new Date().toLocaleString('ru-RU')}`,
                 content: content,
                 sha: fileSHA
             };
@@ -405,43 +236,27 @@ class GitHubSyncManager {
             );
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `HTTP ${response.status}`);
+                throw new Error(`HTTP ${response.status}`);
             }
 
-            const result = await response.json();
             localStorage.setItem('last_sync_timestamp', data.timestamp);
-
-            console.log('✅ Push successful');
             this.showNotification('☁️ Данные сохранены в облако', 'success');
-
-            this.retryCount = 0;
             return true;
 
         } catch (error) {
             console.error('Push error:', error);
-            this.retryCount++;
-
-            if (this.retryCount >= this.maxRetries) {
-                this.showError(`Ошибка сохранения: ${error.message}`);
-                this.retryCount = 0;
-            }
-
+            this.showError(`Ошибка сохранения: ${error.message}`);
             return false;
         } finally {
             this.isSyncing = false;
         }
     }
 
-    // Применение данных с улучшенным мержем
-    // Применение данных с улучшенным мержем
+    // Применение данных
     applyRemoteData(data) {
-        if (!data || !Array.isArray(data.progress)) {
-            this.showError('Неверный формат данных синхронизации');
-            return;
-        }
+        if (!data || !Array.isArray(data.progress)) return;
 
-        const localProgress = this.tracker.progress;
+        const localProgress = this.tracker.progress || [];
         const remoteProgress = data.progress;
 
         // Простой мерж - добавляем только новые записи
@@ -466,6 +281,8 @@ class GitHubSyncManager {
 
     // Ручная синхронизация
     async manualSync() {
+        console.log('Manual sync called');
+
         if (!this.isConfigured()) {
             this.showNotification('❌ Сначала настройте синхронизацию', 'error');
             return;
@@ -474,9 +291,19 @@ class GitHubSyncManager {
         this.showNotification('🔄 Синхронизация...', 'info');
 
         try {
+            // Проверяем что методы существуют
+            if (typeof this.pullData !== 'function') {
+                throw new Error('pullData is not a function');
+            }
+            if (typeof this.pushData !== 'function') {
+                throw new Error('pushData is not a function');
+            }
+
             await this.pullData();
             await this.pushData();
+
         } catch (error) {
+            console.error('Manual sync error:', error);
             this.showError(`Ошибка синхронизации: ${error.message}`);
         }
     }
@@ -484,55 +311,62 @@ class GitHubSyncManager {
     // Запуск автосинхронизации
     startAutoSync() {
         if (!this.tracker) {
-            console.error('Tracker not available for auto-sync');
+            console.error('Tracker not available');
             return;
         }
 
-        // Сохраняем контекст
-        const self = this;
-
-        // Первая синхронизация при загрузке
+        // Первая синхронизация
         setTimeout(() => {
-            self.pullData();
+            this.pullData();
         }, 3000);
 
         // Периодическая синхронизация
         this.syncInterval = setInterval(() => {
-            self.pullData();
+            this.pullData();
         }, 2 * 60 * 1000);
-
-        // Синхронизация при изменении данных
-        const originalSaveProgress = this.tracker.saveProgress.bind(this.tracker);
-
-        this.tracker.saveProgress = function () {
-            originalSaveProgress();
-            if (self.isConfigured()) {
-                setTimeout(() => self.pushData(), 2000);
-            }
-        };
 
         console.log('🔄 Автосинхронизация запущена');
     }
 
-    // Показать детальную ошибку
-    showError(message) {
-        console.error('Sync Error:', message);
-        this.showNotification(`❌ ${message}`, 'error');
+    // Статус синхронизации
+    showStatus() {
+        const statusHTML = `
+            <div class="sync-status">
+                <h3>📡 Статус синхронизации</h3>
+                <div class="status-info">
+                    <div class="status-item">
+                        <strong>Настроено:</strong> ${this.isConfigured() ? '✅' : '❌'}
+                    </div>
+                    <div class="status-item">
+                        <strong>Репозиторий:</strong> ${this.REPO_OWNER}/${this.REPO_NAME}
+                    </div>
+                    <div class="status-item">
+                        <strong>Записей:</strong> ${this.tracker.progress.length}
+                    </div>
+                </div>
+                <div class="status-actions">
+                    <button id="manual-sync-now" class="control-btn">🔄 Синхронизировать</button>
+                    <button id="stop-sync" class="control-btn secondary">🔌 Отключить</button>
+                </div>
+            </div>
+        `;
 
-        // Показываем детали в консоли
-        if (console && console.error) {
-            console.error('Детали ошибки синхронизации:', {
-                token: this.GITHUB_TOKEN ? '***' + this.GITHUB_TOKEN.slice(-4) : 'missing',
-                owner: this.REPO_OWNER,
-                repo: this.REPO_NAME,
-                configured: this.isConfigured()
-            });
-        }
-    }
+        const modal = document.getElementById('record-modal');
+        const modalContent = document.getElementById('modal-content');
 
-    // Проверка конфигурации
-    isConfigured() {
-        return !!(this.GITHUB_TOKEN && this.REPO_OWNER && this.REPO_NAME);
+        modalContent.innerHTML = statusHTML;
+        modal.style.display = 'block';
+
+        document.getElementById('manual-sync-now').addEventListener('click', () => {
+            this.manualSync();
+            modal.style.display = 'none';
+        });
+
+        document.getElementById('stop-sync').addEventListener('click', () => {
+            this.clearSettings();
+            this.showNotification('🔌 Синхронизация отключена', 'info');
+            modal.style.display = 'none';
+        });
     }
 
     // Очистка настроек
@@ -551,87 +385,16 @@ class GitHubSyncManager {
             this.syncInterval = null;
         }
     }
-
-    // Статус синхронизации
-    showStatus() {
-        const statusHTML = `
-            <div class="sync-status">
-                <h3>📡 Статус синхронизации</h3>
-                
-                <div class="status-grid">
-                    <div class="status-item ${this.isConfigured() ? 'status-ok' : 'status-error'}">
-                        <strong>Настройка:</strong> ${this.isConfigured() ? '✅' : '❌'}
-                    </div>
-                    <div class="status-item">
-                        <strong>Репозиторий:</strong> ${this.REPO_OWNER}/${this.REPO_NAME}
-                    </div>
-                    <div class="status-item">
-                        <strong>Записей:</strong> ${tracker.progress.length}
-                    </div>
-                    <div class="status-item">
-                        <strong>Последняя синхронизация:</strong> 
-                        ${localStorage.getItem('last_sync_timestamp') ?
-                new Date(localStorage.getItem('last_sync_timestamp')).toLocaleString('ru-RU') :
-                'Никогда'}
-                    </div>
-                </div>
-
-                <div class="status-actions">
-                    <button id="manual-sync-now" class="control-btn">🔄 Синхронизировать сейчас</button>
-                    <button id="test-connection" class="control-btn">🔍 Проверить подключение</button>
-                    <button id="stop-sync" class="control-btn secondary">🔌 Отключить синхронизацию</button>
-                </div>
-
-                ${!this.isConfigured() ? `
-                    <div class="status-help">
-                        <strong>Не настроено?</strong> Нажмите "Настроить синхронизацию" в панели управления.
-                    </div>
-                ` : ''}
-            </div>
-        `;
-
-        const modal = document.getElementById('record-modal');
-        const modalContent = document.getElementById('modal-content');
-
-        modalContent.innerHTML = statusHTML;
-        modal.style.display = 'block';
-
-        document.getElementById('manual-sync-now').addEventListener('click', () => {
-            this.manualSync();
-            modal.style.display = 'none';
-        });
-
-        document.getElementById('test-connection').addEventListener('click', async () => {
-            this.showNotification('🔍 Проверка подключения...', 'info');
-            const isValid = await this.validateConnection();
-            modal.style.display = 'none';
-
-            if (isValid) {
-                this.showNotification('✅ Подключение успешно', 'success');
-            }
-        });
-
-        document.getElementById('stop-sync').addEventListener('click', () => {
-            this.clearSettings();
-            this.showNotification('🔌 Синхронизация отключена', 'info');
-            modal.style.display = 'none';
-        });
-    }
-    // Отладочный метод для проверки методов класса
-    debugMethods() {
-        console.log('Available methods:', {
-            pullData: typeof this.pullData,
-            pushData: typeof this.pushData,
-            manualSync: typeof this.manualSync,
-            isConfigured: typeof this.isConfigured
-        });
 }
 
 // Основной класс трекера
 class ArkhamHorizonTracker {
     constructor() {
-        this.githubSync = new GitHubSyncManager();
+       
         this.progress = JSON.parse(localStorage.getItem('arkhamProgress')) || [];
+        // Создаем синхронизацию
+        this.githubSync = new GitHubSyncManager(this);
+
         this.investigators = {
             'agnes': {
                 name: 'Агнес Бейкер',
@@ -956,36 +719,35 @@ class ArkhamHorizonTracker {
             }
 
     init() {
-                // Инициализация автосинхронизации
-                this.githubSync.initialize();
-                this.renderPlayerCountSelector();
-                this.renderInvestigatorFields();
-                this.renderScenarioOptions();
-                this.renderFilterOptions();
-                this.setMinDate();
-                this.renderHexagonGrid();
-                this.renderStats();
-                this.updateAchievements();
-                this.setupEventListeners();
-                this.setupModal();
+        this.renderPlayerCountSelector();
+        this.renderInvestigatorFields();
+        this.renderScenarioOptions();
+        this.renderFilterOptions();
+        this.setMinDate();
+        this.renderHexagonGrid();
+        this.renderStats();
+        this.updateAchievements();
+        this.setupEventListeners();
+        this.setupModal();
 
-                if (this.progress.length === 0 && !localStorage.getItem('welcomeShown')) {
-                    setTimeout(() => {
-                        this.showNotification('Добро пожаловать! Выберите количество сыщиков и заполните форму.', 'info');
-                        localStorage.setItem('welcomeShown', 'true');
-                    }, 1000);
-                }
-            }
+        // Отложенная инициализация синхронизации
+        setTimeout(() => {
+            this.githubSync.initialize();
+        }, 1000);
+
+        if (this.progress.length === 0 && !localStorage.getItem('welcomeShown')) {
+            setTimeout(() => {
+                this.showNotification('Добро пожаловать! Выберите количество сыщиков и заполните форму.', 'info');
+                localStorage.setItem('welcomeShown', 'true');
+            }, 1000);
+        }
+    }
 
     setupEventListeners() {
-        // Автосинхронизация с обработкой ошибок
-        document.getElementById('setup-sync').addEventListener('click', async () => {
-            try {
-                await this.githubSync.setupSync();
-            } catch (error) {
-                console.error('Setup error:', error);
-                this.showNotification('❌ Ошибка настройки синхронизации', 'error');
-            }
+
+        // Синхронизация
+        document.getElementById('setup-sync').addEventListener('click', () => {
+            this.githubSync.setupSync();
         });
 
         document.getElementById('manual-sync').addEventListener('click', () => {
