@@ -909,7 +909,7 @@ class ArkhamHorizonTracker {
     deleteProgress(id) {
         if (confirm('Удалить эту запись из архивов?')) {
             this.progress = this.progress.filter(item => item.id !== id);
-            this.saveProgress();
+            this.saveProgress(); // Добавляем сохранение
             this.renderHexagonGrid();
             this.renderStats();
             this.updateAchievements();
