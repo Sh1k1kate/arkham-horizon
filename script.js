@@ -918,11 +918,34 @@ class ArkhamHorizonTracker {
     }
 
     saveProgress() {
+        // Убираем возможные дубликаты перед сохранением
+        const uniqueProgress = this.removeDuplicates(this.progress);
+
+        if (uniqueProgress.length !== this.progress.length) {
+            console.log(`🧹 Удалено ${this.progress.length - uniqueProgress.length} дубликатов`);
+            this.progress = uniqueProgress;
+        }
+
         localStorage.setItem('arkhamProgress', JSON.stringify(this.progress));
+
         // Автосинхронизация при сохранении
         if (this.syncManager.isConfigured()) {
             setTimeout(() => this.syncManager.push(), 1000);
         }
+    }
+
+    // Новый метод для удаления дубликатов
+    removeDuplicates(progressArray) {
+        const seen = new Set();
+        return progressArray.filter(item => {
+            // Используем комбинацию ID и timestamp для идентификации дубликатов
+            const identifier = `${item.id}-${item.timestamp}`;
+            if (seen.has(identifier)) {
+                return false;
+            }
+            seen.add(identifier);
+            return true;
+        });
     }
 
     resetForm() {
@@ -1665,7 +1688,7 @@ class GitHubSyncManager {
             this.notify('🔁 Загрузка данных из облака...', 'info');
 
             const response = await this.githubRequest(
-                `/repos/${this.owner}/${this.repo}/contents/arkham_progress.json`
+                `/repos/${this.owner}/${this.repo}/contents/data/arkham_progress.json`
             );
 
             if (response.status === 404) {
@@ -1681,10 +1704,19 @@ class GitHubSyncManager {
             const content = this.decodeBase64(data.content);
             const remoteData = JSON.parse(content);
 
+            // Проверяем временную метку
+            const lastSync = localStorage.getItem('last_sync_timestamp');
+            const remoteTimestamp = remoteData.timestamp;
+
+            console.log('⏰ Временные метки:', {
+                lastSync,
+                remoteTimestamp,
+                isNewer: !lastSync || new Date(remoteTimestamp) > new Date(lastSync)
+            });
+
             if (remoteData && Array.isArray(remoteData.progress)) {
                 this.mergeData(remoteData);
                 localStorage.setItem('last_sync_timestamp', remoteData.timestamp);
-                this.notify('✅ Данные загружены из облака', 'success');
                 return true;
             } else {
                 throw new Error('Неверный формат данных');
@@ -1750,25 +1782,84 @@ class GitHubSyncManager {
             this.syncing = false;
         }
     }
-
+    // Правильное объединение данных без дублирования
     mergeData(remoteData) {
-        const local = this.tracker.progress;
+        const local = this.tracker.progress || [];
         const remote = remoteData.progress || [];
 
-        // Находим новые записи
-        const localIds = new Set(local.map(item => item.id));
-        const newItems = remote.filter(item => !localIds.has(item.id));
+        console.log('🔁 Объединение данных:', {
+            local: local.length,
+            remote: remote.length
+        });
 
-        if (newItems.length > 0) {
-            this.tracker.progress = [...local, ...newItems].sort((a, b) =>
-                new Date(b.timestamp) - new Date(a.timestamp)
-            );
+        // Создаем Map для быстрого поиска по ID и timestamp
+        const localMap = new Map();
+        local.forEach(item => {
+            localMap.set(item.id, item);
+        });
+
+        const remoteMap = new Map();
+        remote.forEach(item => {
+            remoteMap.set(item.id, item);
+        });
+
+        // Объединяем данные, приоритет у более новых записей
+        const mergedProgress = [];
+        const allIds = new Set([...localMap.keys(), ...remoteMap.keys()]);
+
+        allIds.forEach(id => {
+            const localItem = localMap.get(id);
+            const remoteItem = remoteMap.get(id);
+
+            if (localItem && remoteItem) {
+                // Если запись есть и там и там, берем более новую
+                const localTime = new Date(localItem.timestamp || 0);
+                const remoteTime = new Date(remoteItem.timestamp || 0);
+
+                if (remoteTime > localTime) {
+                    mergedProgress.push(remoteItem);
+                    console.log(`🔄 Обновлена запись ${id} (была ${localTime}, стала ${remoteTime})`);
+                } else {
+                    mergedProgress.push(localItem);
+                }
+            } else if (localItem) {
+                // Только локальная запись
+                mergedProgress.push(localItem);
+            } else {
+                // Только удаленная запись
+                mergedProgress.push(remoteItem);
+                console.log(`➕ Добавлена новая запись ${id} из облака`);
+            }
+        });
+
+        // Сортируем по времени (новые сверху)
+        mergedProgress.sort((a, b) => {
+            const timeA = new Date(a.timestamp || 0);
+            const timeB = new Date(b.timestamp || 0);
+            return timeB - timeA;
+        });
+
+        const newItemsCount = mergedProgress.length - local.length;
+        const updatedItemsCount = mergedProgress.length - newItemsCount - (local.length - newItemsCount);
+
+        if (newItemsCount > 0 || updatedItemsCount > 0) {
+            console.log(`📊 Результат мержа: ${mergedProgress.length} записей (новых: ${newItemsCount}, обновленных: ${updatedItemsCount})`);
+
+            this.tracker.progress = mergedProgress;
             this.tracker.saveProgress();
             this.tracker.renderHexagonGrid();
             this.tracker.renderStats();
             this.tracker.updateAchievements();
 
-            this.notify(`🔁 Добавлено ${newItems.length} новых записей`, 'success');
+            if (newItemsCount > 0) {
+                this.notify(`✅ Добавлено ${newItemsCount} новых записей из облака`, 'success');
+            }
+            if (updatedItemsCount > 0) {
+                this.notify(`🔄 Обновлено ${updatedItemsCount} записей`, 'info');
+            }
+        } else {
+            console.log('✅ Данные уже синхронизированы, новых записей нет');
+            this.notify('✅ Данные актуальны', 'info');
         }
     }
 
@@ -1781,11 +1872,20 @@ class GitHubSyncManager {
         this.notify('🔄 Синхронизация...', 'info');
 
         try {
-            await this.pull();
-            await this.push();
-            this.notify('✅ Синхронизация завершена', 'success');
-            return true;
+            console.log('🔄 Начало синхронизации...');
+
+            const pullResult = await this.pull();
+            const pushResult = await this.push();
+
+            if (pullResult || pushResult) {
+                this.notify('✅ Синхронизация завершена', 'success');
+            } else {
+                this.notify('ℹ️ Данные уже актуальны', 'info');
+            }
+
+            return pullResult || pushResult;
         } catch (error) {
+            console.error('Sync error:', error);
             this.notify('❌ Ошибка синхронизации: ' + error.message, 'error');
             return false;
         }
