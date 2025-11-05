@@ -1520,75 +1520,26 @@ class GitHubSyncManager {
         }
     }
 
-    // Безопасное кодирование в base64 (работает с Unicode)
-    encodeBase64(str) {
-        try {
-            // Метод 1: Используем TextEncoder для UTF-8
-            if (typeof TextEncoder !== 'undefined') {
-                const encoder = new TextEncoder();
-                const data = encoder.encode(str);
-                return btoa(String.fromCharCode(...data));
-            }
-            // Метод 2: Старый метод для совместимости
-            else {
-                return btoa(unescape(encodeURIComponent(str)));
-            }
-        } catch (error) {
-            console.error('Base64 encode error:', error);
-            // Метод 3: Простой метод только для ASCII
-            try {
-                return btoa(str);
-            } catch (e) {
-                throw new Error('Ошибка кодирования данных: не поддерживаются Unicode символы');
-            }
-        }
-    }
-
-    // Безопасное декодирование из base64
+    // Декодирование base64 с обработкой ошибок
     decodeBase64(str) {
         try {
-            // Метод 1: Используем TextDecoder для UTF-8
-            if (typeof TextDecoder !== 'undefined') {
-                const binaryString = atob(str);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-                const decoder = new TextDecoder();
-                return decoder.decode(bytes);
-            }
-            // Метод 2: Старый метод для совместимости
-            else {
-                return decodeURIComponent(escape(atob(str)));
-            }
+            // Убираем возможные пробелы и переносы строк
+            const cleanStr = str.replace(/\s/g, '');
+            return decodeURIComponent(escape(atob(cleanStr)));
         } catch (error) {
             console.error('Base64 decode error:', error);
-            // Метод 3: Простой метод
-            try {
-                return atob(str);
-            } catch (e) {
-                throw new Error('Ошибка декодирования данных');
-            }
+            throw new Error('Ошибка декодирования данных');
         }
     }
 
-    // Альтернативный метод: используем только ASCII символы
-    safeStringify(obj) {
-        // Заменяем русские символы и эмодзи на их текстовые представления
-        const replacer = (key, value) => {
-            if (typeof value === 'string') {
-                // Экранируем проблемные символы
-                return value
-                    .replace(/[^\x00-\x7F]/g, (char) => {
-                        // Сохраняем базовые символы, заменяем сложные
-                        if (char <= '\u007F') return char;
-                        return `\\u${char.charCodeAt(0).toString(16).padStart(4, '0')}`;
-                    });
-            }
-            return value;
-        };
-
-        return JSON.stringify(obj, replacer, 2);
+    // Кодирование в base64 с обработкой Unicode
+    encodeBase64(str) {
+        try {
+            return btoa(unescape(encodeURIComponent(str)));
+        } catch (error) {
+            console.error('Base64 encode error:', error);
+            throw new Error('Ошибка кодирования данных');
+        }
     }
 
     // Загрузить данные
@@ -1604,8 +1555,8 @@ class GitHubSyncManager {
             );
 
             if (response.status === 404) {
-                console.log('Файл данных не найден');
-                this.notify('Файл данных не найден. Нажмите "Создать файл синхронизации".', 'warning');
+                console.log('Файл данных не найден, будет создан при сохранении');
+                this.notify('Файл данных не найден. Будет создан при первом сохранении.', 'warning');
                 return false;
             }
 
@@ -1614,6 +1565,7 @@ class GitHubSyncManager {
             }
 
             const data = await response.json();
+            console.log('Получены данные:', data);
 
             if (!data.content) {
                 throw new Error('Файл не содержит данных');
@@ -1621,6 +1573,8 @@ class GitHubSyncManager {
 
             // Декодируем и парсим JSON
             const jsonString = this.decodeBase64(data.content);
+            console.log('Декодированная строка:', jsonString.substring(0, 200) + '...');
+
             const content = JSON.parse(jsonString);
 
             // Применяем данные
@@ -1658,9 +1612,11 @@ class GitHubSyncManager {
                 if (response.ok) {
                     const data = await response.json();
                     sha = data.sha;
+                    console.log('Найден существующий файл, SHA:', sha);
                 }
             } catch (e) {
                 // Файл не существует - это нормально
+                console.log('Файл не существует, будет создан новый');
             }
 
             const syncData = {
@@ -1671,15 +1627,21 @@ class GitHubSyncManager {
                 app: 'Arkham Horror Tracker'
             };
 
-            // Используем безопасное кодирование
-            const jsonString = this.safeStringify(syncData);
+            console.log('Данные для сохранения:', {
+                records: syncData.progress.length,
+                achievements: Object.keys(syncData.achievements).length
+            });
+
+            // Кодируем в JSON и затем в base64
+            const jsonString = JSON.stringify(syncData, null, 2);
             const content = this.encodeBase64(jsonString);
 
             const requestBody = {
-                message: `Sync: ${new Date().toLocaleString('ru-RU')}`,
+                message: `Sync: ${new Date().toLocaleString('ru-RU')} (${syncData.progress.length} записей)`,
                 content: content
             };
 
+            // Добавляем SHA только если файл существует
             if (sha) {
                 requestBody.sha = sha;
             }
@@ -1696,6 +1658,9 @@ class GitHubSyncManager {
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || `HTTP ${response.status}`);
             }
+
+            const result = await response.json();
+            console.log('✅ Данные успешно сохранены:', result.commit.html_url);
 
             localStorage.setItem('last_sync_timestamp', syncData.timestamp);
             this.notify('Данные сохранены в облако', 'success');
@@ -1715,9 +1680,16 @@ class GitHubSyncManager {
         const local = this.tracker.progress || [];
         const remote = remoteData.progress || [];
 
+        console.log('Объединение данных:', {
+            local: local.length,
+            remote: remote.length
+        });
+
         // Находим новые записи
         const localIds = new Set(local.map(item => item.id));
         const newItems = remote.filter(item => !localIds.has(item.id));
+
+        console.log('Новые записи для добавления:', newItems.length);
 
         if (newItems.length > 0) {
             this.tracker.progress = [...local, ...newItems].sort((a, b) =>
@@ -1744,10 +1716,16 @@ class GitHubSyncManager {
         this.notify('🔄 Синхронизация...', 'info');
 
         try {
-            await this.pull();
-            await this.push();
-            this.notify('✅ Синхронизация завершена', 'success');
-            return true;
+            const pullResult = await this.pull();
+            const pushResult = await this.push();
+
+            if (pullResult || pushResult) {
+                this.notify('✅ Синхронизация завершена', 'success');
+            } else {
+                this.notify('ℹ️ Данные уже актуальны', 'info');
+            }
+
+            return pullResult || pushResult;
         } catch (error) {
             console.error('Sync error:', error);
             this.notify(`❌ Ошибка синхронизации: ${error.message}`, 'error');
@@ -1769,12 +1747,9 @@ class GitHubSyncManager {
         alert(`Статус синхронизации:\n${status}\n\nЗаписей: ${this.tracker.progress.length}\nПоследняя синхронизация: ${lastSyncText}`);
     }
 
-    // Создать начальный файл
+    // Создать начальный файл (если нужно)
     async createInitialFile() {
-        if (!this.isConfigured()) {
-            this.notify('Сначала настройте синхронизацию', 'error');
-            return false;
-        }
+        if (!this.isConfigured()) return false;
 
         try {
             const syncData = {
@@ -1785,12 +1760,11 @@ class GitHubSyncManager {
                 app: 'Arkham Horror Tracker'
             };
 
-            // Используем безопасное кодирование
-            const jsonString = this.safeStringify(syncData);
+            const jsonString = JSON.stringify(syncData, null, 2);
             const content = this.encodeBase64(jsonString);
 
             const response = await this.githubRequest(
-                `/repos/${this.owner}/${this.repo}/contents/arkham_progress.json`,
+                `/repos/${this.owner}/${this.repo}/contents/data/arkham_progress.json`,
                 {
                     method: 'PUT',
                     body: JSON.stringify({
