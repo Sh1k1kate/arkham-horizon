@@ -1855,6 +1855,37 @@ class GitHubSyncManager {
         }
 
         this.notify('✅ Данные актуальны', 'info');
+    
+
+        // Сортируем по времени (новые сверху)
+        mergedProgress.sort((a, b) => {
+            const timeA = new Date(a.timestamp || 0);
+            const timeB = new Date(b.timestamp || 0);
+            return timeB - timeA;
+        });
+
+        const newItemsCount = mergedProgress.length - local.length;
+        const updatedItemsCount = mergedProgress.length - newItemsCount - (local.length - newItemsCount);
+
+        if (newItemsCount > 0 || updatedItemsCount > 0) {
+            console.log(`📊 Результат мержа: ${mergedProgress.length} записей (новых: ${newItemsCount}, обновленных: ${updatedItemsCount})`);
+
+            this.tracker.progress = mergedProgress;
+            this.tracker.saveProgress();
+            this.tracker.renderHexagonGrid();
+            this.tracker.renderStats();
+            this.tracker.updateAchievements();
+
+            if (newItemsCount > 0) {
+                this.notify(`✅ Добавлено ${newItemsCount} новых записей из облака`, 'success');
+            }
+            if (updatedItemsCount > 0) {
+                this.notify(`🔄 Обновлено ${updatedItemsCount} записей`, 'info');
+            }
+        } else {
+            console.log('✅ Данные уже синхронизированы, новых записей нет');
+            this.notify('✅ Данные актуальны', 'info');
+        }
     }
 
     async sync() {
