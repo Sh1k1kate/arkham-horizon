@@ -1,3 +1,10 @@
+// Отладка - покажет текущую строку при ошибках
+window.addEventListener('error', function (e) {
+    console.error('Ошибка в строке:', e.lineno);
+    console.error('Файл:', e.filename);
+    console.error('Текст ошибки:', e.message);
+});
+
 // Основной класс трекера
 class ArkhamHorizonTracker {
     constructor() {
