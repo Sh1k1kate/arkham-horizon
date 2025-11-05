@@ -245,11 +245,16 @@ class GitHubSyncManager {
             }
 
             if (response.status === 403) {
+                const rateLimit = response.headers.get('X-RateLimit-Remaining');
+                if (rateLimit === '0') {
+                    throw new Error('Лимит запросов к GitHub API исчерпан. Попробуйте позже.');
+                }
                 throw new Error('Доступ запрещен. Убедитесь что токен имеет права repo.');
             }
 
             if (response.status === 404) {
-                throw new Error('Репозиторий не найден. Проверьте название репозитория.');
+                // Не бросаем ошибку для 404, пусть вызывающий код решает что делать
+                return response;
             }
 
             return response;
@@ -268,7 +273,12 @@ class GitHubSyncManager {
             const response = await this.githubRequest(`/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.SYNC_FILE_PATH}`);
 
             if (response.status === 404) {
-                console.log('Файл синхронизации не найден, будет создан при первом push');
+                console.log('📝 Файл синхронизации не найден, создаем...');
+                // Создаем файл при первом запуске
+                const created = await this.createInitialFile();
+                if (created) {
+                    this.showNotification('📁 Файл синхронизации создан', 'success');
+                }
                 return false;
             }
 
@@ -285,7 +295,7 @@ class GitHubSyncManager {
             const content = JSON.parse(atob(fileData.content.replace(/\n/g, '')));
             this.applyRemoteData(content);
 
-            this.retryCount = 0; // Сброс счетчика ошибок
+            this.retryCount = 0;
             return true;
 
         } catch (error) {
@@ -301,29 +311,22 @@ class GitHubSyncManager {
         }
     }
 
-    // Отправка данных в репозиторий
-    async pushData() {
-        if (this.isSyncing || !this.isConfigured()) return false;
-
-        this.isSyncing = true;
-
+    // Создание начального файла
+    async createInitialFile() {
         try {
-            console.log('☁️ Pushing data to GitHub...');
             const data = {
-                progress: tracker.progress,
-                achievements: tracker.achievements,
+                progress: this.tracker.progress,
+                achievements: this.tracker.achievements,
                 timestamp: new Date().toISOString(),
                 version: '3.0',
                 app: 'Arkham Horror Tracker'
             };
 
-            const fileSHA = await this.getFileSHA();
             const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
 
             const body = {
-                message: `Auto-sync: ${new Date().toLocaleString('ru-RU')} (${tracker.progress.length} records)`,
-                content: content,
-                sha: fileSHA
+                message: 'Initial sync file creation',
+                content: content
             };
 
             const response = await this.githubRequest(
@@ -334,32 +337,17 @@ class GitHubSyncManager {
                 }
             );
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `HTTP ${response.status}`);
+            if (response.ok) {
+                console.log('✅ Initial file created successfully');
+                return true;
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to create file');
             }
-
-            const result = await response.json();
-            localStorage.setItem('last_sync_timestamp', data.timestamp);
-
-            console.log('✅ Push successful:', result.commit.html_url);
-            this.showNotification('☁️ Данные сохранены в облако', 'success');
-
-            this.retryCount = 0;
-            return true;
-
         } catch (error) {
-            console.error('Push error:', error);
-            this.retryCount++;
-
-            if (this.retryCount >= this.maxRetries) {
-                this.showError(`Ошибка сохранения: ${error.message}`);
-                this.retryCount = 0;
-            }
-
+            console.error('Create file error:', error);
+            this.showError(`Не удалось создать файл: ${error.message}`);
             return false;
-        } finally {
-            this.isSyncing = false;
         }
     }
 
