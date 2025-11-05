@@ -907,16 +907,26 @@ class ArkhamHorizonTracker {
     }
 
     deleteProgress(id) {
-        // Преобразуем ID к числу на всякий случай
-        const numericId = Number(id);
+        console.log('🔄 Попытка удаления записи с ID:', id);
+        console.log('📊 Текущее количество записей до удаления:', this.progress.length);
 
         if (confirm('Удалить эту запись из архивов?')) {
-            this.progress = this.progress.filter(item => Number(item.id) !== numericId);
+            this.progress = this.progress.filter(item => {
+                console.log('🔍 Проверка записи:', item.id, 'тип:', typeof item.id, 'тип целевого:', typeof id);
+                return item.id !== id;
+            });
+
+            console.log('📊 Количество записей после удаления:', this.progress.length);
+
             this.saveProgress();
             this.renderHexagonGrid();
             this.renderStats();
             this.updateAchievements();
             this.showNotification('Запись удалена из архивов', 'error');
+
+            // Проверяем сохранение в localStorage
+            const savedProgress = JSON.parse(localStorage.getItem('arkhamProgress') || '[]');
+            console.log('💾 Записей в localStorage после сохранения:', savedProgress.length);
         }
     }
 
@@ -1026,7 +1036,7 @@ class ArkhamHorizonTracker {
                     <div class="hexagon-inner" ${backgroundStyle}>
                         <div class="hexagon-actions">
                             <button class="hexagon-delete" onclick="event.stopPropagation(); tracker.deleteProgress(${item.id})" title="Удалить запись">
-                                ×
+                            ×
                             </button>
                         </div>
                         
