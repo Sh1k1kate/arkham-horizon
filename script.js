@@ -323,7 +323,7 @@ class ArkhamHorizonTracker {
         this.selectedInvestigators = [];
         this.currentPlayerCount = 2;
 
-        // Простой менеджер синхронизации
+        // Менеджер синхронизации
         this.syncManager = new GitHubSyncManager(this);
         this.init();
     }
@@ -340,12 +340,12 @@ class ArkhamHorizonTracker {
         this.setupEventListeners();
         this.setupModal();
 
-        // Проверяем синхронизацию
-        if (this.syncManager.isConfigured()) {
-            setTimeout(() => {
+        // Автозагрузка данных при запуске
+        setTimeout(() => {
+            if (this.syncManager.isConfigured()) {
                 this.syncManager.pull();
-            }, 2000);
-        }
+            }
+        }, 2000);
 
         if (this.progress.length === 0 && !localStorage.getItem('welcomeShown')) {
             setTimeout(() => {
@@ -397,6 +397,10 @@ class ArkhamHorizonTracker {
 
         document.getElementById('sync-status').addEventListener('click', () => {
             this.syncManager.showStatus();
+        });
+
+        document.getElementById('create-sync-file').addEventListener('click', () => {
+            this.syncManager.createInitialFile();
         });
 
         // Глобальные обработчики для поиска сыщиков
@@ -1452,7 +1456,7 @@ class ArkhamHorizonTracker {
     }
 }
 
-// Простой менеджер синхронизации через GitHub
+// Полностью рабочий менеджер синхронизации через GitHub API
 class GitHubSyncManager {
     constructor(tracker) {
         this.tracker = tracker;
@@ -1462,12 +1466,10 @@ class GitHubSyncManager {
         this.syncing = false;
     }
 
-    // Проверка настроек
     isConfigured() {
         return this.token && this.owner && this.repo;
     }
 
-    // Показать уведомление
     notify(message, type = 'info') {
         if (this.tracker && this.tracker.showNotification) {
             this.tracker.showNotification(message, type);
@@ -1476,32 +1478,102 @@ class GitHubSyncManager {
         }
     }
 
-    // Настройка синхронизации
     async setup() {
-        const token = prompt('Введите GitHub Token (с правами repo):');
-        const owner = prompt('Введите ваш GitHub username:');
-        const repo = prompt('Введите название репозитория:');
+        try {
+            const modalHTML = `
+                <div class="sync-setup-modal">
+                    <h3>⚙️ Настройка синхронизации</h3>
+                    <div class="setup-instructions">
+                        <p><strong>Как получить GitHub Token:</strong></p>
+                        <ol>
+                            <li>Зайдите на <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Tokens</a></li>
+                            <li>Нажмите "Generate new token" → "Generate new token (classic)"</li>
+                            <li>Введите название: "Arkham Tracker"</li>
+                            <li>Выберите срок: 90 дней</li>
+                            <li>В правах выберите: <strong>repo</strong> (полный доступ)</li>
+                            <li>Скопируйте токен (начинается с ghp_)</li>
+                        </ol>
+                    </div>
+                    <div class="setup-form">
+                        <div class="form-group">
+                            <label>GitHub Token:</label>
+                            <input type="password" id="github-token" placeholder="ghp_..." class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Username:</label>
+                            <input type="text" id="github-owner" placeholder="Sh1k1kate" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Repository:</label>
+                            <input type="text" id="github-repo" placeholder="arkham-horizon" class="form-input">
+                        </div>
+                    </div>
+                    <div class="setup-actions">
+                        <button id="confirm-setup" class="control-btn">✅ Настроить</button>
+                        <button id="cancel-setup" class="control-btn secondary">❌ Отмена</button>
+                    </div>
+                </div>
+            `;
 
-        if (!token || !owner || !repo) {
-            this.notify('Настройка отменена', 'error');
+            const modal = document.getElementById('record-modal');
+            const modalContent = document.getElementById('modal-content');
+
+            modalContent.innerHTML = modalHTML;
+            modal.style.display = 'block';
+
+            return new Promise((resolve) => {
+                document.getElementById('confirm-setup').addEventListener('click', async () => {
+                    const token = document.getElementById('github-token').value.trim();
+                    const owner = document.getElementById('github-owner').value.trim();
+                    const repo = document.getElementById('github-repo').value.trim();
+
+                    if (!token || !owner || !repo) {
+                        this.notify('Заполните все поля', 'error');
+                        return;
+                    }
+
+                    if (!token.startsWith('ghp_')) {
+                        this.notify('Токен должен начинаться с ghp_', 'error');
+                        return;
+                    }
+
+                    modal.style.display = 'none';
+
+                    // Проверяем подключение
+                    this.notify('🔍 Проверка подключения...', 'info');
+
+                    this.token = token;
+                    this.owner = owner;
+                    this.repo = repo;
+
+                    const isValid = await this.validateConnection();
+                    if (isValid) {
+                        localStorage.setItem('github_token', token);
+                        localStorage.setItem('github_owner', owner);
+                        localStorage.setItem('github_repo', repo);
+
+                        this.notify('✅ Синхронизация настроена!', 'success');
+                        resolve(true);
+                    } else {
+                        this.notify('❌ Не удалось подключиться к репозиторию', 'error');
+                        resolve(false);
+                    }
+                });
+
+                document.getElementById('cancel-setup').addEventListener('click', () => {
+                    modal.style.display = 'none';
+                    resolve(false);
+                });
+            });
+
+        } catch (error) {
+            this.notify('❌ Ошибка настройки: ' + error.message, 'error');
             return false;
         }
-
-        this.token = token;
-        this.owner = owner;
-        this.repo = repo;
-
-        localStorage.setItem('github_token', token);
-        localStorage.setItem('github_owner', owner);
-        localStorage.setItem('github_repo', repo);
-
-        this.notify('Синхронизация настроена!', 'success');
-        return true;
     }
 
-    // GitHub запрос
-    async githubRequest(url, options = {}) {
-        const fullUrl = `https://api.github.com${url}`;
+    async githubRequest(endpoint, options = {}) {
+        const url = `https://api.github.com${endpoint}`;
         const headers = {
             'Authorization': `token ${this.token}`,
             'Accept': 'application/vnd.github.v3+json',
@@ -1509,187 +1581,183 @@ class GitHubSyncManager {
         };
 
         try {
-            const response = await fetch(fullUrl, {
+            const response = await fetch(url, {
                 headers,
                 ...options
             });
             return response;
         } catch (error) {
-            console.error('GitHub request failed:', error);
+            console.error('GitHub API Error:', error);
             throw error;
         }
     }
 
-    // Декодирование base64 с обработкой ошибок
-    decodeBase64(str) {
+    async validateConnection() {
         try {
-            // Убираем возможные пробелы и переносы строк
-            const cleanStr = str.replace(/\s/g, '');
-            return decodeURIComponent(escape(atob(cleanStr)));
+            const response = await this.githubRequest(`/repos/${this.owner}/${this.repo}`);
+            if (response.ok) {
+                return true;
+            } else if (response.status === 404) {
+                throw new Error('Репозиторий не найден');
+            } else if (response.status === 401) {
+                throw new Error('Неверный токен');
+            } else {
+                throw new Error(`Ошибка ${response.status}: ${response.statusText}`);
+            }
         } catch (error) {
-            console.error('Base64 decode error:', error);
-            throw new Error('Ошибка декодирования данных');
+            this.notify('❌ ' + error.message, 'error');
+            return false;
         }
     }
 
-    // Кодирование в base64 с обработкой Unicode
+    // Безопасное кодирование в base64
     encodeBase64(str) {
         try {
-            return btoa(unescape(encodeURIComponent(str)));
+            // Используем TextEncoder для корректной работы с Unicode
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            const binaryString = String.fromCharCode(...data);
+            return btoa(binaryString);
         } catch (error) {
             console.error('Base64 encode error:', error);
-            throw new Error('Ошибка кодирования данных');
+            // Fallback для старых браузеров
+            return btoa(unescape(encodeURIComponent(str)));
         }
     }
 
-    // Загрузить данные
+    // Безопасное декодирование из base64
+    decodeBase64(str) {
+        try {
+            const binaryString = atob(str);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            const decoder = new TextDecoder();
+            return decoder.decode(bytes);
+        } catch (error) {
+            console.error('Base64 decode error:', error);
+            // Fallback для старых браузеров
+            return decodeURIComponent(escape(atob(str)));
+        }
+    }
+
+    async getFileSHA() {
+        try {
+            const response = await this.githubRequest(
+                `/repos/${this.owner}/${this.repo}/contents/arkham_progress.json`
+            );
+            if (response.ok) {
+                const data = await response.json();
+                return data.sha;
+            }
+            return null;
+        } catch (error) {
+            return null;
+        }
+    }
+
     async pull() {
         if (!this.isConfigured() || this.syncing) return false;
 
         try {
             this.syncing = true;
-            console.log('🔁 Загрузка данных из GitHub...');
+            this.notify('🔁 Загрузка данных из облака...', 'info');
 
             const response = await this.githubRequest(
-                `/repos/${this.owner}/${this.repo}/contents/data/arkham_progress.json`
+                `/repos/${this.owner}/${this.repo}/contents/arkham_progress.json`
             );
 
             if (response.status === 404) {
-                console.log('Файл данных не найден, будет создан при сохранении');
-                this.notify('Файл данных не найден. Будет создан при первом сохранении.', 'warning');
+                this.notify('📝 Файл данных не найден. Будет создан при сохранении.', 'warning');
                 return false;
             }
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                throw new Error(`Ошибка ${response.status}: ${response.statusText}`);
             }
 
             const data = await response.json();
-            console.log('Получены данные:', data);
+            const content = this.decodeBase64(data.content);
+            const remoteData = JSON.parse(content);
 
-            if (!data.content) {
-                throw new Error('Файл не содержит данных');
-            }
-
-            // Декодируем и парсим JSON
-            const jsonString = this.decodeBase64(data.content);
-            console.log('Декодированная строка:', jsonString.substring(0, 200) + '...');
-
-            const content = JSON.parse(jsonString);
-
-            // Применяем данные
-            if (content && Array.isArray(content.progress)) {
-                this.mergeData(content);
-                this.notify('Данные загружены из облака', 'success');
+            if (remoteData && Array.isArray(remoteData.progress)) {
+                this.mergeData(remoteData);
+                localStorage.setItem('last_sync_timestamp', remoteData.timestamp);
+                this.notify('✅ Данные загружены из облака', 'success');
                 return true;
             } else {
                 throw new Error('Неверный формат данных');
             }
 
         } catch (error) {
-            console.error('Pull failed:', error);
-            this.notify(`Ошибка загрузки: ${error.message}`, 'error');
-        } finally {
-            this.syncing = false;
-        }
-        return false;
-    }
-
-    // Сохранить данные
-    async push() {
-        if (!this.isConfigured() || this.syncing) return false;
-
-        try {
-            this.syncing = true;
-            console.log('☁️ Сохранение данных в GitHub...');
-
-            // Получаем SHA существующего файла
-            let sha = null;
-            try {
-                const response = await this.githubRequest(
-                    `/repos/${this.owner}/${this.repo}/contents/data/arkham_progress.json`
-                );
-                if (response.ok) {
-                    const data = await response.json();
-                    sha = data.sha;
-                    console.log('Найден существующий файл, SHA:', sha);
-                }
-            } catch (e) {
-                // Файл не существует - это нормально
-                console.log('Файл не существует, будет создан новый');
-            }
-
-            const syncData = {
-                progress: this.tracker.progress || [],
-                achievements: this.tracker.achievements || {},
-                timestamp: new Date().toISOString(),
-                version: '3.0',
-                app: 'Arkham Horror Tracker'
-            };
-
-            console.log('Данные для сохранения:', {
-                records: syncData.progress.length,
-                achievements: Object.keys(syncData.achievements).length
-            });
-
-            // Кодируем в JSON и затем в base64
-            const jsonString = JSON.stringify(syncData, null, 2);
-            const content = this.encodeBase64(jsonString);
-
-            const requestBody = {
-                message: `Sync: ${new Date().toLocaleString('ru-RU')} (${syncData.progress.length} записей)`,
-                content: content
-            };
-
-            // Добавляем SHA только если файл существует
-            if (sha) {
-                requestBody.sha = sha;
-            }
-
-            const response = await this.githubRequest(
-                `/repos/${this.owner}/${this.repo}/contents/data/arkham_progress.json`,
-                {
-                    method: 'PUT',
-                    body: JSON.stringify(requestBody)
-                }
-            );
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `HTTP ${response.status}`);
-            }
-
-            const result = await response.json();
-            console.log('✅ Данные успешно сохранены:', result.commit.html_url);
-
-            localStorage.setItem('last_sync_timestamp', syncData.timestamp);
-            this.notify('Данные сохранены в облако', 'success');
-            return true;
-
-        } catch (error) {
-            console.error('Push failed:', error);
-            this.notify(`Ошибка сохранения: ${error.message}`, 'error');
+            console.error('Pull error:', error);
+            this.notify('❌ Ошибка загрузки: ' + error.message, 'error');
             return false;
         } finally {
             this.syncing = false;
         }
     }
 
-    // Объединить данные
-    mergeData(remoteData) {
-        const local = this.tracker.progress || [];
-        const remote = remoteData.progress || [];
+    async push() {
+        if (!this.isConfigured() || this.syncing) return false;
 
-        console.log('Объединение данных:', {
-            local: local.length,
-            remote: remote.length
-        });
+        try {
+            this.syncing = true;
+
+            const syncData = {
+                progress: this.tracker.progress,
+                achievements: this.tracker.achievements,
+                timestamp: new Date().toISOString(),
+                version: '3.0',
+                app: 'Arkham Horror Tracker'
+            };
+
+            const content = this.encodeBase64(JSON.stringify(syncData, null, 2));
+            const sha = await this.getFileSHA();
+
+            const body = {
+                message: `Sync: ${new Date().toLocaleString('ru-RU')} (${syncData.progress.length} records)`,
+                content: content
+            };
+
+            if (sha) {
+                body.sha = sha;
+            }
+
+            const response = await this.githubRequest(
+                `/repos/${this.owner}/${this.repo}/contents/arkham_progress.json`,
+                {
+                    method: 'PUT',
+                    body: JSON.stringify(body)
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Ошибка ${response.status}`);
+            }
+
+            localStorage.setItem('last_sync_timestamp', syncData.timestamp);
+            this.notify('✅ Данные сохранены в облако', 'success');
+            return true;
+
+        } catch (error) {
+            console.error('Push error:', error);
+            this.notify('❌ Ошибка сохранения: ' + error.message, 'error');
+            return false;
+        } finally {
+            this.syncing = false;
+        }
+    }
+
+    mergeData(remoteData) {
+        const local = this.tracker.progress;
+        const remote = remoteData.progress || [];
 
         // Находим новые записи
         const localIds = new Set(local.map(item => item.id));
         const newItems = remote.filter(item => !localIds.has(item.id));
-
-        console.log('Новые записи для добавления:', newItems.length);
 
         if (newItems.length > 0) {
             this.tracker.progress = [...local, ...newItems].sort((a, b) =>
@@ -1700,58 +1768,38 @@ class GitHubSyncManager {
             this.tracker.renderStats();
             this.tracker.updateAchievements();
 
-            this.notify(`Добавлено ${newItems.length} новых записей из облака`, 'success');
-        } else {
-            this.notify('Данные актуальны, новых записей нет', 'info');
+            this.notify(`🔁 Добавлено ${newItems.length} новых записей`, 'success');
         }
     }
 
-    // Ручная синхронизация
     async sync() {
         if (!this.isConfigured()) {
-            this.notify('Сначала настройте синхронизацию', 'error');
+            this.notify('❌ Сначала настройте синхронизацию', 'error');
             return false;
         }
 
         this.notify('🔄 Синхронизация...', 'info');
 
         try {
-            const pullResult = await this.pull();
-            const pushResult = await this.push();
-
-            if (pullResult || pushResult) {
-                this.notify('✅ Синхронизация завершена', 'success');
-            } else {
-                this.notify('ℹ️ Данные уже актуальны', 'info');
-            }
-
-            return pullResult || pushResult;
+            await this.pull();
+            await this.push();
+            this.notify('✅ Синхронизация завершена', 'success');
+            return true;
         } catch (error) {
-            console.error('Sync error:', error);
-            this.notify(`❌ Ошибка синхронизации: ${error.message}`, 'error');
+            this.notify('❌ Ошибка синхронизации: ' + error.message, 'error');
             return false;
         }
     }
 
-    // Показать статус
-    showStatus() {
-        const status = this.isConfigured() ?
-            `✅ Настроено (${this.owner}/${this.repo})` :
-            '❌ Не настроено';
-
-        const lastSync = localStorage.getItem('last_sync_timestamp');
-        const lastSyncText = lastSync ?
-            new Date(lastSync).toLocaleString('ru-RU') :
-            'Никогда';
-
-        alert(`Статус синхронизации:\n${status}\n\nЗаписей: ${this.tracker.progress.length}\nПоследняя синхронизация: ${lastSyncText}`);
-    }
-
-    // Создать начальный файл (если нужно)
     async createInitialFile() {
-        if (!this.isConfigured()) return false;
+        if (!this.isConfigured()) {
+            this.notify('❌ Сначала настройте синхронизацию', 'error');
+            return false;
+        }
 
         try {
+            this.notify('📁 Создание файла данных...', 'info');
+
             const syncData = {
                 progress: [],
                 achievements: {},
@@ -1760,11 +1808,10 @@ class GitHubSyncManager {
                 app: 'Arkham Horror Tracker'
             };
 
-            const jsonString = JSON.stringify(syncData, null, 2);
-            const content = this.encodeBase64(jsonString);
+            const content = this.encodeBase64(JSON.stringify(syncData, null, 2));
 
             const response = await this.githubRequest(
-                `/repos/${this.owner}/${this.repo}/contents/data/arkham_progress.json`,
+                `/repos/${this.owner}/${this.repo}/contents/arkham_progress.json`,
                 {
                     method: 'PUT',
                     body: JSON.stringify({
@@ -1775,15 +1822,280 @@ class GitHubSyncManager {
             );
 
             if (response.ok) {
-                this.notify('✅ Файл синхронизации создан', 'success');
+                this.notify('✅ Файл данных создан', 'success');
                 return true;
             } else {
                 throw new Error('Не удалось создать файл');
             }
         } catch (error) {
-            console.error('Create file error:', error);
-            this.notify(`Ошибка создания файла: ${error.message}`, 'error');
+            this.notify('❌ Ошибка создания файла: ' + error.message, 'error');
             return false;
         }
     }
+
+    showStatus() {
+        const status = this.isConfigured() ?
+            `✅ Настроено (${this.owner}/${this.repo})` :
+            '❌ Не настроено';
+
+        const lastSync = localStorage.getItem('last_sync_timestamp');
+        const lastSyncText = lastSync ?
+            new Date(lastSync).toLocaleString('ru-RU') :
+            'Никогда';
+
+        const modalHTML = `
+            <div class="sync-status">
+                <h3>📡 Статус синхронизации</h3>
+                <div class="status-info">
+                    <div class="status-item">
+                        <strong>Состояние:</strong> ${status}
+                    </div>
+                    <div class="status-item">
+                        <strong>Записей:</strong> ${this.tracker.progress.length}
+                    </div>
+                    <div class="status-item">
+                        <strong>Последняя синхронизация:</strong> ${lastSyncText}
+                    </div>
+                </div>
+                <div class="status-actions">
+                    <button id="manual-sync-now" class="control-btn">🔄 Синхронизировать сейчас</button>
+                    <button id="test-connection" class="control-btn">🔍 Проверить подключение</button>
+                    <button id="clear-sync" class="control-btn secondary">🗑️ Очистить настройки</button>
+                </div>
+            </div>
+        `;
+
+        const modal = document.getElementById('record-modal');
+        const modalContent = document.getElementById('modal-content');
+
+        modalContent.innerHTML = modalHTML;
+        modal.style.display = 'block';
+
+        document.getElementById('manual-sync-now').addEventListener('click', () => {
+            this.sync();
+            modal.style.display = 'none';
+        });
+
+        document.getElementById('test-connection').addEventListener('click', async () => {
+            this.notify('🔍 Проверка подключения...', 'info');
+            const isValid = await this.validateConnection();
+            modal.style.display = 'none';
+            if (isValid) {
+                this.notify('✅ Подключение успешно', 'success');
+            }
+        });
+
+        document.getElementById('clear-sync').addEventListener('click', () => {
+            localStorage.removeItem('github_token');
+            localStorage.removeItem('github_owner');
+            localStorage.removeItem('github_repo');
+            localStorage.removeItem('last_sync_timestamp');
+            this.token = '';
+            this.owner = '';
+            this.repo = '';
+            this.notify('🗑️ Настройки синхронизации очищены', 'info');
+            modal.style.display = 'none';
+        });
+    }
 }
+
+// Добавляем дополнительные стили
+const additionalStyles = document.createElement('style');
+additionalStyles.textContent = `
+    .investigator-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        transition: background 0.3s ease;
+    }
+
+    .investigator-option:hover {
+        background: var(--secondary-light);
+    }
+
+    .investigator-option.highlighted {
+        background: var(--accent);
+        color: var(--secondary-dark);
+    }
+
+    .investigator-option-image {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--accent);
+    }
+
+    .investigator-option-info {
+        flex: 1;
+    }
+
+    .investigator-option-name {
+        font-weight: bold;
+        font-size: 1rem;
+    }
+
+    .investigator-option-desc {
+        font-size: 0.8rem;
+        color: var(--text-dark);
+        margin-top: 2px;
+    }
+
+    .no-results {
+        justify-content: center;
+        color: var(--text-dark);
+        font-style: italic;
+    }
+
+    .scenario-preview-large {
+        width: 240px !important;
+        height: 160px !important;
+        border-radius: 12px !important;
+        border: 3px solid var(--accent) !important;
+    }
+
+    .selected-investigator-avatar {
+        width: 60px !important;
+        height: 60px !important;
+        border-radius: 50% !important;
+        border: 3px solid var(--accent) !important;
+    }
+
+    .scenario-preview-info {
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .scenario-preview-desc {
+        font-size: 0.9rem;
+        color: var(--text-dark);
+        margin-top: 5px;
+    }
+
+    .modal-image-large {
+        max-width: 90vw;
+        max-height: 80vh;
+        border-radius: 12px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .detail-image-large {
+        width: 80px !important;
+        height: 80px !important;
+        border-radius: 50% !important;
+        border: 3px solid var(--accent) !important;
+    }
+
+    .notes-content {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 15px;
+        border-radius: var(--border-radius);
+        border-left: 4px solid var(--accent);
+        font-style: italic;
+    }
+
+    .no-records-message {
+        text-align: center;
+        color: var(--text-dark);
+        font-style: italic;
+        padding: 60px 20px;
+        font-size: 1.2em;
+        grid-column: 1 / -1;
+    }
+
+    .investigator-select-with-search {
+        width: 100%;
+        max-height: 300px;
+        overflow-y: auto;
+        background: var(--secondary-dark);
+        border: 2px solid var(--accent);
+        border-radius: var(--border-radius);
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        display: none;
+        box-shadow: var(--shadow-heavy);
+    }
+
+    /* Стили для синхронизации */
+    .sync-setup-modal {
+        max-width: 600px;
+    }
+
+    .setup-instructions {
+        background: rgba(15, 15, 26, 0.5);
+        padding: 15px;
+        border-radius: var(--border-radius);
+        margin-bottom: 20px;
+        border-left: 3px solid var(--accent);
+    }
+
+    .setup-instructions ol {
+        margin-left: 20px;
+        margin-top: 10px;
+    }
+
+    .setup-instructions li {
+        margin: 5px 0;
+    }
+
+    .setup-instructions a {
+        color: var(--accent);
+        text-decoration: underline;
+    }
+
+    .setup-form .form-group {
+        margin: 15px 0;
+    }
+
+    .setup-form label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .sync-status {
+        max-width: 500px;
+    }
+
+    .status-info {
+        background: rgba(15, 15, 26, 0.5);
+        padding: 20px;
+        border-radius: var(--border-radius);
+        margin: 15px 0;
+    }
+
+    .status-item {
+        margin: 10px 0;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .status-item:last-child {
+        border-bottom: none;
+    }
+
+    .status-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+`;
+document.head.appendChild(additionalStyles);
+
+// Инициализация
+let tracker;
+document.addEventListener('DOMContentLoaded', () => {
+    tracker = new ArkhamHorizonTracker();
+});
+
+// Обработка ошибок загрузки изображений
+window.addEventListener('error', function (e) {
+    if (e.target.tagName === 'IMG') {
+        console.warn('Изображение не загружено:', e.target.src);
+    }
+}, true);
