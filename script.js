@@ -914,11 +914,11 @@ class ArkhamHorizonTracker {
             // Сохраняем в localStorage
             this.saveProgress();
 
-            // Синхронизируем с GitHub (удаляем из arkham_progress.json)
+            // Немедленно синхронизируем с GitHub (перезаписываем файл)
             if (this.syncManager.isConfigured()) {
                 this.syncManager.push().then(success => {
                     if (success) {
-                        this.showNotification('Запись удалена из локальных архивов и облака', 'error');
+                        this.showNotification('Запись удалена из всех архивов', 'error');
                     } else {
                         this.showNotification('Запись удалена локально, но ошибка синхронизации с облаком', 'warning');
                     }
@@ -1824,7 +1824,7 @@ class GitHubSyncManager {
             remote: remote.length
         });
 
-        // Создаем Map для быстрого поиска по ID и timestamp
+        // Создаем Map для быстрого поиска
         const localMap = new Map();
         local.forEach(item => {
             localMap.set(item.id, item);
@@ -1835,34 +1835,33 @@ class GitHubSyncManager {
             remoteMap.set(item.id, item);
         });
 
-        // Объединяем данные, приоритет у более новых записей
-        const mergedProgress = [];
-        const allIds = new Set([...localMap.keys(), ...remoteMap.keys()]);
+        // Объединяем: локальные данные имеют приоритет
+        const mergedProgress = [...local]; // Начинаем с локальных данных
 
-        allIds.forEach(id => {
-            const localItem = localMap.get(id);
-            const remoteItem = remoteMap.get(id);
-
-            if (localItem && remoteItem) {
-                // Если запись есть и там и там, берем более новую
-                const localTime = new Date(localItem.timestamp || 0);
-                const remoteTime = new Date(remoteItem.timestamp || 0);
-
-                if (remoteTime > localTime) {
-                    mergedProgress.push(remoteItem);
-                    console.log(`🔄 Обновлена запись ${id} (была ${localTime}, стала ${remoteTime})`);
-                } else {
-                    mergedProgress.push(localItem);
-                }
-            } else if (localItem) {
-                // Только локальная запись
-                mergedProgress.push(localItem);
-            } else {
-                // Только удаленная запись
+        // Добавляем только те удаленные записи, которых нет локально
+        remote.forEach(remoteItem => {
+            if (!localMap.has(remoteItem.id)) {
                 mergedProgress.push(remoteItem);
-                console.log(`➕ Добавлена новая запись ${id} из облака`);
+                console.log(`➕ Добавлена новая запись ${remoteItem.id} из облака`);
             }
         });
+
+        if (mergedProgress.length > local.length) {
+            const newItemsCount = mergedProgress.length - local.length;
+            console.log(`📊 Результат мержа: ${mergedProgress.length} записей (новых из облака: ${newItemsCount})`);
+
+            this.tracker.progress = mergedProgress;
+            this.tracker.saveProgress();
+            this.tracker.renderHexagonGrid();
+            this.tracker.renderStats();
+            this.tracker.updateAchievements();
+
+            this.notify(`✅ Добавлено ${newItemsCount} новых записей из облака`, 'success');
+        } else {
+            console.log('✅ Данные актуальны, новых записей нет');
+            this.notify('✅ Данные актуальны', 'info');
+        }
+    }
 
         // Сортируем по времени (новые сверху)
         mergedProgress.sort((a, b) => {
