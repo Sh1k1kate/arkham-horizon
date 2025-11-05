@@ -915,14 +915,19 @@ class ArkhamHorizonTracker {
             this.saveProgress();
 
             // Немедленно синхронизируем с GitHub (перезаписываем файл)
-            if (this.syncManager.isConfigured()) {
-                this.syncManager.push().then(success => {
-                    if (success) {
-                        this.showNotification('Запись удалена из всех архивов', 'error');
-                    } else {
-                        this.showNotification('Запись удалена локально, но ошибка синхронизации с облаком', 'warning');
-                    }
-                });
+            if (this.syncManager && this.syncManager.isConfigured && this.syncManager.isConfigured()) {
+                if (this.syncManager.push) {
+                    this.syncManager.push().then(success => {
+                        if (success) {
+                            this.showNotification('Запись удалена из всех архивов', 'error');
+                        } else {
+                            this.showNotification('Запись удалена локально, но ошибка синхронизации с облаком', 'warning');
+                        }
+                    }).catch(error => {
+                        console.error('Sync error after delete:', error);
+                        this.showNotification('Запись удалена локально, но ошибка синхронизации', 'warning');
+                    });
+                }
             } else {
                 this.showNotification('Запись удалена из локальных архивов', 'error');
             }
@@ -932,6 +937,7 @@ class ArkhamHorizonTracker {
             this.updateAchievements();
         }
     }
+
     saveProgress() {
         // Убираем возможные дубликаты перед сохранением
         const uniqueProgress = this.removeDuplicates(this.progress);
@@ -1817,81 +1823,38 @@ class GitHubSyncManager {
     // Правильное объединение данных без дублирования
     mergeData(remoteData) {
         const local = this.tracker.progress || [];
-        const remote = remoteData.progress || [];
+        const remote = remoteData && remoteData.progress ? remoteData.progress : [];
 
         console.log('🔁 Объединение данных:', {
             local: local.length,
             remote: remote.length
         });
 
-        // Создаем Map для быстрого поиска
-        const localMap = new Map();
-        local.forEach(item => {
-            localMap.set(item.id, item);
-        });
-
-        const remoteMap = new Map();
-        remote.forEach(item => {
-            remoteMap.set(item.id, item);
-        });
-
-        // Объединяем: локальные данные имеют приоритет
-        const mergedProgress = [...local]; // Начинаем с локальных данных
-
-        // Добавляем только те удаленные записи, которых нет локально
-        remote.forEach(remoteItem => {
-            if (!localMap.has(remoteItem.id)) {
-                mergedProgress.push(remoteItem);
-                console.log(`➕ Добавлена новая запись ${remoteItem.id} из облака`);
-            }
-        });
-
-        if (mergedProgress.length > local.length) {
-            const newItemsCount = mergedProgress.length - local.length;
-            console.log(`📊 Результат мержа: ${mergedProgress.length} записей (новых из облака: ${newItemsCount})`);
-
-            this.tracker.progress = mergedProgress;
-            this.tracker.saveProgress();
-            this.tracker.renderHexagonGrid();
-            this.tracker.renderStats();
-            this.tracker.updateAchievements();
-
-            this.notify(`✅ Добавлено ${newItemsCount} новых записей из облака`, 'success');
-        } else {
-            console.log('✅ Данные актуальны, новых записей нет');
-            this.notify('✅ Данные актуальны', 'info');
+        // Если локальные данные есть, используем их как основу (приоритет локальным данным)
+        if (local.length > 0) {
+            console.log('🎯 Приоритет локальным данным');
+            this.tracker.progress = local;
+            if (this.tracker.saveProgress) this.tracker.saveProgress();
+            if (this.tracker.renderHexagonGrid) this.tracker.renderHexagonGrid();
+            if (this.tracker.renderStats) this.tracker.renderStats();
+            if (this.tracker.updateAchievements) this.tracker.updateAchievements();
+            this.notify('✅ Использованы локальные данные', 'info');
+            return;
         }
-    }
 
-        // Сортируем по времени (новые сверху)
-        mergedProgress.sort((a, b) => {
-            const timeA = new Date(a.timestamp || 0);
-            const timeB = new Date(b.timestamp || 0);
-            return timeB - timeA;
-        });
-
-        const newItemsCount = mergedProgress.length - local.length;
-        const updatedItemsCount = mergedProgress.length - newItemsCount - (local.length - newItemsCount);
-
-        if (newItemsCount > 0 || updatedItemsCount > 0) {
-            console.log(`📊 Результат мержа: ${mergedProgress.length} записей (новых: ${newItemsCount}, обновленных: ${updatedItemsCount})`);
-
-            this.tracker.progress = mergedProgress;
-            this.tracker.saveProgress();
-            this.tracker.renderHexagonGrid();
-            this.tracker.renderStats();
-            this.tracker.updateAchievements();
-
-            if (newItemsCount > 0) {
-                this.notify(`✅ Добавлено ${newItemsCount} новых записей из облака`, 'success');
-            }
-            if (updatedItemsCount > 0) {
-                this.notify(`🔄 Обновлено ${updatedItemsCount} записей`, 'info');
-            }
-        } else {
-            console.log('✅ Данные уже синхронизированы, новых записей нет');
-            this.notify('✅ Данные актуальны', 'info');
+        // Если локальных данных нет, используем удаленные
+        if (remote.length > 0 && local.length === 0) {
+            console.log('📥 Загрузка данных из облака');
+            this.tracker.progress = remote;
+            if (this.tracker.saveProgress) this.tracker.saveProgress();
+            if (this.tracker.renderHexagonGrid) this.tracker.renderHexagonGrid();
+            if (this.tracker.renderStats) this.tracker.renderStats();
+            if (this.tracker.updateAchievements) this.tracker.updateAchievements();
+            this.notify('✅ Загружено ' + remote.length + ' записей из облака', 'success');
+            return;
         }
+
+        this.notify('✅ Данные актуальны', 'info');
     }
 
     async sync() {
