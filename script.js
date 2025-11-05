@@ -6,7 +6,7 @@ class GitHubSyncManager {
         this.GITHUB_TOKEN = '';
         this.REPO_OWNER = '';
         this.REPO_NAME = '';
-        this.SYNC_FILE_PATH = 'data/arkham_progress.json';
+        this.SYNC_FILE_PATH = 'arkham_progress.json';
         this.isSyncing = false;
         this.syncInterval = null;
         this.retryCount = 0;
