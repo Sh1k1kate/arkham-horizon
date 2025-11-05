@@ -1,13 +1,27 @@
 {
-  "progress": [],
+  "progress": [
+    {
+      "id": 1762310153059,
+      "investigator": [
+        "dexter",
+        "rex"
+      ],
+      "scenario": "echo_deep",
+      "date": "2025-10-30",
+      "result": "win",
+      "notes": "",
+      "timestamp": "2025-11-05T02:35:53.059Z",
+      "playerCount": 2
+    }
+  ],
   "achievements": {
     "beginner": {
       "name": "Неофит",
       "description": "Пройдите первый сюжет",
       "target": 1,
       "icon": "🥳",
-      "unlocked": false,
-      "progress": 0
+      "unlocked": true,
+      "progress": 1
     },
     "adventurer": {
       "name": "Искатель приключений",
@@ -15,7 +29,7 @@
       "target": 5,
       "icon": "🏕️",
       "unlocked": false,
-      "progress": 0
+      "progress": 1
     },
     "veteran": {
       "name": "Ветеран Аркхема",
@@ -23,7 +37,7 @@
       "target": 10,
       "icon": "🎖️",
       "unlocked": false,
-      "progress": 0
+      "progress": 1
     },
     "expert": {
       "name": "Эксперт по Древним",
@@ -31,7 +45,7 @@
       "target": 20,
       "icon": "👑",
       "unlocked": false,
-      "progress": 0
+      "progress": 1
     },
     "specialist": {
       "name": "Мастер одного пути",
@@ -39,7 +53,7 @@
       "target": 5,
       "icon": "🎯",
       "unlocked": false,
-      "progress": null
+      "progress": 1
     },
     "collector": {
       "name": "Собиратель опыта",
@@ -47,7 +61,7 @@
       "target": 28,
       "icon": "📚",
       "unlocked": false,
-      "progress": 0
+      "progress": 2
     },
     "triumphant": {
       "name": "Триумфатор",
@@ -55,7 +69,7 @@
       "target": 10,
       "icon": "🏆",
       "unlocked": false,
-      "progress": 0
+      "progress": 1
     },
     "survivor": {
       "name": "Выживший",
@@ -71,7 +85,7 @@
       "target": 10,
       "icon": "👥",
       "unlocked": false,
-      "progress": 0
+      "progress": 1
     },
     "fullteam": {
       "name": "Полная команда",
@@ -87,7 +101,7 @@
       "target": 13,
       "icon": "📖",
       "unlocked": false,
-      "progress": 0
+      "progress": 1
     },
     "universal": {
       "name": "Древнее божество",
@@ -95,7 +109,7 @@
       "target": 364,
       "icon": "💀📖",
       "unlocked": false,
-      "progress": 0
+      "progress": 2
     },
     "unlucky": {
       "name": "Невезучий",
@@ -106,7 +120,7 @@
       "progress": 0
     }
   },
-  "timestamp": "2025-11-05T02:30:59.026Z",
+  "timestamp": "2025-11-05T02:35:54.064Z",
   "version": "3.0",
   "app": "Arkham Horror Tracker"
 }
