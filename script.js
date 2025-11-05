@@ -1520,33 +1520,70 @@ class GitHubSyncManager {
         }
     }
 
+    // Декодирование base64 с обработкой ошибок
+    decodeBase64(str) {
+        try {
+            // Убираем возможные пробелы и переносы строк
+            const cleanStr = str.replace(/\s/g, '');
+            return decodeURIComponent(escape(atob(cleanStr)));
+        } catch (error) {
+            console.error('Base64 decode error:', error);
+            throw new Error('Ошибка декодирования данных');
+        }
+    }
+
+    // Кодирование в base64 с обработкой Unicode
+    encodeBase64(str) {
+        try {
+            return btoa(unescape(encodeURIComponent(str)));
+        } catch (error) {
+            console.error('Base64 encode error:', error);
+            throw new Error('Ошибка кодирования данных');
+        }
+    }
+
     // Загрузить данные
     async pull() {
         if (!this.isConfigured() || this.syncing) return false;
 
         try {
             this.syncing = true;
+            console.log('🔁 Загрузка данных из GitHub...');
+
             const response = await this.githubRequest(
                 `/repos/${this.owner}/${this.repo}/contents/arkham_progress.json`
             );
 
             if (response.status === 404) {
-                this.notify('Файл данных не найден', 'warning');
+                console.log('Файл данных не найден, будет создан при сохранении');
+                this.notify('Файл данных не найден. Будет создан при первом сохранении.', 'warning');
                 return false;
             }
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
             const data = await response.json();
-            const content = JSON.parse(atob(data.content));
+            console.log('Получены данные:', data);
+
+            if (!data.content) {
+                throw new Error('Файл не содержит данных');
+            }
+
+            // Декодируем и парсим JSON
+            const jsonString = this.decodeBase64(data.content);
+            console.log('Декодированная строка:', jsonString.substring(0, 200) + '...');
+
+            const content = JSON.parse(jsonString);
 
             // Применяем данные
             if (content && Array.isArray(content.progress)) {
                 this.mergeData(content);
                 this.notify('Данные загружены из облака', 'success');
                 return true;
+            } else {
+                throw new Error('Неверный формат данных');
             }
 
         } catch (error) {
@@ -1564,6 +1601,7 @@ class GitHubSyncManager {
 
         try {
             this.syncing = true;
+            console.log('☁️ Сохранение данных в GitHub...');
 
             // Получаем SHA существующего файла
             let sha = null;
@@ -1574,36 +1612,57 @@ class GitHubSyncManager {
                 if (response.ok) {
                     const data = await response.json();
                     sha = data.sha;
+                    console.log('Найден существующий файл, SHA:', sha);
                 }
             } catch (e) {
                 // Файл не существует - это нормально
+                console.log('Файл не существует, будет создан новый');
             }
 
             const syncData = {
-                progress: this.tracker.progress,
-                achievements: this.tracker.achievements,
+                progress: this.tracker.progress || [],
+                achievements: this.tracker.achievements || {},
                 timestamp: new Date().toISOString(),
-                version: '3.0'
+                version: '3.0',
+                app: 'Arkham Horror Tracker'
             };
 
-            const content = btoa(JSON.stringify(syncData, null, 2));
+            console.log('Данные для сохранения:', {
+                records: syncData.progress.length,
+                achievements: Object.keys(syncData.achievements).length
+            });
+
+            // Кодируем в JSON и затем в base64
+            const jsonString = JSON.stringify(syncData, null, 2);
+            const content = this.encodeBase64(jsonString);
+
+            const requestBody = {
+                message: `Sync: ${new Date().toLocaleString('ru-RU')} (${syncData.progress.length} записей)`,
+                content: content
+            };
+
+            // Добавляем SHA только если файл существует
+            if (sha) {
+                requestBody.sha = sha;
+            }
 
             const response = await this.githubRequest(
-                `/repos/${this.owner}/${this.repo}/contents/data/arkham_progress.json`,
+                `/repos/${this.owner}/${this.repo}/contents/arkham_progress.json`,
                 {
                     method: 'PUT',
-                    body: JSON.stringify({
-                        message: `Sync: ${new Date().toLocaleString('ru-RU')}`,
-                        content: content,
-                        sha: sha
-                    })
+                    body: JSON.stringify(requestBody)
                 }
             );
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `HTTP ${response.status}`);
             }
 
+            const result = await response.json();
+            console.log('✅ Данные успешно сохранены:', result.commit.html_url);
+
+            localStorage.setItem('last_sync_timestamp', syncData.timestamp);
             this.notify('Данные сохранены в облако', 'success');
             return true;
 
@@ -1618,12 +1677,19 @@ class GitHubSyncManager {
 
     // Объединить данные
     mergeData(remoteData) {
-        const local = this.tracker.progress;
+        const local = this.tracker.progress || [];
         const remote = remoteData.progress || [];
+
+        console.log('Объединение данных:', {
+            local: local.length,
+            remote: remote.length
+        });
 
         // Находим новые записи
         const localIds = new Set(local.map(item => item.id));
         const newItems = remote.filter(item => !localIds.has(item.id));
+
+        console.log('Новые записи для добавления:', newItems.length);
 
         if (newItems.length > 0) {
             this.tracker.progress = [...local, ...newItems].sort((a, b) =>
@@ -1633,6 +1699,10 @@ class GitHubSyncManager {
             this.tracker.renderHexagonGrid();
             this.tracker.renderStats();
             this.tracker.updateAchievements();
+
+            this.notify(`Добавлено ${newItems.length} новых записей из облака`, 'success');
+        } else {
+            this.notify('Данные актуальны, новых записей нет', 'info');
         }
     }
 
@@ -1643,9 +1713,24 @@ class GitHubSyncManager {
             return false;
         }
 
-        this.notify('Синхронизация...', 'info');
-        await this.pull();
-        await this.push();
+        this.notify('🔄 Синхронизация...', 'info');
+
+        try {
+            const pullResult = await this.pull();
+            const pushResult = await this.push();
+
+            if (pullResult || pushResult) {
+                this.notify('✅ Синхронизация завершена', 'success');
+            } else {
+                this.notify('ℹ️ Данные уже актуальны', 'info');
+            }
+
+            return pullResult || pushResult;
+        } catch (error) {
+            console.error('Sync error:', error);
+            this.notify(`❌ Ошибка синхронизации: ${error.message}`, 'error');
+            return false;
+        }
     }
 
     // Показать статус
@@ -1654,145 +1739,51 @@ class GitHubSyncManager {
             `✅ Настроено (${this.owner}/${this.repo})` :
             '❌ Не настроено';
 
-        alert(`Статус синхронизации:\n${status}\n\nЗаписей: ${this.tracker.progress.length}`);
+        const lastSync = localStorage.getItem('last_sync_timestamp');
+        const lastSyncText = lastSync ?
+            new Date(lastSync).toLocaleString('ru-RU') :
+            'Никогда';
+
+        alert(`Статус синхронизации:\n${status}\n\nЗаписей: ${this.tracker.progress.length}\nПоследняя синхронизация: ${lastSyncText}`);
+    }
+
+    // Создать начальный файл (если нужно)
+    async createInitialFile() {
+        if (!this.isConfigured()) return false;
+
+        try {
+            const syncData = {
+                progress: [],
+                achievements: {},
+                timestamp: new Date().toISOString(),
+                version: '3.0',
+                app: 'Arkham Horror Tracker'
+            };
+
+            const jsonString = JSON.stringify(syncData, null, 2);
+            const content = this.encodeBase64(jsonString);
+
+            const response = await this.githubRequest(
+                `/repos/${this.owner}/${this.repo}/contents/data/arkham_progress.json`,
+                {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        message: 'Initial sync file creation',
+                        content: content
+                    })
+                }
+            );
+
+            if (response.ok) {
+                this.notify('✅ Файл синхронизации создан', 'success');
+                return true;
+            } else {
+                throw new Error('Не удалось создать файл');
+            }
+        } catch (error) {
+            console.error('Create file error:', error);
+            this.notify(`Ошибка создания файла: ${error.message}`, 'error');
+            return false;
+        }
     }
 }
-
-// Добавляем дополнительные стили для увеличенных превью
-const additionalStyles = document.createElement('style');
-additionalStyles.textContent = `
-    .investigator-option {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px;
-        cursor: pointer;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        transition: background 0.3s ease;
-    }
-
-    .investigator-option:hover {
-        background: var(--secondary-light);
-    }
-
-    .investigator-option.highlighted {
-        background: var(--accent);
-        color: var(--secondary-dark);
-    }
-
-    .investigator-option-image {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid var(--accent);
-    }
-
-    .investigator-option-info {
-        flex: 1;
-    }
-
-    .investigator-option-name {
-        font-weight: bold;
-        font-size: 1rem;
-    }
-
-    .investigator-option-desc {
-        font-size: 0.8rem;
-        color: var(--text-dark);
-        margin-top: 2px;
-    }
-
-    .no-results {
-        justify-content: center;
-        color: var(--text-dark);
-        font-style: italic;
-    }
-
-    /* Увеличенные превью */
-    .scenario-preview-large {
-        width: 240px !important;
-        height: 160px !important;
-        border-radius: 12px !important;
-        border: 3px solid var(--accent) !important;
-    }
-
-    .selected-investigator-avatar {
-        width: 60px !important;
-        height: 60px !important;
-        border-radius: 50% !important;
-        border: 3px solid var(--accent) !important;
-    }
-
-    .scenario-preview-info {
-        text-align: center;
-        margin-top: 10px;
-    }
-
-    .scenario-preview-desc {
-        font-size: 0.9rem;
-        color: var(--text-dark);
-        margin-top: 5px;
-    }
-
-    .modal-image-large {
-        max-width: 90vw;
-        max-height: 80vh;
-        border-radius: 12px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-    }
-
-    .detail-image-large {
-        width: 80px !important;
-        height: 80px !important;
-        border-radius: 50% !important;
-        border: 3px solid var(--accent) !important;
-    }
-
-    .notes-content {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 15px;
-        border-radius: var(--border-radius);
-        border-left: 4px solid var(--accent);
-        font-style: italic;
-    }
-
-    .no-records-message {
-        text-align: center;
-        color: var(--text-dark);
-        font-style: italic;
-        padding: 60px 20px;
-        font-size: 1.2em;
-        grid-column: 1 / -1;
-    }
-
-    /* Улучшенный выпадающий список */
-    .investigator-select-with-search {
-        width: 100%;
-        max-height: 300px;
-        overflow-y: auto;
-        background: var(--secondary-dark);
-        border: 2px solid var(--accent);
-        border-radius: var(--border-radius);
-        position: absolute;
-        top: 100%;
-        left: 0;
-        z-index: 1000;
-        display: none;
-        box-shadow: var(--shadow-heavy);
-    }
-`;
-document.head.appendChild(additionalStyles);
-
-// Инициализация
-let tracker;
-document.addEventListener('DOMContentLoaded', () => {
-    tracker = new ArkhamHorizonTracker();
-});
-
-// Обработка ошибок загрузки изображений
-window.addEventListener('error', function (e) {
-    if (e.target.tagName === 'IMG') {
-        console.warn('Изображение не загружено:', e.target.src);
-    }
-}, true);
