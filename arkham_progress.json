@@ -13,6 +13,16 @@
       "notes": "Играли долго, победили, Лиза почти сразу уснула после победы",
       "timestamp": "2025-11-04T13:19:39.833Z",
       "playerCount": 3
+    },
+    {
+      "id": 1762319542261,
+      "investigator": "agnes",
+      "scenario": "shots_blind",
+      "date": "2025-11-05",
+      "result": "win",
+      "notes": "",
+      "timestamp": "2025-11-05T05:12:22.261Z",
+      "playerCount": 1
     }
   ],
   "achievements": {
@@ -121,7 +131,7 @@
       "progress": 0
     }
   },
-  "timestamp": "2025-11-05T05:11:56.211Z",
+  "timestamp": "2025-11-05T05:12:22.261Z",
   "version": "3.0",
   "app": "Arkham Horror Tracker"
 }
