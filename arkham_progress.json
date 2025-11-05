@@ -1,0 +1,112 @@
+{
+  "progress": [],
+  "achievements": {
+    "beginner": {
+      "name": "Неофит",
+      "description": "Пройдите первый сюжет",
+      "target": 1,
+      "icon": "🥳",
+      "unlocked": false,
+      "progress": 0
+    },
+    "adventurer": {
+      "name": "Искатель приключений",
+      "description": "Пройдите 5 сюжетов",
+      "target": 5,
+      "icon": "🏕️",
+      "unlocked": false,
+      "progress": 0
+    },
+    "veteran": {
+      "name": "Ветеран Аркхема",
+      "description": "Пройдите 10 сюжетов",
+      "target": 10,
+      "icon": "🎖️",
+      "unlocked": false,
+      "progress": 0
+    },
+    "expert": {
+      "name": "Эксперт по Древним",
+      "description": "Пройдите 20 сюжетов",
+      "target": 20,
+      "icon": "👑",
+      "unlocked": false,
+      "progress": 0
+    },
+    "specialist": {
+      "name": "Мастер одного пути",
+      "description": "Пройдите 5 сюжетов одним сыщиком",
+      "target": 5,
+      "icon": "🎯",
+      "unlocked": false,
+      "progress": null
+    },
+    "collector": {
+      "name": "Собиратель опыта",
+      "description": "Испытайте всех сыщиков",
+      "target": 28,
+      "icon": "📚",
+      "unlocked": false,
+      "progress": 0
+    },
+    "triumphant": {
+      "name": "Триумфатор",
+      "description": "Одержите 10 побед",
+      "target": 10,
+      "icon": "🏆",
+      "unlocked": false,
+      "progress": 0
+    },
+    "survivor": {
+      "name": "Выживший",
+      "description": "Переживите 5 поражений",
+      "target": 5,
+      "icon": "💀",
+      "unlocked": false,
+      "progress": 0
+    },
+    "teamplayer": {
+      "name": "Командный игрок",
+      "description": "Пройдите 10 сюжетов в команде из 2+ сыщиков",
+      "target": 10,
+      "icon": "👥",
+      "unlocked": false,
+      "progress": 0
+    },
+    "fullteam": {
+      "name": "Полная команда",
+      "description": "Пройдите сюжет в команде из 4 сыщиков",
+      "target": 1,
+      "icon": "🔄",
+      "unlocked": false,
+      "progress": 0
+    },
+    "scholar": {
+      "name": "Ученый",
+      "description": "Пройдите все сюжеты кампании",
+      "target": 13,
+      "icon": "📖",
+      "unlocked": false,
+      "progress": 0
+    },
+    "universal": {
+      "name": "Древнее божество",
+      "description": "Пройдите все сюжеты кампании за всех персонажей",
+      "target": 364,
+      "icon": "💀📖",
+      "unlocked": false,
+      "progress": 0
+    },
+    "unlucky": {
+      "name": "Невезучий",
+      "description": "Проиграйте 3 сюжета подряд",
+      "target": 3,
+      "icon": "🍀",
+      "unlocked": false,
+      "progress": 0
+    }
+  },
+  "timestamp": "2025-11-05T02:30:47.678Z",
+  "version": "3.0",
+  "app": "Arkham Horror Tracker"
+}
