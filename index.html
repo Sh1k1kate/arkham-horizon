@@ -60,31 +60,6 @@
                 </div>
             </div>
 
-            <!-- Фильтры -->
-            <div class="filters">
-                <div class="filter-group">
-                    <label for="filter-investigator" class="filter-label">🔍 Сыщик:</label>
-                    <select id="filter-investigator" class="filter-select">
-                        <option value="all">Все исследователи</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="filter-scenario" class="filter-label">📖 Сюжет:</label>
-                    <select id="filter-scenario" class="filter-select">
-                        <option value="all">Все сюжеты</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="filter-result" class="filter-label">🎯 Результат:</label>
-                    <select id="filter-result" class="filter-select">
-                        <option value="all">Все исходы</option>
-                        <option value="win">Только победы</option>
-                        <option value="loss">Только поражения</option>
-                    </select>
-                </div>
-                <button id="reset-filters" class="control-btn secondary">🔄 Сбросить фильтры</button>
-            </div>
-
             <!-- Форма добавления записи -->
             <div class="add-record-form">
                 <h3 class="form-title">➕ Записать новое расследование</h3>
@@ -141,6 +116,31 @@
                 </form>
             </div>
 
+            <!-- Фильтры -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="filter-investigator" class="filter-label">🔍 Сыщик:</label>
+                    <select id="filter-investigator" class="filter-select">
+                        <option value="all">Все исследователи</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-scenario" class="filter-label">📖 Сюжет:</label>
+                    <select id="filter-scenario" class="filter-select">
+                        <option value="all">Все сюжеты</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-result" class="filter-label">🎯 Результат:</label>
+                    <select id="filter-result" class="filter-select">
+                        <option value="all">Все исходы</option>
+                        <option value="win">Только победы</option>
+                        <option value="loss">Только поражения</option>
+                    </select>
+                </div>
+                <button id="reset-filters" class="control-btn secondary">🔄 Сбросить фильтры</button>
+            </div>
+
             <!-- Гексагональная сетка записей -->
             <section class="records-section">
                 <div class="section-header">
@@ -154,7 +154,7 @@
                     <!-- Гексагоны будут генерироваться здесь -->
                 </div>
             </section>
-    </div>
+</div>
 
     <!-- Модальное окно для детального просмотра -->
     <div id="record-modal" class="modal">
