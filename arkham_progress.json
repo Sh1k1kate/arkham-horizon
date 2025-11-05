@@ -1,6 +1,21 @@
 {
   "progress": [
     {
+      "id": 1762319728455,
+      "investigator": [
+        "agnes",
+        "daniela",
+        "pete",
+        "calvin"
+      ],
+      "scenario": "children_ithaqua",
+      "date": "2025-11-05",
+      "result": "win",
+      "notes": "",
+      "timestamp": "2025-11-05T05:15:28.455Z",
+      "playerCount": 4
+    },
+    {
       "id": 1762262379833,
       "investigator": [
         "dexter",
@@ -30,7 +45,7 @@
       "target": 5,
       "icon": "🏕️",
       "unlocked": false,
-      "progress": 1
+      "progress": 2
     },
     "veteran": {
       "name": "Ветеран Аркхема",
@@ -38,7 +53,7 @@
       "target": 10,
       "icon": "🎖️",
       "unlocked": false,
-      "progress": 1
+      "progress": 2
     },
     "expert": {
       "name": "Эксперт по Древним",
@@ -46,7 +61,7 @@
       "target": 20,
       "icon": "👑",
       "unlocked": false,
-      "progress": 1
+      "progress": 2
     },
     "specialist": {
       "name": "Мастер одного пути",
@@ -62,7 +77,7 @@
       "target": 28,
       "icon": "📚",
       "unlocked": false,
-      "progress": 3
+      "progress": 7
     },
     "triumphant": {
       "name": "Триумфатор",
@@ -70,7 +85,7 @@
       "target": 10,
       "icon": "🏆",
       "unlocked": false,
-      "progress": 1
+      "progress": 2
     },
     "survivor": {
       "name": "Выживший",
@@ -86,15 +101,15 @@
       "target": 10,
       "icon": "👥",
       "unlocked": false,
-      "progress": 1
+      "progress": 2
     },
     "fullteam": {
       "name": "Полная команда",
       "description": "Пройдите сюжет в команде из 4 сыщиков",
       "target": 1,
       "icon": "🔄",
-      "unlocked": false,
-      "progress": 0
+      "unlocked": true,
+      "progress": 1
     },
     "scholar": {
       "name": "Ученый",
@@ -102,7 +117,7 @@
       "target": 13,
       "icon": "📖",
       "unlocked": false,
-      "progress": 1
+      "progress": 2
     },
     "universal": {
       "name": "Древнее божество",
@@ -110,7 +125,7 @@
       "target": 364,
       "icon": "💀📖",
       "unlocked": false,
-      "progress": 3
+      "progress": 7
     },
     "unlucky": {
       "name": "Невезучий",
@@ -121,7 +136,7 @@
       "progress": 0
     }
   },
-  "timestamp": "2025-11-05T05:15:00.691Z",
+  "timestamp": "2025-11-05T05:15:29.461Z",
   "version": "3.0",
   "app": "Arkham Horror Tracker"
 }
