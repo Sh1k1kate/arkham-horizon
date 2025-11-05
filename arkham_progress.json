@@ -1,16 +1,6 @@
 {
   "progress": [
     {
-      "id": 1762319594695,
-      "investigator": "agnes",
-      "scenario": "pale_lantern",
-      "date": "2025-11-05",
-      "result": "win",
-      "notes": "",
-      "timestamp": "2025-11-05T05:13:14.695Z",
-      "playerCount": 1
-    },
-    {
       "id": 1762262379833,
       "investigator": [
         "dexter",
@@ -131,7 +121,7 @@
       "progress": 0
     }
   },
-  "timestamp": "2025-11-05T05:13:46.929Z",
+  "timestamp": "2025-11-05T05:13:52.858Z",
   "version": "3.0",
   "app": "Arkham Horror Tracker"
 }
