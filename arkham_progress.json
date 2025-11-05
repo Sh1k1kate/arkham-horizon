@@ -1,19 +1,6 @@
 {
   "progress": [
     {
-      "id": 1762320237161,
-      "investigator": [
-        "calvin",
-        "pete"
-      ],
-      "scenario": "coming_azathoth",
-      "date": "2025-11-05",
-      "result": "loss",
-      "notes": "",
-      "timestamp": "2025-11-05T05:23:57.161Z",
-      "playerCount": 2
-    },
-    {
       "id": 1762262379833,
       "investigator": [
         "dexter",
@@ -134,7 +121,7 @@
       "progress": 1
     }
   },
-  "timestamp": "2025-11-05T05:23:58.208Z",
+  "timestamp": "2025-11-05T05:24:10.577Z",
   "version": "3.0",
   "app": "Arkham Horror Tracker"
 }
