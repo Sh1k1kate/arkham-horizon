@@ -1,399 +1,7 @@
-// Улучшенный менеджер синхронизации с правильной привязкой контекста
-class GitHubSyncManager {
-    constructor(trackerInstance) {
-        this.tracker = trackerInstance;
-        this.GITHUB_TOKEN = '';
-        this.REPO_OWNER = '';
-        this.REPO_NAME = '';
-        this.SYNC_FILE_PATH = 'data/arkham_progress.json';
-        this.isSyncing = false;
-        this.syncInterval = null;
-        this.retryCount = 0;
-        this.maxRetries = 3;
-
-        // Жесткая привязка методов к контексту
-        this.initialize = this.initialize.bind(this);
-        this.setupSync = this.setupSync.bind(this);
-        this.manualSync = this.manualSync.bind(this);
-        this.pullData = this.pullData.bind(this);
-        this.pushData = this.pushData.bind(this);
-        this.showStatus = this.showStatus.bind(this);
-        this.showNotification = this.showNotification.bind(this);
-        this.showError = this.showError.bind(this);
-    }
-
-    // Вспомогательный метод для показа уведомлений
-    showNotification(message, type = 'info') {
-        console.log(`[Notification ${type}]: ${message}`);
-        if (this.tracker && typeof this.tracker.showNotification === 'function') {
-            this.tracker.showNotification(message, type);
-        }
-    }
-
-    // Показать детальную ошибку
-    showError(message) {
-        console.error('Sync Error:', message);
-        this.showNotification(`❌ ${message}`, 'error');
-    }
-
-    // Инициализация
-    async initialize() {
-        try {
-            this.GITHUB_TOKEN = localStorage.getItem('github_sync_token') || '';
-            this.REPO_OWNER = localStorage.getItem('github_repo_owner') || '';
-            this.REPO_NAME = localStorage.getItem('github_repo_name') || '';
-
-            if (this.isConfigured()) {
-                console.log('🔗 Синхронизация настроена');
-                this.showNotification('🔗 Автосинхронизация активна', 'success');
-                this.startAutoSync();
-                return true;
-            }
-        } catch (error) {
-            console.error('Initialization error:', error);
-        }
-        return false;
-    }
-
-    // Проверка конфигурации
-    isConfigured() {
-        return !!(this.GITHUB_TOKEN && this.REPO_OWNER && this.REPO_NAME);
-    }
-
-    // Настройка синхронизации
-    async setupSync() {
-        const config = await this.showSetupModal();
-        if (!config) return false;
-
-        this.GITHUB_TOKEN = config.token;
-        this.REPO_OWNER = config.owner;
-        this.REPO_NAME = config.repo;
-
-        // Сохраняем настройки
-        localStorage.setItem('github_sync_token', this.GITHUB_TOKEN);
-        localStorage.setItem('github_repo_owner', this.REPO_OWNER);
-        localStorage.setItem('github_repo_name', this.REPO_NAME);
-
-        this.showNotification('✅ Синхронизация настроена!', 'success');
-        this.startAutoSync();
-        return true;
-    }
-
-    // Модальное окно настройки (упрощенная версия)
-    async showSetupModal() {
-        return new Promise((resolve) => {
-            const modalHTML = `
-                <div class="sync-setup-modal">
-                    <h3>⚙️ Настройка синхронизации</h3>
-                    <div class="setup-form">
-                        <div class="form-group">
-                            <label>GitHub Token:</label>
-                            <input type="password" id="github-token" placeholder="ghp_..." class="form-input">
-                        </div>
-                        <div class="form-group">
-                            <label>Username:</label>
-                            <input type="text" id="github-owner" placeholder="your-username" class="form-input">
-                        </div>
-                        <div class="form-group">
-                            <label>Repository:</label>
-                            <input type="text" id="github-repo" placeholder="arkham-horizon" class="form-input">
-                        </div>
-                    </div>
-                    <div class="setup-actions">
-                        <button id="confirm-setup" class="control-btn">✅ Настроить</button>
-                        <button id="cancel-setup" class="control-btn secondary">❌ Отмена</button>
-                    </div>
-                </div>
-            `;
-
-            const modal = document.getElementById('record-modal');
-            const modalContent = document.getElementById('modal-content');
-
-            modalContent.innerHTML = modalHTML;
-            modal.style.display = 'block';
-
-            document.getElementById('confirm-setup').addEventListener('click', () => {
-                const token = document.getElementById('github-token').value.trim();
-                const owner = document.getElementById('github-owner').value.trim();
-                const repo = document.getElementById('github-repo').value.trim();
-
-                if (token && owner && repo) {
-                    modal.style.display = 'none';
-                    resolve({ token, owner, repo });
-                } else {
-                    this.showNotification('Заполните все поля', 'error');
-                }
-            });
-
-            document.getElementById('cancel-setup').addEventListener('click', () => {
-                modal.style.display = 'none';
-                resolve(null);
-            });
-        });
-    }
-
-    // Запрос к GitHub API
-    async githubRequest(endpoint, options = {}) {
-        const url = `https://api.github.com${endpoint}`;
-
-        const defaultOptions = {
-            headers: {
-                'Authorization': `token ${this.GITHUB_TOKEN}`,
-                'Accept': 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json'
-            }
-        };
-
-        try {
-            const response = await fetch(url, { ...defaultOptions, ...options });
-            return response;
-        } catch (error) {
-            console.error('GitHub API Error:', error);
-            throw error;
-        }
-    }
-
-    // Загрузка данных
-    async pullData() {
-        if (this.isSyncing || !this.isConfigured()) {
-            console.log('Pull skipped');
-            return false;
-        }
-
-        try {
-            console.log('🔁 Pulling data...');
-            const response = await this.githubRequest(`/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.SYNC_FILE_PATH}`);
-
-            if (response.status === 404) {
-                console.log('Файл не найден');
-                return false;
-            }
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            const fileData = await response.json();
-            const content = JSON.parse(atob(fileData.content.replace(/\n/g, '')));
-
-            // Применяем данные
-            if (content && Array.isArray(content.progress)) {
-                this.applyRemoteData(content);
-            }
-
-            return true;
-
-        } catch (error) {
-            console.error('Pull error:', error);
-            return false;
-        }
-    }
-
-    // Отправка данных
-    async pushData() {
-        if (this.isSyncing || !this.isConfigured()) {
-            console.log('Push skipped');
-            return false;
-        }
-
-        this.isSyncing = true;
-
-        try {
-            console.log('☁️ Pushing data...');
-            const data = {
-                progress: this.tracker.progress || [],
-                achievements: this.tracker.achievements || {},
-                timestamp: new Date().toISOString(),
-                version: '3.0'
-            };
-
-            // Получаем SHA существующего файла
-            let fileSHA = null;
-            try {
-                const response = await this.githubRequest(`/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.SYNC_FILE_PATH}`);
-                if (response.ok) {
-                    const fileData = await response.json();
-                    fileSHA = fileData.sha;
-                }
-            } catch (error) {
-                // Файл не существует - это нормально
-            }
-
-            const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
-
-            const body = {
-                message: `Sync: ${new Date().toLocaleString('ru-RU')}`,
-                content: content,
-                sha: fileSHA
-            };
-
-            const response = await this.githubRequest(
-                `/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/${this.SYNC_FILE_PATH}`,
-                {
-                    method: 'PUT',
-                    body: JSON.stringify(body)
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            localStorage.setItem('last_sync_timestamp', data.timestamp);
-            this.showNotification('☁️ Данные сохранены в облако', 'success');
-            return true;
-
-        } catch (error) {
-            console.error('Push error:', error);
-            this.showError(`Ошибка сохранения: ${error.message}`);
-            return false;
-        } finally {
-            this.isSyncing = false;
-        }
-    }
-
-    // Применение данных
-    applyRemoteData(data) {
-        if (!data || !Array.isArray(data.progress)) return;
-
-        const localProgress = this.tracker.progress || [];
-        const remoteProgress = data.progress;
-
-        // Простой мерж - добавляем только новые записи
-        const localIds = new Set(localProgress.map(item => item.id));
-        const newRecords = remoteProgress.filter(item => !localIds.has(item.id));
-
-        if (newRecords.length > 0) {
-            this.tracker.progress = [...localProgress, ...newRecords].sort((a, b) =>
-                new Date(b.timestamp) - new Date(a.timestamp)
-            );
-
-            this.tracker.saveProgress();
-            this.tracker.renderHexagonGrid();
-            this.tracker.renderStats();
-            this.tracker.updateAchievements();
-
-            this.showNotification(`🔁 Добавлено ${newRecords.length} новых записей`, 'success');
-        }
-
-        localStorage.setItem('last_sync_timestamp', data.timestamp);
-    }
-
-    // Ручная синхронизация
-    async manualSync() {
-        console.log('Manual sync called');
-
-        if (!this.isConfigured()) {
-            this.showNotification('❌ Сначала настройте синхронизацию', 'error');
-            return;
-        }
-
-        this.showNotification('🔄 Синхронизация...', 'info');
-
-        try {
-            // Проверяем что методы существуют
-            if (typeof this.pullData !== 'function') {
-                throw new Error('pullData is not a function');
-            }
-            if (typeof this.pushData !== 'function') {
-                throw new Error('pushData is not a function');
-            }
-
-            await this.pullData();
-            await this.pushData();
-
-        } catch (error) {
-            console.error('Manual sync error:', error);
-            this.showError(`Ошибка синхронизации: ${error.message}`);
-        }
-    }
-
-    // Запуск автосинхронизации
-    startAutoSync() {
-        if (!this.tracker) {
-            console.error('Tracker not available');
-            return;
-        }
-
-        // Первая синхронизация
-        setTimeout(() => {
-            this.pullData();
-        }, 3000);
-
-        // Периодическая синхронизация
-        this.syncInterval = setInterval(() => {
-            this.pullData();
-        }, 2 * 60 * 1000);
-
-        console.log('🔄 Автосинхронизация запущена');
-    }
-
-    // Статус синхронизации
-    showStatus() {
-        const statusHTML = `
-            <div class="sync-status">
-                <h3>📡 Статус синхронизации</h3>
-                <div class="status-info">
-                    <div class="status-item">
-                        <strong>Настроено:</strong> ${this.isConfigured() ? '✅' : '❌'}
-                    </div>
-                    <div class="status-item">
-                        <strong>Репозиторий:</strong> ${this.REPO_OWNER}/${this.REPO_NAME}
-                    </div>
-                    <div class="status-item">
-                        <strong>Записей:</strong> ${this.tracker.progress.length}
-                    </div>
-                </div>
-                <div class="status-actions">
-                    <button id="manual-sync-now" class="control-btn">🔄 Синхронизировать</button>
-                    <button id="stop-sync" class="control-btn secondary">🔌 Отключить</button>
-                </div>
-            </div>
-        `;
-
-        const modal = document.getElementById('record-modal');
-        const modalContent = document.getElementById('modal-content');
-
-        modalContent.innerHTML = statusHTML;
-        modal.style.display = 'block';
-
-        document.getElementById('manual-sync-now').addEventListener('click', () => {
-            this.manualSync();
-            modal.style.display = 'none';
-        });
-
-        document.getElementById('stop-sync').addEventListener('click', () => {
-            this.clearSettings();
-            this.showNotification('🔌 Синхронизация отключена', 'info');
-            modal.style.display = 'none';
-        });
-    }
-
-    // Очистка настроек
-    clearSettings() {
-        localStorage.removeItem('github_sync_token');
-        localStorage.removeItem('github_repo_owner');
-        localStorage.removeItem('github_repo_name');
-        localStorage.removeItem('last_sync_timestamp');
-
-        this.GITHUB_TOKEN = '';
-        this.REPO_OWNER = '';
-        this.REPO_NAME = '';
-
-        if (this.syncInterval) {
-            clearInterval(this.syncInterval);
-            this.syncInterval = null;
-        }
-    }
-}
 // Основной класс трекера
 class ArkhamHorizonTracker {
     constructor() {
-       
         this.progress = JSON.parse(localStorage.getItem('arkhamProgress')) || [];
-        // Создаем синхронизацию
-        this.githubSync = new GitHubSyncManager(this);
-
         this.investigators = {
             'agnes': {
                 name: 'Агнес Бейкер',
@@ -456,7 +64,7 @@ class ArkhamHorizonTracker {
                 description: 'Федеральный агент с аналитическим складом ума'
             },
             'skids': {
-                name: '«Шквал» О’Тул',
+                name: '«Шквал» О\'Тул',
                 image: './images/investigators/skids.jpg',
                 description: 'Бывший заключенный, ищущий искупления'
             },
@@ -536,7 +144,7 @@ class ArkhamHorizonTracker {
                 description: 'Авиатриса с жаждой приключений'
             }
         };
-        
+
         this.scenarios = {
             'veil_twilight': {
                 name: 'Завеса сумерек',
@@ -604,118 +212,121 @@ class ArkhamHorizonTracker {
                 description: 'Столкновение с культом, пытающимся призвать на службу тёмных существ'
             }
         };
-                this.achievements = {
-                    beginner: {
-                        name: 'Неофит',
-                        description: 'Пройдите первый сюжет',
-                        target: 1,
-                        icon: '🥳',
-                        unlocked: false,
-                        progress: 0
-                    },
-                    adventurer: {
-                        name: 'Искатель приключений',
-                        description: 'Пройдите 5 сюжетов',
-                        target: 5,
-                        icon: '🏕️',
-                        unlocked: false,
-                        progress: 0
-                    },
-                    veteran: {
-                        name: 'Ветеран Аркхема',
-                        description: 'Пройдите 10 сюжетов',
-                        target: 10,
-                        icon: '🎖️',
-                        unlocked: false,
-                        progress: 0
-                    },
-                    expert: {
-                        name: 'Эксперт по Древним',
-                        description: 'Пройдите 20 сюжетов',
-                        target: 20,
-                        icon: '👑',
-                        unlocked: false,
-                        progress: 0
-                    },
-                    specialist: {
-                        name: 'Мастер одного пути',
-                        description: 'Пройдите 5 сюжетов одним сыщиком',
-                        target: 5,
-                        icon: '🎯',
-                        unlocked: false,
-                        progress: 0
-                    },
-                    collector: {
-                        name: 'Собиратель опыта',
-                        description: 'Испытайте всех сыщиков',
-                        target: Object.keys(this.investigators).length,
-                        icon: '📚',
-                        unlocked: false,
-                        progress: 0
-                    },
-                    triumphant: {
-                        name: 'Триумфатор',
-                        description: 'Одержите 10 побед',
-                        target: 10,
-                        icon: '🏆',
-                        unlocked: false,
-                        progress: 0
-                    },
-                    survivor: {
-                        name: 'Выживший',
-                        description: 'Переживите 5 поражений',
-                        target: 5,
-                        icon: '💀',
-                        unlocked: false,
-                        progress: 0
-                    },
-                    teamplayer: {
-                        name: 'Командный игрок',
-                        description: 'Пройдите 10 сюжетов в команде из 2+ сыщиков',
-                        target: 10,
-                        icon: '👥',
-                        unlocked: false,
-                        progress: 0
-                    },
-                    fullteam: {
-                        name: 'Полная команда',
-                        description: 'Пройдите сюжет в команде из 4 сыщиков',
-                        target: 1,
-                        icon: '🔄',
-                        unlocked: false,
-                        progress: 0
-                    },
-                    scholar: {
-                        name: 'Ученый',
-                        description: 'Пройдите все сюжеты кампании',
-                        target: Object.keys(this.scenarios).length,
-                        icon: '📖',
-                        unlocked: false,
-                        progress: 0
-                    },
-                    universal: {
-                        name: 'Древнее божество',
-                        description: 'Пройдите все сюжеты кампании за всех персонажей',
-                        target: Object.keys(this.investigators).length * Object.keys(this.scenarios).length,
-                        icon: '💀📖',
-                        unlocked: false,
-                        progress: 0
-                    },
-                    unlucky: {
-                        name: 'Невезучий',
-                        description: 'Проиграйте 3 сюжета подряд',
-                        target: 3,
-                        icon: '🍀',
-                        unlocked: false,
-                        progress: 0
-                    }
-                };
 
-                this.selectedInvestigators = [];
-        this.currentPlayerCount = 2;
-        this.githubSync = new GitHubSyncManager(this); // Передаем this в конструктор
-                this.init();
+        this.achievements = {
+            beginner: {
+                name: 'Неофит',
+                description: 'Пройдите первый сюжет',
+                target: 1,
+                icon: '🥳',
+                unlocked: false,
+                progress: 0
+            },
+            adventurer: {
+                name: 'Искатель приключений',
+                description: 'Пройдите 5 сюжетов',
+                target: 5,
+                icon: '🏕️',
+                unlocked: false,
+                progress: 0
+            },
+            veteran: {
+                name: 'Ветеран Аркхема',
+                description: 'Пройдите 10 сюжетов',
+                target: 10,
+                icon: '🎖️',
+                unlocked: false,
+                progress: 0
+            },
+            expert: {
+                name: 'Эксперт по Древним',
+                description: 'Пройдите 20 сюжетов',
+                target: 20,
+                icon: '👑',
+                unlocked: false,
+                progress: 0
+            },
+            specialist: {
+                name: 'Мастер одного пути',
+                description: 'Пройдите 5 сюжетов одним сыщиком',
+                target: 5,
+                icon: '🎯',
+                unlocked: false,
+                progress: 0
+            },
+            collector: {
+                name: 'Собиратель опыта',
+                description: 'Испытайте всех сыщиков',
+                target: Object.keys(this.investigators).length,
+                icon: '📚',
+                unlocked: false,
+                progress: 0
+            },
+            triumphant: {
+                name: 'Триумфатор',
+                description: 'Одержите 10 побед',
+                target: 10,
+                icon: '🏆',
+                unlocked: false,
+                progress: 0
+            },
+            survivor: {
+                name: 'Выживший',
+                description: 'Переживите 5 поражений',
+                target: 5,
+                icon: '💀',
+                unlocked: false,
+                progress: 0
+            },
+            teamplayer: {
+                name: 'Командный игрок',
+                description: 'Пройдите 10 сюжетов в команде из 2+ сыщиков',
+                target: 10,
+                icon: '👥',
+                unlocked: false,
+                progress: 0
+            },
+            fullteam: {
+                name: 'Полная команда',
+                description: 'Пройдите сюжет в команде из 4 сыщиков',
+                target: 1,
+                icon: '🔄',
+                unlocked: false,
+                progress: 0
+            },
+            scholar: {
+                name: 'Ученый',
+                description: 'Пройдите все сюжеты кампании',
+                target: Object.keys(this.scenarios).length,
+                icon: '📖',
+                unlocked: false,
+                progress: 0
+            },
+            universal: {
+                name: 'Древнее божество',
+                description: 'Пройдите все сюжеты кампании за всех персонажей',
+                target: Object.keys(this.investigators).length * Object.keys(this.scenarios).length,
+                icon: '💀📖',
+                unlocked: false,
+                progress: 0
+            },
+            unlucky: {
+                name: 'Невезучий',
+                description: 'Проиграйте 3 сюжета подряд',
+                target: 3,
+                icon: '🍀',
+                unlocked: false,
+                progress: 0
             }
+        };
+
+        this.selectedInvestigators = [];
+        this.currentPlayerCount = 2;
+
+        // Простой менеджер синхронизации
+        this.syncManager = new GitHubSyncManager(this);
+        this.init();
+    }
 
     init() {
         this.renderPlayerCountSelector();
@@ -729,10 +340,12 @@ class ArkhamHorizonTracker {
         this.setupEventListeners();
         this.setupModal();
 
-        // Отложенная инициализация синхронизации
-        setTimeout(() => {
-            this.githubSync.initialize();
-        }, 1000);
+        // Проверяем синхронизацию
+        if (this.syncManager.isConfigured()) {
+            setTimeout(() => {
+                this.syncManager.pull();
+            }, 2000);
+        }
 
         if (this.progress.length === 0 && !localStorage.getItem('welcomeShown')) {
             setTimeout(() => {
@@ -743,78 +356,78 @@ class ArkhamHorizonTracker {
     }
 
     setupEventListeners() {
+        // Форма добавления
+        document.getElementById('progress-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addProgress();
+        });
+
+        // Кнопки выбора количества игроков
+        document.querySelectorAll('.count-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.setPlayerCount(parseInt(e.target.dataset.count));
+            });
+        });
+
+        // Превью сценария
+        document.getElementById('scenario').addEventListener('change', (e) => {
+            this.showScenarioPreview(e.target.value);
+        });
+
+        // Фильтры
+        document.getElementById('filter-investigator').addEventListener('change', () => this.applyFilters());
+        document.getElementById('filter-scenario').addEventListener('change', () => this.applyFilters());
+        document.getElementById('filter-result').addEventListener('change', () => this.applyFilters());
+        document.getElementById('reset-filters').addEventListener('click', () => this.resetFilters());
+
+        // Экспорт/импорт
+        document.getElementById('export-json').addEventListener('click', () => this.exportToJSON());
+        document.getElementById('export-csv').addEventListener('click', () => this.exportToCSV());
+        document.getElementById('import-data').addEventListener('click', () => document.getElementById('import-file').click());
+        document.getElementById('import-file').addEventListener('change', (e) => this.importData(e));
 
         // Синхронизация
         document.getElementById('setup-sync').addEventListener('click', () => {
-            this.githubSync.setupSync();
+            this.syncManager.setup();
         });
 
         document.getElementById('manual-sync').addEventListener('click', () => {
-            this.githubSync.manualSync();
+            this.syncManager.sync();
         });
 
         document.getElementById('sync-status').addEventListener('click', () => {
-            this.githubSync.showStatus();
+            this.syncManager.showStatus();
         });
-                // Форма добавления
-                document.getElementById('progress-form').addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    this.addProgress();
-                });
 
-                // Кнопки выбора количества игроков
-                document.querySelectorAll('.count-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        this.setPlayerCount(parseInt(e.target.dataset.count));
-                    });
-                });
+        // Глобальные обработчики для поиска сыщиков
+        document.addEventListener('click', this.handleGlobalClick.bind(this));
+        document.addEventListener('input', this.handleSearchInput.bind(this));
+    }
 
-                // Превью сценария
-                document.getElementById('scenario').addEventListener('change', (e) => {
-                    this.showScenarioPreview(e.target.value);
-                });
-
-                // Фильтры
-                document.getElementById('filter-investigator').addEventListener('change', () => this.applyFilters());
-                document.getElementById('filter-scenario').addEventListener('change', () => this.applyFilters());
-                document.getElementById('filter-result').addEventListener('change', () => this.applyFilters());
-                document.getElementById('reset-filters').addEventListener('click', () => this.resetFilters());
-
-                // Экспорт/импорт
-                document.getElementById('export-json').addEventListener('click', () => this.exportToJSON());
-                document.getElementById('export-csv').addEventListener('click', () => this.exportToCSV());
-                document.getElementById('import-data').addEventListener('click', () => document.getElementById('import-file').click());
-                document.getElementById('import-file').addEventListener('change', (e) => this.importData(e));
-
-                // Глобальные обработчики для поиска сыщиков
-                document.addEventListener('click', this.handleGlobalClick.bind(this));
-                document.addEventListener('input', this.handleSearchInput.bind(this));
+    renderPlayerCountSelector() {
+        const buttons = document.querySelectorAll('.count-btn');
+        buttons.forEach(btn => {
+            if (parseInt(btn.dataset.count) === this.currentPlayerCount) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
             }
+        });
+        document.getElementById('player-count').value = this.currentPlayerCount;
+    }
 
-            renderPlayerCountSelector() {
-                const buttons = document.querySelectorAll('.count-btn');
-                buttons.forEach(btn => {
-                    if (parseInt(btn.dataset.count) === this.currentPlayerCount) {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
-                document.getElementById('player-count').value = this.currentPlayerCount;
-            }
+    setPlayerCount(count) {
+        this.currentPlayerCount = count;
+        this.renderPlayerCountSelector();
+        this.renderInvestigatorFields();
+    }
 
-            setPlayerCount(count) {
-                this.currentPlayerCount = count;
-                this.renderPlayerCountSelector();
-                this.renderInvestigatorFields();
-            }
+    renderInvestigatorFields() {
+        const container = document.getElementById('investigators-container');
+        container.innerHTML = '';
 
-            renderInvestigatorFields() {
-                const container = document.getElementById('investigators-container');
-                container.innerHTML = '';
-
-                for (let i = 0; i < this.currentPlayerCount; i++) {
-                    const fieldHTML = `
+        for (let i = 0; i < this.currentPlayerCount; i++) {
+            const fieldHTML = `
                 <div class="form-group investigator-field" data-index="${i}">
                     <label for="investigator-${i}" class="form-label">🕵️ Сыщик ${i + 1}:</label>
                     <div class="investigator-field-group">
@@ -835,138 +448,138 @@ class ArkhamHorizonTracker {
                     </div>
                 </div>
             `;
-                    container.innerHTML += fieldHTML;
-                }
+            container.innerHTML += fieldHTML;
+        }
 
-                // Добавляем обработчики для кнопок удаления
-                document.querySelectorAll('.remove-investigator-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const index = parseInt(e.target.dataset.index);
-                        this.removeInvestigatorField(index);
-                    });
-                });
-
-                // Добавляем обработчики для полей поиска
-                document.querySelectorAll('.investigator-search').forEach(input => {
-                    input.addEventListener('focus', (e) => {
-                        const index = parseInt(e.target.dataset.index);
-                        this.showInvestigatorDropdown(index, '');
-                    });
-
-                    input.addEventListener('keydown', (e) => {
-                        if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
-                            e.preventDefault();
-                            this.handleKeyboardNavigation(e);
-                        }
-                    });
-                });
-
-                this.updateSelectedInvestigatorsPreview();
-            }
-
-            removeInvestigatorField(index) {
-                if (this.currentPlayerCount > 1) {
-                    this.currentPlayerCount--;
-                    this.renderInvestigatorFields();
-                }
-            }
-
-            handleGlobalClick(e) {
-                // Обработка выбора сыщика из выпадающего списка
-                if (e.target.classList.contains('investigator-option') ||
-                    e.target.parentElement.classList.contains('investigator-option')) {
-
-                    const option = e.target.classList.contains('investigator-option')
-                        ? e.target
-                        : e.target.parentElement;
-
-                    const index = parseInt(option.dataset.index);
-                    const investigatorKey = option.dataset.key;
-                    this.selectInvestigator(index, investigatorKey);
-                    return;
-                }
-
-                // Удаление выбранного сыщика из превью
-                if (e.target.classList.contains('remove-selected-investigator')) {
-                    const index = parseInt(e.target.dataset.index);
-                    this.clearInvestigatorField(index);
-                    return;
-                }
-
-                // Открытие модального окна для изображений
-                if (e.target.classList.contains('investigator-preview-img') ||
-                    e.target.classList.contains('scenario-preview-img') ||
-                    e.target.classList.contains('hexagon-image') ||
-                    e.target.classList.contains('selected-investigator-avatar')) {
-                    this.showImageModal(e.target.src, e.target.alt);
-                    return;
-                }
-
-                // Обработка кликов по гексагонам
-                const hexagon = e.target.closest('.hexagon');
-                if (hexagon) {
-                    const recordId = parseInt(hexagon.dataset.id);
-                    this.showRecordDetails(recordId);
-                    return;
-                }
-
-                // Закрываем все выпадающие списки при клике вне их
-                if (!e.target.classList.contains('investigator-search')) {
-                    this.hideAllDropdowns();
-                }
-            }
-
-            handleKeyboardNavigation(e) {
+        // Добавляем обработчики для кнопок удаления
+        document.querySelectorAll('.remove-investigator-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
                 const index = parseInt(e.target.dataset.index);
-                const dropdown = document.getElementById(`investigator-select-${index}`);
-                const options = dropdown.querySelectorAll('.investigator-option');
+                this.removeInvestigatorField(index);
+            });
+        });
 
-                if (options.length === 0) return;
+        // Добавляем обработчики для полей поиска
+        document.querySelectorAll('.investigator-search').forEach(input => {
+            input.addEventListener('focus', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                this.showInvestigatorDropdown(index, '');
+            });
 
-                let currentHighlighted = dropdown.querySelector('.investigator-option.highlighted');
-                let currentIndex = currentHighlighted ?
-                    Array.from(options).indexOf(currentHighlighted) : -1;
-
-                if (e.key === 'ArrowDown') {
-                    currentIndex = (currentIndex + 1) % options.length;
-                } else if (e.key === 'ArrowUp') {
-                    currentIndex = currentIndex <= 0 ? options.length - 1 : currentIndex - 1;
-                } else if (e.key === 'Enter' && currentHighlighted) {
-                    this.selectInvestigator(index, currentHighlighted.dataset.key);
-                    return;
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
+                    e.preventDefault();
+                    this.handleKeyboardNavigation(e);
                 }
+            });
+        });
 
-                // Убираем подсветку со всех опций
-                options.forEach(opt => opt.classList.remove('highlighted'));
+        this.updateSelectedInvestigatorsPreview();
+    }
 
-                // Подсвечиваем текущую опцию
-                if (currentIndex >= 0) {
-                    options[currentIndex].classList.add('highlighted');
-                    options[currentIndex].scrollIntoView({ block: 'nearest' });
-                }
-            }
+    removeInvestigatorField(index) {
+        if (this.currentPlayerCount > 1) {
+            this.currentPlayerCount--;
+            this.renderInvestigatorFields();
+        }
+    }
 
-            handleSearchInput(e) {
-                if (e.target.classList.contains('investigator-search')) {
-                    const index = parseInt(e.target.dataset.index);
-                    const searchTerm = e.target.value.toLowerCase();
-                    this.showInvestigatorDropdown(index, searchTerm);
-                }
-            }
+    handleGlobalClick(e) {
+        // Обработка выбора сыщика из выпадающего списка
+        if (e.target.classList.contains('investigator-option') ||
+            e.target.parentElement.classList.contains('investigator-option')) {
 
-            showInvestigatorDropdown(index, searchTerm = '') {
-                const dropdown = document.getElementById(`investigator-select-${index}`);
-                const investigatorsList = Object.entries(this.investigators)
-                    .filter(([key, investigator]) =>
-                        investigator.name.toLowerCase().includes(searchTerm) ||
-                        key.toLowerCase().includes(searchTerm)
-                    )
-                    .slice(0, 28); // Ограничиваем количество результатов
+            const option = e.target.classList.contains('investigator-option')
+                ? e.target
+                : e.target.parentElement;
 
-                if (investigatorsList.length === 0) {
-                    dropdown.innerHTML = '<div class="investigator-option no-results">Сыщики не найдены</div>';
-                } else {
-                    dropdown.innerHTML = investigatorsList.map(([key, investigator]) => `
+            const index = parseInt(option.dataset.index);
+            const investigatorKey = option.dataset.key;
+            this.selectInvestigator(index, investigatorKey);
+            return;
+        }
+
+        // Удаление выбранного сыщика из превью
+        if (e.target.classList.contains('remove-selected-investigator')) {
+            const index = parseInt(e.target.dataset.index);
+            this.clearInvestigatorField(index);
+            return;
+        }
+
+        // Открытие модального окна для изображений
+        if (e.target.classList.contains('investigator-preview-img') ||
+            e.target.classList.contains('scenario-preview-img') ||
+            e.target.classList.contains('hexagon-image') ||
+            e.target.classList.contains('selected-investigator-avatar')) {
+            this.showImageModal(e.target.src, e.target.alt);
+            return;
+        }
+
+        // Обработка кликов по гексагонам
+        const hexagon = e.target.closest('.hexagon');
+        if (hexagon) {
+            const recordId = parseInt(hexagon.dataset.id);
+            this.showRecordDetails(recordId);
+            return;
+        }
+
+        // Закрываем все выпадающие списки при клике вне их
+        if (!e.target.classList.contains('investigator-search')) {
+            this.hideAllDropdowns();
+        }
+    }
+
+    handleKeyboardNavigation(e) {
+        const index = parseInt(e.target.dataset.index);
+        const dropdown = document.getElementById(`investigator-select-${index}`);
+        const options = dropdown.querySelectorAll('.investigator-option');
+
+        if (options.length === 0) return;
+
+        let currentHighlighted = dropdown.querySelector('.investigator-option.highlighted');
+        let currentIndex = currentHighlighted ?
+            Array.from(options).indexOf(currentHighlighted) : -1;
+
+        if (e.key === 'ArrowDown') {
+            currentIndex = (currentIndex + 1) % options.length;
+        } else if (e.key === 'ArrowUp') {
+            currentIndex = currentIndex <= 0 ? options.length - 1 : currentIndex - 1;
+        } else if (e.key === 'Enter' && currentHighlighted) {
+            this.selectInvestigator(index, currentHighlighted.dataset.key);
+            return;
+        }
+
+        // Убираем подсветку со всех опций
+        options.forEach(opt => opt.classList.remove('highlighted'));
+
+        // Подсвечиваем текущую опцию
+        if (currentIndex >= 0) {
+            options[currentIndex].classList.add('highlighted');
+            options[currentIndex].scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    handleSearchInput(e) {
+        if (e.target.classList.contains('investigator-search')) {
+            const index = parseInt(e.target.dataset.index);
+            const searchTerm = e.target.value.toLowerCase();
+            this.showInvestigatorDropdown(index, searchTerm);
+        }
+    }
+
+    showInvestigatorDropdown(index, searchTerm = '') {
+        const dropdown = document.getElementById(`investigator-select-${index}`);
+        const investigatorsList = Object.entries(this.investigators)
+            .filter(([key, investigator]) =>
+                investigator.name.toLowerCase().includes(searchTerm) ||
+                key.toLowerCase().includes(searchTerm)
+            )
+            .slice(0, 28);
+
+        if (investigatorsList.length === 0) {
+            dropdown.innerHTML = '<div class="investigator-option no-results">Сыщики не найдены</div>';
+        } else {
+            dropdown.innerHTML = investigatorsList.map(([key, investigator]) => `
                 <div class="investigator-option" data-key="${key}" data-index="${index}">
                     <img src="${investigator.image}" alt="${investigator.name}" class="investigator-option-image">
                     <div class="investigator-option-info">
@@ -975,70 +588,70 @@ class ArkhamHorizonTracker {
                     </div>
                 </div>
             `).join('');
-                }
+        }
 
-                dropdown.style.display = 'block';
-            }
+        dropdown.style.display = 'block';
+    }
 
-            hideAllDropdowns() {
-                document.querySelectorAll('.investigator-select-with-search').forEach(dropdown => {
-                    dropdown.style.display = 'none';
+    hideAllDropdowns() {
+        document.querySelectorAll('.investigator-select-with-search').forEach(dropdown => {
+            dropdown.style.display = 'none';
+        });
+    }
+
+    selectInvestigator(index, investigatorKey) {
+        const searchInput = document.getElementById(`investigator-search-${index}`);
+        const hiddenInput = document.getElementById(`investigator-${index}`);
+
+        if (this.investigators[investigatorKey]) {
+            const investigator = this.investigators[investigatorKey];
+            searchInput.value = investigator.name;
+            hiddenInput.value = investigatorKey;
+
+            // Скрываем выпадающий список
+            this.hideAllDropdowns();
+
+            this.updateSelectedInvestigatorsPreview();
+
+            // Показываем уведомление о выборе
+            this.showNotification(`Выбран сыщик: ${investigator.name}`, 'success');
+        }
+    }
+
+    clearInvestigatorField(index) {
+        const searchInput = document.getElementById(`investigator-search-${index}`);
+        const hiddenInput = document.getElementById(`investigator-${index}`);
+
+        searchInput.value = '';
+        hiddenInput.value = '';
+
+        this.updateSelectedInvestigatorsPreview();
+    }
+
+    updateSelectedInvestigatorsPreview() {
+        let previewContainer = document.getElementById('selected-investigators-preview');
+
+        if (!previewContainer) {
+            previewContainer = document.createElement('div');
+            previewContainer.id = 'selected-investigators-preview';
+            previewContainer.className = 'selected-investigators-preview';
+            document.getElementById('investigators-container').after(previewContainer);
+        }
+
+        const selectedInvestigators = [];
+        for (let i = 0; i < this.currentPlayerCount; i++) {
+            const hiddenInput = document.getElementById(`investigator-${i}`);
+            if (hiddenInput && hiddenInput.value && this.investigators[hiddenInput.value]) {
+                selectedInvestigators.push({
+                    index: i,
+                    key: hiddenInput.value,
+                    investigator: this.investigators[hiddenInput.value]
                 });
             }
+        }
 
-            selectInvestigator(index, investigatorKey) {
-                const searchInput = document.getElementById(`investigator-search-${index}`);
-                const hiddenInput = document.getElementById(`investigator-${index}`);
-
-                if (this.investigators[investigatorKey]) {
-                    const investigator = this.investigators[investigatorKey];
-                    searchInput.value = investigator.name;
-                    hiddenInput.value = investigatorKey;
-
-                    // Скрываем выпадающий список
-                    this.hideAllDropdowns();
-
-                    this.updateSelectedInvestigatorsPreview();
-
-                    // Показываем уведомление о выборе
-                    this.showNotification(`Выбран сыщик: ${investigator.name}`, 'success');
-                }
-            }
-
-            clearInvestigatorField(index) {
-                const searchInput = document.getElementById(`investigator-search-${index}`);
-                const hiddenInput = document.getElementById(`investigator-${index}`);
-
-                searchInput.value = '';
-                hiddenInput.value = '';
-
-                this.updateSelectedInvestigatorsPreview();
-            }
-
-            updateSelectedInvestigatorsPreview() {
-                let previewContainer = document.getElementById('selected-investigators-preview');
-
-                if (!previewContainer) {
-                    previewContainer = document.createElement('div');
-                    previewContainer.id = 'selected-investigators-preview';
-                    previewContainer.className = 'selected-investigators-preview';
-                    document.getElementById('investigators-container').after(previewContainer);
-                }
-
-                const selectedInvestigators = [];
-                for (let i = 0; i < this.currentPlayerCount; i++) {
-                    const hiddenInput = document.getElementById(`investigator-${i}`);
-                    if (hiddenInput && hiddenInput.value && this.investigators[hiddenInput.value]) {
-                        selectedInvestigators.push({
-                            index: i,
-                            key: hiddenInput.value,
-                            investigator: this.investigators[hiddenInput.value]
-                        });
-                    }
-                }
-
-                if (selectedInvestigators.length > 0) {
-                    previewContainer.innerHTML = `
+        if (selectedInvestigators.length > 0) {
+            previewContainer.innerHTML = `
                 <div style="width: 200%; margin-bottom: 10px; font-weight: bold; color: var(--accent);">
                     Выбранные сыщики (${selectedInvestigators.length}/${this.currentPlayerCount}):
                 </div>
@@ -1058,21 +671,21 @@ class ArkhamHorizonTracker {
                     </div>
                 `).join('')}
             `;
-                } else {
-                    previewContainer.innerHTML = '<div style="color: var(--text-dark); font-style: italic;">Сыщики не выбраны</div>';
-                }
-            }
+        } else {
+            previewContainer.innerHTML = '<div style="color: var(--text-dark); font-style: italic;">Сыщики не выбраны</div>';
+        }
+    }
 
-            getSelectedInvestigators() {
-                const selected = [];
-                for (let i = 0; i < this.currentPlayerCount; i++) {
-                    const hiddenInput = document.getElementById(`investigator-${i}`);
-                    if (hiddenInput && hiddenInput.value) {
-                        selected.push(hiddenInput.value);
-                    }
-                }
-                return selected;
+    getSelectedInvestigators() {
+        const selected = [];
+        for (let i = 0; i < this.currentPlayerCount; i++) {
+            const hiddenInput = document.getElementById(`investigator-${i}`);
+            if (hiddenInput && hiddenInput.value) {
+                selected.push(hiddenInput.value);
             }
+        }
+        return selected;
+    }
 
     setupModal() {
         const recordModal = document.getElementById('record-modal');
@@ -1109,12 +722,12 @@ class ArkhamHorizonTracker {
         });
     }
 
-            showScenarioPreview(scenarioKey) {
-                const preview = document.getElementById('scenario-preview');
+    showScenarioPreview(scenarioKey) {
+        const preview = document.getElementById('scenario-preview');
 
-                if (scenarioKey && this.scenarios[scenarioKey]) {
-                    const scenario = this.scenarios[scenarioKey];
-                    preview.innerHTML = `
+        if (scenarioKey && this.scenarios[scenarioKey]) {
+            const scenario = this.scenarios[scenarioKey];
+            preview.innerHTML = `
                 <div class="scenario-preview-content">
                     <img src="${scenario.image}" alt="${scenario.name}" 
                          class="scenario-preview-img scenario-preview-large" 
@@ -1125,44 +738,44 @@ class ArkhamHorizonTracker {
                     </div>
                 </div>
             `;
-                } else {
-                    preview.innerHTML = '';
-                }
-            }
+        } else {
+            preview.innerHTML = '';
+        }
+    }
 
-            showImageModal(src, alt) {
-                const modal = document.getElementById('record-modal');
-                const modalContent = document.getElementById('modal-content');
+    showImageModal(src, alt) {
+        const modal = document.getElementById('record-modal');
+        const modalContent = document.getElementById('modal-content');
 
-                modalContent.innerHTML = `
+        modalContent.innerHTML = `
             <div class="image-modal-content">
                 <img src="${src}" alt="${alt}" class="modal-image-large">
                 <h3 class="modal-title">${alt}</h3>
             </div>
         `;
 
-                modal.style.display = 'block';
-            }
+        modal.style.display = 'block';
+    }
 
-            showRecordDetails(recordId) {
-                const record = this.progress.find(item => item.id === recordId);
-                if (!record) return;
+    showRecordDetails(recordId) {
+        const record = this.progress.find(item => item.id === recordId);
+        if (!record) return;
 
-                const investigators = Array.isArray(record.investigator)
-                    ? record.investigator.map(key => this.investigators[key])
-                    : [this.investigators[record.investigator]];
+        const investigators = Array.isArray(record.investigator)
+            ? record.investigator.map(key => this.investigators[key])
+            : [this.investigators[record.investigator]];
 
-                const scenario = this.scenarios[record.scenario];
-                const modal = document.getElementById('record-modal');
-                const modalContent = document.getElementById('modal-content');
+        const scenario = this.scenarios[record.scenario];
+        const modal = document.getElementById('record-modal');
+        const modalContent = document.getElementById('modal-content');
 
-                const resultText = {
-                    'win': '🏆 Победа - Древние отступили',
-                    'loss': '💀 Поражение - Безумие поглотило',
-                    'other': '❓ Иной исход'
-                }[record.result] || '❓ Иной исход';
+        const resultText = {
+            'win': '🏆 Победа - Древние отступили',
+            'loss': '💀 Поражение - Безумие поглотило',
+            'other': '❓ Иной исход'
+        }[record.result] || '❓ Иной исход';
 
-                const investigatorsHTML = investigators.map(investigator => `
+        const investigatorsHTML = investigators.map(investigator => `
             <div class="detail-value">
                 <img src="${investigator.image}" alt="${investigator.name}" class="detail-image-large investigator-preview-img">
                 <div>
@@ -1172,7 +785,7 @@ class ArkhamHorizonTracker {
             </div>
         `).join('');
 
-                modalContent.innerHTML = `
+        modalContent.innerHTML = `
             <div class="record-details">
                 <div class="detail-header" style="background-image: url('${scenario.image}')">
                     <div class="detail-overlay">
@@ -1211,159 +824,159 @@ class ArkhamHorizonTracker {
             </div>
         `;
 
-                modal.style.display = 'block';
-            }
+        modal.style.display = 'block';
+    }
 
-            renderScenarioOptions() {
-                const select = document.getElementById('scenario');
-                const filterSelect = document.getElementById('filter-scenario');
+    renderScenarioOptions() {
+        const select = document.getElementById('scenario');
+        const filterSelect = document.getElementById('filter-scenario');
 
-                select.innerHTML = '<option value="">Выберите сюжет...</option>';
-                filterSelect.innerHTML = '<option value="all">Все сюжеты</option>';
+        select.innerHTML = '<option value="">Выберите сюжет...</option>';
+        filterSelect.innerHTML = '<option value="all">Все сюжеты</option>';
 
-                Object.entries(this.scenarios).forEach(([key, scenario]) => {
-                    const option = document.createElement('option');
-                    option.value = key;
-                    option.textContent = scenario.name;
-                    select.appendChild(option);
+        Object.entries(this.scenarios).forEach(([key, scenario]) => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = scenario.name;
+            select.appendChild(option);
 
-                    const filterOption = option.cloneNode(true);
-                    filterSelect.appendChild(filterOption);
-                });
-            }
+            const filterOption = option.cloneNode(true);
+            filterSelect.appendChild(filterOption);
+        });
+    }
 
-            renderFilterOptions() {
-                const filterSelect = document.getElementById('filter-investigator');
-                filterSelect.innerHTML = '<option value="all">Все исследователи</option>';
+    renderFilterOptions() {
+        const filterSelect = document.getElementById('filter-investigator');
+        filterSelect.innerHTML = '<option value="all">Все исследователи</option>';
 
-                Object.entries(this.investigators).forEach(([key, investigator]) => {
-                    const option = document.createElement('option');
-                    option.value = key;
-                    option.textContent = investigator.name;
-                    filterSelect.appendChild(option);
-                });
-            }
+        Object.entries(this.investigators).forEach(([key, investigator]) => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = investigator.name;
+            filterSelect.appendChild(option);
+        });
+    }
 
-            addProgress() {
-                const investigators = this.getSelectedInvestigators();
-                const scenario = document.getElementById('scenario').value;
-                const date = document.getElementById('date').value;
-                const result = document.getElementById('result').value;
-                const notes = document.getElementById('notes').value;
+    addProgress() {
+        const investigators = this.getSelectedInvestigators();
+        const scenario = document.getElementById('scenario').value;
+        const date = document.getElementById('date').value;
+        const result = document.getElementById('result').value;
+        const notes = document.getElementById('notes').value;
 
-                if (investigators.length === 0 || !scenario || !date) {
-                    this.showNotification('Пожалуйста, заполните все обязательные поля и выберите сыщиков', 'warning');
-                    return;
-                }
+        if (investigators.length === 0 || !scenario || !date) {
+            this.showNotification('Пожалуйста, заполните все обязательные поля и выберите сыщиков', 'warning');
+            return;
+        }
 
-                if (investigators.length !== this.currentPlayerCount) {
-                    this.showNotification(`Пожалуйста, выберите всех ${this.currentPlayerCount} сыщиков`, 'warning');
-                    return;
-                }
+        if (investigators.length !== this.currentPlayerCount) {
+            this.showNotification(`Пожалуйста, выберите всех ${this.currentPlayerCount} сыщиков`, 'warning');
+            return;
+        }
 
-                // Проверяем дубликаты сыщиков
-                const uniqueInvestigators = [...new Set(investigators)];
-                if (uniqueInvestigators.length !== investigators.length) {
-                    this.showNotification('Один и тот же сыщик не может быть выбран дважды', 'warning');
-                    return;
-                }
+        // Проверяем дубликаты сыщиков
+        const uniqueInvestigators = [...new Set(investigators)];
+        if (uniqueInvestigators.length !== investigators.length) {
+            this.showNotification('Один и тот же сыщик не может быть выбран дважды', 'warning');
+            return;
+        }
 
-                const progressItem = {
-                    id: Date.now(),
-                    investigator: investigators.length === 1 ? investigators[0] : investigators,
-                    scenario,
-                    date,
-                    result,
-                    notes,
-                    timestamp: new Date().toISOString(),
-                    playerCount: investigators.length
-                };
+        const progressItem = {
+            id: Date.now(),
+            investigator: investigators.length === 1 ? investigators[0] : investigators,
+            scenario,
+            date,
+            result,
+            notes,
+            timestamp: new Date().toISOString(),
+            playerCount: investigators.length
+        };
 
-                this.progress.push(progressItem);
-                this.saveProgress();
-                this.renderHexagonGrid();
-                this.renderStats();
-                this.updateAchievements();
-                this.resetForm();
+        this.progress.push(progressItem);
+        this.saveProgress();
+        this.renderHexagonGrid();
+        this.renderStats();
+        this.updateAchievements();
+        this.resetForm();
 
-                this.showNotification(`Запись успешно добавлена для команды из ${investigators.length} сыщиков!`, 'success');
-            }
+        this.showNotification(`Запись успешно добавлена для команды из ${investigators.length} сыщиков!`, 'success');
+    }
 
-            deleteProgress(id) {
-                if (confirm('Удалить эту запись из архивов?')) {
-                    this.progress = this.progress.filter(item => item.id !== id);
-                    this.saveProgress();
-                    this.renderHexagonGrid();
-                    this.renderStats();
-                    this.updateAchievements();
-                    this.showNotification('Запись удалена из архивов', 'error');
-                }
-            }
+    deleteProgress(id) {
+        if (confirm('Удалить эту запись из архивов?')) {
+            this.progress = this.progress.filter(item => item.id !== id);
+            this.saveProgress();
+            this.renderHexagonGrid();
+            this.renderStats();
+            this.updateAchievements();
+            this.showNotification('Запись удалена из архивов', 'error');
+        }
+    }
 
     saveProgress() {
         localStorage.setItem('arkhamProgress', JSON.stringify(this.progress));
         // Автосинхронизация при сохранении
-        if (this.githubSync && this.githubSync.isConfigured()) {
-            setTimeout(() => this.githubSync.pushData(), 1000);
+        if (this.syncManager.isConfigured()) {
+            setTimeout(() => this.syncManager.push(), 1000);
         }
     }
 
-            resetForm() {
-                document.getElementById('progress-form').reset();
-                this.setMinDate();
-                this.currentPlayerCount = 2;
-                this.renderPlayerCountSelector();
-                this.renderInvestigatorFields();
-                document.getElementById('scenario-preview').innerHTML = '';
-            }
+    resetForm() {
+        document.getElementById('progress-form').reset();
+        this.setMinDate();
+        this.currentPlayerCount = 2;
+        this.renderPlayerCountSelector();
+        this.renderInvestigatorFields();
+        document.getElementById('scenario-preview').innerHTML = '';
+    }
 
-            setMinDate() {
-                const dateInput = document.getElementById('date');
-                const today = new Date().toISOString().split('T')[0];
-                dateInput.value = today;
-            }
+    setMinDate() {
+        const dateInput = document.getElementById('date');
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    }
 
-            renderHexagonGrid() {
-                const container = document.getElementById('hexagon-grid');
-                const filteredProgress = this.getFilteredProgress();
-                const recordsCount = document.getElementById('records-count');
+    renderHexagonGrid() {
+        const container = document.getElementById('hexagon-grid');
+        const filteredProgress = this.getFilteredProgress();
+        const recordsCount = document.getElementById('records-count');
 
-                recordsCount.textContent = filteredProgress.length;
+        recordsCount.textContent = filteredProgress.length;
 
-                if (filteredProgress.length === 0) {
-                    container.innerHTML = '<div class="no-records-message">Архивы пусты... Начните своё первое расследование!</div>';
-                    return;
-                }
+        if (filteredProgress.length === 0) {
+            container.innerHTML = '<div class="no-records-message">Архивы пусты... Начните своё первое расследование!</div>';
+            return;
+        }
 
-                const sortedProgress = filteredProgress.sort((a, b) =>
-                    new Date(b.timestamp) - new Date(a.timestamp)
-                );
+        const sortedProgress = filteredProgress.sort((a, b) =>
+            new Date(b.timestamp) - new Date(a.timestamp)
+        );
 
-                container.innerHTML = sortedProgress.map(item => {
-                    const scenario = this.scenarios[item.scenario];
-                    const investigators = Array.isArray(item.investigator)
-                        ? item.investigator.map(key => this.investigators[key])
-                        : [this.investigators[item.investigator]];
+        container.innerHTML = sortedProgress.map(item => {
+            const scenario = this.scenarios[item.scenario];
+            const investigators = Array.isArray(item.investigator)
+                ? item.investigator.map(key => this.investigators[key])
+                : [this.investigators[item.investigator]];
 
-                    const backgroundStyle = scenario.image ?
-                        `style="background-image: url('${scenario.image}')"` : '';
+            const backgroundStyle = scenario.image ?
+                `style="background-image: url('${scenario.image}')"` : '';
 
-                    const resultText = {
-                        'win': 'Победа 🏆',
-                        'loss': 'Поражение 💀',
-                        'other': 'Завершено'
-                    }[item.result] || 'Завершено';
+            const resultText = {
+                'win': 'Победа 🏆',
+                'loss': 'Поражение 💀',
+                'other': 'Завершено'
+            }[item.result] || 'Завершено';
 
-                    let investigatorsHTML = '';
-                    if (investigators.length === 1) {
-                        investigatorsHTML = `
+            let investigatorsHTML = '';
+            if (investigators.length === 1) {
+                investigatorsHTML = `
                     <img src="${investigators[0].image}" 
                          alt="${investigators[0].name}"
                          class="hexagon-image investigator-preview-img">
                     <div class="hexagon-investigator">${investigators[0].name}</div>
                 `;
-                    } else {
-                        investigatorsHTML = `
+            } else {
+                investigatorsHTML = `
                     <div class="hexagon-investigators">
                         ${investigators.slice(0, 4).map(inv => `
                             <img src="${inv.image}" 
@@ -1376,9 +989,9 @@ class ArkhamHorizonTracker {
                         ${investigators.map(inv => inv.name).join(', ')}
                     </div>
                 `;
-                    }
+            }
 
-                    return `
+            return `
                 <div class="hexagon ${item.result}" data-id="${item.id}">
                     <div class="hexagon-inner" ${backgroundStyle}>
                         <div class="hexagon-actions">
@@ -1406,70 +1019,70 @@ class ArkhamHorizonTracker {
                     </div>
                 </div>
             `;
-                }).join('');
-            }
+        }).join('');
+    }
 
-            getFilteredProgress() {
-                const investigatorFilter = document.getElementById('filter-investigator').value;
-                const scenarioFilter = document.getElementById('filter-scenario').value;
-                const resultFilter = document.getElementById('filter-result').value;
+    getFilteredProgress() {
+        const investigatorFilter = document.getElementById('filter-investigator').value;
+        const scenarioFilter = document.getElementById('filter-scenario').value;
+        const resultFilter = document.getElementById('filter-result').value;
 
-                let filtered = this.progress;
+        let filtered = this.progress;
 
-                if (investigatorFilter !== 'all') {
-                    filtered = filtered.filter(item => {
-                        const investigators = Array.isArray(item.investigator)
-                            ? item.investigator
-                            : [item.investigator];
-                        return investigators.includes(investigatorFilter);
-                    });
-                }
+        if (investigatorFilter !== 'all') {
+            filtered = filtered.filter(item => {
+                const investigators = Array.isArray(item.investigator)
+                    ? item.investigator
+                    : [item.investigator];
+                return investigators.includes(investigatorFilter);
+            });
+        }
 
-                if (scenarioFilter !== 'all') {
-                    filtered = filtered.filter(item => item.scenario === scenarioFilter);
-                }
+        if (scenarioFilter !== 'all') {
+            filtered = filtered.filter(item => item.scenario === scenarioFilter);
+        }
 
-                if (resultFilter !== 'all') {
-                    filtered = filtered.filter(item => item.result === resultFilter);
-                }
+        if (resultFilter !== 'all') {
+            filtered = filtered.filter(item => item.result === resultFilter);
+        }
 
-                return filtered;
-            }
+        return filtered;
+    }
 
-            applyFilters() {
-                this.renderHexagonGrid();
-            }
+    applyFilters() {
+        this.renderHexagonGrid();
+    }
 
-            resetFilters() {
-                document.getElementById('filter-investigator').value = 'all';
-                document.getElementById('filter-scenario').value = 'all';
-                document.getElementById('filter-result').value = 'all';
-                this.renderHexagonGrid();
-            }
+    resetFilters() {
+        document.getElementById('filter-investigator').value = 'all';
+        document.getElementById('filter-scenario').value = 'all';
+        document.getElementById('filter-result').value = 'all';
+        this.renderHexagonGrid();
+    }
 
-            renderStats() {
-                const container = document.getElementById('stats-container');
-                const totalScenarios = this.progress.length;
+    renderStats() {
+        const container = document.getElementById('stats-container');
+        const totalScenarios = this.progress.length;
 
-                const allInvestigators = this.progress.flatMap(item =>
-                    Array.isArray(item.investigator) ? item.investigator : [item.investigator]
-                );
-                const uniqueInvestigators = new Set(allInvestigators).size;
+        const allInvestigators = this.progress.flatMap(item =>
+            Array.isArray(item.investigator) ? item.investigator : [item.investigator]
+        );
+        const uniqueInvestigators = new Set(allInvestigators).size;
 
-                const wins = this.progress.filter(p => p.result === 'win').length;
-                const losses = this.progress.filter(p => p.result === 'loss').length;
-                const winRate = totalScenarios > 0 ? Math.round((wins / totalScenarios) * 100) : 0;
+        const wins = this.progress.filter(p => p.result === 'win').length;
+        const losses = this.progress.filter(p => p.result === 'loss').length;
+        const winRate = totalScenarios > 0 ? Math.round((wins / totalScenarios) * 100) : 0;
 
-                const teamSizes = this.progress.reduce((acc, item) => {
-                    const teamSize = Array.isArray(item.investigator) ? item.investigator.length : 1;
-                    acc[teamSize] = (acc[teamSize] || 0) + 1;
-                    return acc;
-                }, {});
+        const teamSizes = this.progress.reduce((acc, item) => {
+            const teamSize = Array.isArray(item.investigator) ? item.investigator.length : 1;
+            acc[teamSize] = (acc[teamSize] || 0) + 1;
+            return acc;
+        }, {});
 
-                const mostCommonTeamSize = Object.entries(teamSizes)
-                    .sort(([, a], [, b]) => b - a)[0];
+        const mostCommonTeamSize = Object.entries(teamSizes)
+            .sort(([, a], [, b]) => b - a)[0];
 
-                container.innerHTML = `
+        container.innerHTML = `
             <div class="stat-card">
                 <span class="stat-value">${totalScenarios}</span>
                 <span class="stat-label">Всего расследований</span>
@@ -1487,14 +1100,14 @@ class ArkhamHorizonTracker {
                 <span class="stat-label">Чаще всего в команде</span>
             </div>
         `;
-            }
+    }
 
     updateAchievements() {
         const totalScenarios = this.progress.length;
         const wins = this.progress.filter(p => p.result === 'win').length;
         const losses = this.progress.filter(p => p.result === 'loss').length;
 
-        // Прогресс по сыщикам (учитываем команды)
+        // Прогресс по сыщикам
         const investigatorCounts = {};
         this.progress.forEach(item => {
             const investigators = Array.isArray(item.investigator)
@@ -1524,7 +1137,7 @@ class ArkhamHorizonTracker {
         const completedScenarios = new Set(this.progress.map(item => item.scenario)).size;
 
         // Поражения подряд
-        const recentGames = this.progress.slice(-5); // Последние 5 игр
+        const recentGames = this.progress.slice(-5);
         let consecutiveLosses = 0;
         let maxConsecutiveLosses = 0;
 
@@ -1537,7 +1150,7 @@ class ArkhamHorizonTracker {
             }
         }
 
-        // НОВАЯ ЛОГИКА: Подсчет уникальных комбинаций сыщик-сценарий
+        // Уникальные комбинации сыщик-сценарий
         const uniqueCombinations = new Set();
         this.progress.forEach(item => {
             const investigators = Array.isArray(item.investigator)
@@ -1588,23 +1201,21 @@ class ArkhamHorizonTracker {
         this.achievements.unlucky.progress = Math.min(maxConsecutiveLosses, this.achievements.unlucky.target);
         this.achievements.unlucky.unlocked = this.achievements.unlucky.progress >= this.achievements.unlucky.target;
 
-        // НОВОЕ ДОСТИЖЕНИЕ: Универсал
         this.achievements.universal.progress = Math.min(universalProgress, this.achievements.universal.target);
         this.achievements.universal.unlocked = this.achievements.universal.progress >= this.achievements.universal.target;
 
         this.renderAchievements();
 
-        // Показываем уведомление при разблокировке достижения
         if (this.achievements.universal.unlocked && !this.achievements.universal.notified) {
             this.showNotification('🎉 Поздравляем! Вы получили достижение "Универсал"!', 'success');
             this.achievements.universal.notified = true;
         }
     }
+
     showUniversalProgress() {
         const totalCombinations = Object.keys(this.investigators).length * Object.keys(this.scenarios).length;
         const completedCombinations = new Set();
 
-        // Собираем все пройденные комбинации
         this.progress.forEach(item => {
             const investigators = Array.isArray(item.investigator)
                 ? item.investigator
@@ -1618,7 +1229,6 @@ class ArkhamHorizonTracker {
 
         const progressPercent = Math.round((completedCombinations.size / totalCombinations) * 100);
 
-        // Создаем полноэкранную таблицу прогресса
         let progressHTML = `
         <div class="universal-progress">
             <div class="progress-header">
@@ -1684,7 +1294,6 @@ class ArkhamHorizonTracker {
         modalContent.innerHTML = progressHTML;
         modal.style.display = 'block';
 
-        // Добавляем обработчик закрытия для полноэкранного модального окна
         const closeBtn = modal.querySelector('.fullscreen-close');
         closeBtn.onclick = () => {
             modal.style.display = 'none';
@@ -1696,6 +1305,7 @@ class ArkhamHorizonTracker {
             }
         };
     }
+
     renderAchievements() {
         const container = document.getElementById('achievements-container');
 
@@ -1703,7 +1313,6 @@ class ArkhamHorizonTracker {
             const progressPercent = (achievement.progress / achievement.target) * 100;
             const isUnlocked = achievement.unlocked;
 
-            // Делаем достижение "Универсал" кликабельным
             const clickableClass = key === 'universal' ? 'clickable-achievement' : '';
             const onClick = key === 'universal' ? `onclick="tracker.showUniversalProgress()"` : '';
 
@@ -1725,127 +1334,333 @@ class ArkhamHorizonTracker {
         }).join('');
     }
 
-            exportToJSON() {
-                const data = {
-                    progress: this.progress,
-                    exportDate: new Date().toISOString(),
-                    totalRecords: this.progress.length,
-                    version: '3.0',
-                    features: ['dynamic_investigator_selection', 'search', 'achievements']
-                };
+    exportToJSON() {
+        const data = {
+            progress: this.progress,
+            exportDate: new Date().toISOString(),
+            totalRecords: this.progress.length,
+            version: '3.0',
+            features: ['dynamic_investigator_selection', 'search', 'achievements']
+        };
 
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `аркхем-архивы-${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `аркхем-архивы-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
 
-                this.showNotification('Архивы экспортированы в свиток знаний!', 'success');
-            }
+        this.showNotification('Архивы экспортированы в свиток знаний!', 'success');
+    }
 
-            exportToCSV() {
-                const headers = ['Сыщики', 'Сюжет', 'Дата', 'Результат', 'Размер команды', 'Заметки', 'Дата добавления'];
-                const csvData = this.progress.map(item => {
-                    const investigators = Array.isArray(item.investigator)
-                        ? item.investigator.map(key => this.investigators[key].name).join('; ')
-                        : this.investigators[item.investigator].name;
+    exportToCSV() {
+        const headers = ['Сыщики', 'Сюжет', 'Дата', 'Результат', 'Размер команды', 'Заметки', 'Дата добавления'];
+        const csvData = this.progress.map(item => {
+            const investigators = Array.isArray(item.investigator)
+                ? item.investigator.map(key => this.investigators[key].name).join('; ')
+                : this.investigators[item.investigator].name;
 
-                    const teamSize = Array.isArray(item.investigator) ? item.investigator.length : 1;
+            const teamSize = Array.isArray(item.investigator) ? item.investigator.length : 1;
 
-                    return [
-                        `"${investigators}"`,
-                        this.scenarios[item.scenario].name,
-                        item.date,
-                        item.result === 'win' ? 'Победа' : item.result === 'loss' ? 'Поражение' : 'Другое',
-                        teamSize,
-                        `"${(item.notes || '').replace(/"/g, '""')}"`,
-                        new Date(item.timestamp).toLocaleDateString('ru-RU')
-                    ];
-                });
+            return [
+                `"${investigators}"`,
+                this.scenarios[item.scenario].name,
+                item.date,
+                item.result === 'win' ? 'Победа' : item.result === 'loss' ? 'Поражение' : 'Другое',
+                teamSize,
+                `"${(item.notes || '').replace(/"/g, '""')}"`,
+                new Date(item.timestamp).toLocaleDateString('ru-RU')
+            ];
+        });
 
-                const csvContent = [headers, ...csvData]
-                    .map(row => row.join(','))
-                    .join('\n');
+        const csvContent = [headers, ...csvData]
+            .map(row => row.join(','))
+            .join('\n');
 
-                const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `аркхем-таблицы-${new Date().toISOString().split('T')[0]}.csv`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `аркхем-таблицы-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
 
-                this.showNotification('Таблицы экспортированы для анализа!', 'success');
-            }
+        this.showNotification('Таблицы экспортированы для анализа!', 'success');
+    }
 
-            importData(event) {
-                const file = event.target.files[0];
-                if (!file) return;
+    importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
 
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const data = JSON.parse(e.target.result);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
 
-                        if (data.progress && Array.isArray(data.progress)) {
-                            if (confirm(`Импортировать ${data.progress.length} записей из архивов? Текущие данные будут заменены.`)) {
-                                this.progress = data.progress;
-                                this.saveProgress();
-                                this.renderHexagonGrid();
-                                this.renderStats();
-                                this.updateAchievements();
-                                this.showNotification('Архивы успешно импортированы!', 'success');
-                            }
-                        } else {
-                            throw new Error('Неверный формат свитка знаний');
-                        }
-                    } catch (error) {
-                        this.showNotification('Ошибка при чтении свитка: ' + error.message, 'error');
+                if (data.progress && Array.isArray(data.progress)) {
+                    if (confirm(`Импортировать ${data.progress.length} записей из архивов? Текущие данные будут заменены.`)) {
+                        this.progress = data.progress;
+                        this.saveProgress();
+                        this.renderHexagonGrid();
+                        this.renderStats();
+                        this.updateAchievements();
+                        this.showNotification('Архивы успешно импортированы!', 'success');
                     }
-                };
-
-                reader.readAsText(file);
-                event.target.value = '';
+                } else {
+                    throw new Error('Неверный формат свитка знаний');
+                }
+            } catch (error) {
+                this.showNotification('Ошибка при чтении свитка: ' + error.message, 'error');
             }
+        };
 
-            showNotification(message, type = 'info') {
-                const container = document.getElementById('notification-container');
-                const notification = document.createElement('div');
-                notification.className = `notification ${type}`;
-                notification.textContent = message;
+        reader.readAsText(file);
+        event.target.value = '';
+    }
 
-                container.appendChild(notification);
+    showNotification(message, type = 'info') {
+        const container = document.getElementById('notification-container');
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
 
-                setTimeout(() => {
-                    notification.classList.add('fade-out');
-                    setTimeout(() => {
-                        if (notification.parentNode) {
-                            notification.parentNode.removeChild(notification);
-                        }
-                    }, 300);
-                }, 5000);
-            }
+        container.appendChild(notification);
 
-            formatDate(dateString) {
-                const options = { day: 'numeric', month: 'short', year: 'numeric' };
-                return new Date(dateString).toLocaleDateString('ru-RU', options);
-            }
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 5000);
+    }
 
-            truncateText(text, maxLength) {
-                if (text.length <= maxLength) return text;
-                return text.substring(0, maxLength) + '...';
-            }
+    formatDate(dateString) {
+        const options = { day: 'numeric', month: 'short', year: 'numeric' };
+        return new Date(dateString).toLocaleDateString('ru-RU', options);
+    }
+
+    truncateText(text, maxLength) {
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
+    }
+}
+
+// Простой менеджер синхронизации через GitHub
+class GitHubSyncManager {
+    constructor(tracker) {
+        this.tracker = tracker;
+        this.token = localStorage.getItem('github_token') || '';
+        this.repo = localStorage.getItem('github_repo') || '';
+        this.owner = localStorage.getItem('github_owner') || '';
+        this.syncing = false;
+    }
+
+    // Проверка настроек
+    isConfigured() {
+        return this.token && this.owner && this.repo;
+    }
+
+    // Показать уведомление
+    notify(message, type = 'info') {
+        if (this.tracker && this.tracker.showNotification) {
+            this.tracker.showNotification(message, type);
+        } else {
+            console.log(`[${type}] ${message}`);
+        }
+    }
+
+    // Настройка синхронизации
+    async setup() {
+        const token = prompt('Введите GitHub Token (с правами repo):');
+        const owner = prompt('Введите ваш GitHub username:');
+        const repo = prompt('Введите название репозитория:');
+
+        if (!token || !owner || !repo) {
+            this.notify('Настройка отменена', 'error');
+            return false;
         }
 
-        // Добавляем дополнительные стили для увеличенных превью
-        const additionalStyles = document.createElement('style');
-        additionalStyles.textContent = `
+        this.token = token;
+        this.owner = owner;
+        this.repo = repo;
+
+        localStorage.setItem('github_token', token);
+        localStorage.setItem('github_owner', owner);
+        localStorage.setItem('github_repo', repo);
+
+        this.notify('Синхронизация настроена!', 'success');
+        return true;
+    }
+
+    // GitHub запрос
+    async githubRequest(url, options = {}) {
+        const fullUrl = `https://api.github.com${url}`;
+        const headers = {
+            'Authorization': `token ${this.token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+        };
+
+        try {
+            const response = await fetch(fullUrl, {
+                headers,
+                ...options
+            });
+            return response;
+        } catch (error) {
+            console.error('GitHub request failed:', error);
+            throw error;
+        }
+    }
+
+    // Загрузить данные
+    async pull() {
+        if (!this.isConfigured() || this.syncing) return false;
+
+        try {
+            this.syncing = true;
+            const response = await this.githubRequest(
+                `/repos/${this.owner}/${this.repo}/contents/arkham_progress.json`
+            );
+
+            if (response.status === 404) {
+                this.notify('Файл данных не найден', 'warning');
+                return false;
+            }
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            const content = JSON.parse(atob(data.content));
+
+            // Применяем данные
+            if (content && Array.isArray(content.progress)) {
+                this.mergeData(content);
+                this.notify('Данные загружены из облака', 'success');
+                return true;
+            }
+
+        } catch (error) {
+            console.error('Pull failed:', error);
+            this.notify(`Ошибка загрузки: ${error.message}`, 'error');
+        } finally {
+            this.syncing = false;
+        }
+        return false;
+    }
+
+    // Сохранить данные
+    async push() {
+        if (!this.isConfigured() || this.syncing) return false;
+
+        try {
+            this.syncing = true;
+
+            // Получаем SHA существующего файла
+            let sha = null;
+            try {
+                const response = await this.githubRequest(
+                    `/repos/${this.owner}/${this.repo}/contents/arkham_progress.json`
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    sha = data.sha;
+                }
+            } catch (e) {
+                // Файл не существует - это нормально
+            }
+
+            const syncData = {
+                progress: this.tracker.progress,
+                achievements: this.tracker.achievements,
+                timestamp: new Date().toISOString(),
+                version: '3.0'
+            };
+
+            const content = btoa(JSON.stringify(syncData, null, 2));
+
+            const response = await this.githubRequest(
+                `/repos/${this.owner}/${this.repo}/contents/data/arkham_progress.json`,
+                {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        message: `Sync: ${new Date().toLocaleString('ru-RU')}`,
+                        content: content,
+                        sha: sha
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            this.notify('Данные сохранены в облако', 'success');
+            return true;
+
+        } catch (error) {
+            console.error('Push failed:', error);
+            this.notify(`Ошибка сохранения: ${error.message}`, 'error');
+            return false;
+        } finally {
+            this.syncing = false;
+        }
+    }
+
+    // Объединить данные
+    mergeData(remoteData) {
+        const local = this.tracker.progress;
+        const remote = remoteData.progress || [];
+
+        // Находим новые записи
+        const localIds = new Set(local.map(item => item.id));
+        const newItems = remote.filter(item => !localIds.has(item.id));
+
+        if (newItems.length > 0) {
+            this.tracker.progress = [...local, ...newItems].sort((a, b) =>
+                new Date(b.timestamp) - new Date(a.timestamp)
+            );
+            this.tracker.saveProgress();
+            this.tracker.renderHexagonGrid();
+            this.tracker.renderStats();
+            this.tracker.updateAchievements();
+        }
+    }
+
+    // Ручная синхронизация
+    async sync() {
+        if (!this.isConfigured()) {
+            this.notify('Сначала настройте синхронизацию', 'error');
+            return false;
+        }
+
+        this.notify('Синхронизация...', 'info');
+        await this.pull();
+        await this.push();
+    }
+
+    // Показать статус
+    showStatus() {
+        const status = this.isConfigured() ?
+            `✅ Настроено (${this.owner}/${this.repo})` :
+            '❌ Не настроено';
+
+        alert(`Статус синхронизации:\n${status}\n\nЗаписей: ${this.tracker.progress.length}`);
+    }
+}
+
+// Добавляем дополнительные стили для увеличенных превью
+const additionalStyles = document.createElement('style');
+additionalStyles.textContent = `
     .investigator-option {
         display: flex;
         align-items: center;
@@ -1967,17 +1782,17 @@ class ArkhamHorizonTracker {
         box-shadow: var(--shadow-heavy);
     }
 `;
-        document.head.appendChild(additionalStyles);
+document.head.appendChild(additionalStyles);
 
-        // Инициализация
-        let tracker;
-        document.addEventListener('DOMContentLoaded', () => {
-            tracker = new ArkhamHorizonTracker();
-        });
+// Инициализация
+let tracker;
+document.addEventListener('DOMContentLoaded', () => {
+    tracker = new ArkhamHorizonTracker();
+});
 
-        // Обработка ошибок загрузки изображений
-        window.addEventListener('error', function (e) {
-            if (e.target.tagName === 'IMG') {
-                console.warn('Изображение не загружено:', e.target.src);
-            }
-        }, true);
+// Обработка ошибок загрузки изображений
+window.addEventListener('error', function (e) {
+    if (e.target.tagName === 'IMG') {
+        console.warn('Изображение не загружено:', e.target.src);
+    }
+}, true);
