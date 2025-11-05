@@ -907,29 +907,31 @@ class ArkhamHorizonTracker {
     }
 
     deleteProgress(id) {
-        console.log('🔄 Попытка удаления записи с ID:', id);
-        console.log('📊 Текущее количество записей до удаления:', this.progress.length);
-
         if (confirm('Удалить эту запись из архивов?')) {
-            this.progress = this.progress.filter(item => {
-                console.log('🔍 Проверка записи:', item.id, 'тип:', typeof item.id, 'тип целевого:', typeof id);
-                return item.id !== id;
-            });
+            // Удаляем из локального массива
+            this.progress = this.progress.filter(item => item.id !== id);
 
-            console.log('📊 Количество записей после удаления:', this.progress.length);
-
+            // Сохраняем в localStorage
             this.saveProgress();
+
+            // Синхронизируем с GitHub (удаляем из arkham_progress.json)
+            if (this.syncManager.isConfigured()) {
+                this.syncManager.push().then(success => {
+                    if (success) {
+                        this.showNotification('Запись удалена из локальных архивов и облака', 'error');
+                    } else {
+                        this.showNotification('Запись удалена локально, но ошибка синхронизации с облаком', 'warning');
+                    }
+                });
+            } else {
+                this.showNotification('Запись удалена из локальных архивов', 'error');
+            }
+
             this.renderHexagonGrid();
             this.renderStats();
             this.updateAchievements();
-            this.showNotification('Запись удалена из архивов', 'error');
-
-            // Проверяем сохранение в localStorage
-            const savedProgress = JSON.parse(localStorage.getItem('arkhamProgress') || '[]');
-            console.log('💾 Записей в localStorage после сохранения:', savedProgress.length);
         }
     }
-
     saveProgress() {
         // Убираем возможные дубликаты перед сохранением
         const uniqueProgress = this.removeDuplicates(this.progress);
@@ -1060,6 +1062,21 @@ class ArkhamHorizonTracker {
                 </div>
             `;
         }).join('');
+    }
+
+    // Mетод для принудительной синхронизации
+    forceSync() {
+        if (this.syncManager.isConfigured()) {
+            this.syncManager.push().then(success => {
+                if (success) {
+                    this.showNotification('✅ Данные синхронизированы с облаком', 'success');
+                } else {
+                    this.showNotification('❌ Ошибка синхронизации', 'error');
+                }
+            });
+        } else {
+            this.showNotification('⚠️ Синхронизация не настроена', 'warning');
+        }
     }
 
     getFilteredProgress() {
@@ -1759,10 +1776,12 @@ class GitHubSyncManager {
             };
 
             const content = this.encodeBase64(JSON.stringify(syncData, null, 2));
+
+            // Получаем текущий SHA файла для обновления
             const sha = await this.getFileSHA();
 
             const body = {
-                message: `Sync: ${new Date().toLocaleString('ru-RU')} (${syncData.progress.length} records)`,
+                message: `Update: ${new Date().toLocaleString('ru-RU')} (${syncData.progress.length} records)`,
                 content: content
             };
 
@@ -1784,7 +1803,6 @@ class GitHubSyncManager {
             }
 
             localStorage.setItem('last_sync_timestamp', syncData.timestamp);
-            this.notify('✅ Данные сохранены в облако', 'success');
             return true;
 
         } catch (error) {
@@ -1795,6 +1813,7 @@ class GitHubSyncManager {
             this.syncing = false;
         }
     }
+
     // Правильное объединение данных без дублирования
     mergeData(remoteData) {
         const local = this.tracker.progress || [];
