@@ -13,6 +13,19 @@
       "notes": "Играли долго, победили, Лиза почти сразу уснула после победы",
       "timestamp": "2025-11-04T13:19:39.833Z",
       "playerCount": 3
+    },
+    {
+      "id": 1762444814952,
+      "investigator": [
+        "rex",
+        "dexter"
+      ],
+      "scenario": "veil_twilight",
+      "date": "2025-11-06",
+      "result": "loss",
+      "notes": "",
+      "timestamp": "2025-11-06T16:00:14.952Z",
+      "playerCount": 2
     }
   ],
   "achievements": {
@@ -121,7 +134,7 @@
       "progress": 0
     }
   },
-  "timestamp": "2025-11-05T05:24:11.578Z",
+  "timestamp": "2025-11-06T16:00:14.952Z",
   "version": "3.0",
   "app": "Arkham Horror Tracker"
 }
