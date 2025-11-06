@@ -1,6 +1,19 @@
 {
   "progress": [
     {
+      "id": 1762444814952,
+      "investigator": [
+        "rex",
+        "dexter"
+      ],
+      "scenario": "veil_twilight",
+      "date": "2025-11-06",
+      "result": "loss",
+      "notes": "",
+      "timestamp": "2025-11-06T16:00:14.952Z",
+      "playerCount": 2
+    },
+    {
       "id": 1762262379833,
       "investigator": [
         "dexter",
@@ -15,16 +28,16 @@
       "playerCount": 3
     },
     {
-      "id": 1762444814952,
+      "id": 1762455665493,
       "investigator": [
-        "rex",
-        "dexter"
+        "dexter",
+        "rex"
       ],
       "scenario": "veil_twilight",
       "date": "2025-11-06",
-      "result": "loss",
-      "notes": "",
-      "timestamp": "2025-11-06T16:00:14.952Z",
+      "result": "win",
+      "notes": "Почти всосали, из-за минус морали на Декстере",
+      "timestamp": "2025-11-06T19:01:05.493Z",
       "playerCount": 2
     }
   ],
@@ -67,7 +80,7 @@
       "target": 5,
       "icon": "🎯",
       "unlocked": false,
-      "progress": 1
+      "progress": 2
     },
     "collector": {
       "name": "Собиратель опыта",
@@ -79,8 +92,8 @@
     },
     "triumphant": {
       "name": "Триумфатор",
-      "description": "Одержите 10 побед",
-      "target": 10,
+      "description": "Одержите 100 побед",
+      "target": 100,
       "icon": "🏆",
       "unlocked": false,
       "progress": 1
@@ -91,7 +104,7 @@
       "target": 5,
       "icon": "💀",
       "unlocked": false,
-      "progress": 0
+      "progress": 1
     },
     "teamplayer": {
       "name": "Командный игрок",
@@ -99,7 +112,7 @@
       "target": 10,
       "icon": "👥",
       "unlocked": false,
-      "progress": 1
+      "progress": 2
     },
     "fullteam": {
       "name": "Полная команда",
@@ -115,15 +128,15 @@
       "target": 13,
       "icon": "📖",
       "unlocked": false,
-      "progress": 1
+      "progress": 2
     },
     "universal": {
       "name": "Древнее божество",
       "description": "Пройдите все сюжеты кампании за всех персонажей",
       "target": 364,
-      "icon": "💀📖",
+      "icon": "💀📖💀",
       "unlocked": false,
-      "progress": 3
+      "progress": 5
     },
     "unlucky": {
       "name": "Невезучий",
@@ -131,10 +144,18 @@
       "target": 3,
       "icon": "🍀",
       "unlocked": false,
+      "progress": 1
+    },
+    "hellspawn": {
+      "name": " Порождение ада",
+      "description": "пройдите игру в режиме Тотальный пиздец",
+      "target": 1,
+      "icon": "☠️☠️☠️",
+      "unlocked": false,
       "progress": 0
     }
   },
-  "timestamp": "2025-11-06T16:00:14.952Z",
+  "timestamp": "2025-11-06T19:01:05.493Z",
   "version": "3.0",
   "app": "Arkham Horror Tracker"
 }
