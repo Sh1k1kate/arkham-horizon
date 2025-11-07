@@ -1,6 +1,19 @@
 {
   "progress": [
     {
+      "id": 1762455665493,
+      "investigator": [
+        "dexter",
+        "rex"
+      ],
+      "scenario": "veil_twilight",
+      "date": "2025-11-06",
+      "result": "win",
+      "notes": "Почти всосали, из-за минус морали на Декстере",
+      "timestamp": "2025-11-06T19:01:05.493Z",
+      "playerCount": 2
+    },
+    {
       "id": 1762444814952,
       "investigator": [
         "rex",
@@ -28,17 +41,18 @@
       "playerCount": 3
     },
     {
-      "id": 1762455665493,
+      "id": 1762527414152,
       "investigator": [
         "dexter",
+        "minh",
         "rex"
       ],
-      "scenario": "veil_twilight",
-      "date": "2025-11-06",
+      "scenario": "feast_umordhoth",
+      "date": "2025-11-07",
       "result": "win",
-      "notes": "Почти всосали, из-за минус морали на Декстере",
-      "timestamp": "2025-11-06T19:01:05.493Z",
-      "playerCount": 2
+      "notes": "Сняли почти все хп дебафами и добили в 3 штыкас",
+      "timestamp": "2025-11-07T14:56:54.152Z",
+      "playerCount": 3
     }
   ],
   "achievements": {
@@ -56,7 +70,7 @@
       "target": 5,
       "icon": "🏕️",
       "unlocked": false,
-      "progress": 1
+      "progress": 2
     },
     "veteran": {
       "name": "Ветеран Аркхема",
@@ -64,7 +78,7 @@
       "target": 10,
       "icon": "🎖️",
       "unlocked": false,
-      "progress": 1
+      "progress": 2
     },
     "expert": {
       "name": "Эксперт по Древним",
@@ -72,7 +86,7 @@
       "target": 20,
       "icon": "👑",
       "unlocked": false,
-      "progress": 1
+      "progress": 2
     },
     "specialist": {
       "name": "Мастер одного пути",
@@ -80,7 +94,7 @@
       "target": 5,
       "icon": "🎯",
       "unlocked": false,
-      "progress": 2
+      "progress": 3
     },
     "collector": {
       "name": "Собиратель опыта",
@@ -96,7 +110,7 @@
       "target": 100,
       "icon": "🏆",
       "unlocked": false,
-      "progress": 1
+      "progress": 2
     },
     "survivor": {
       "name": "Выживший",
@@ -112,7 +126,7 @@
       "target": 10,
       "icon": "👥",
       "unlocked": false,
-      "progress": 2
+      "progress": 3
     },
     "fullteam": {
       "name": "Полная команда",
@@ -155,7 +169,7 @@
       "progress": 0
     }
   },
-  "timestamp": "2025-11-06T19:01:05.493Z",
+  "timestamp": "2025-11-07T14:56:54.152Z",
   "version": "3.0",
   "app": "Arkham Horror Tracker"
 }
