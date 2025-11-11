@@ -504,18 +504,53 @@ class ArkhamHorizonTracker {
             return;
         }
 
+        const isFlipped = imgElement.classList.contains('flipped');
+        const frontImg = imgElement.querySelector('.image-front');
+        const backDiv = imgElement.querySelector('.image-back');
+
+        if (!frontImg) return;
+
+        // Получаем путь к оригинальному изображению
+        const originalSrc = frontImg.src;
+
+        // Создаем путь к обратной стороне (заменяем расширение на -1.jpg)
+        const basePath = originalSrc.replace(/\.[^/.]+$/, "");
+        const backSideSrc = `${basePath}-1.jpg`;
+
         // Добавляем класс анимации
         imgElement.classList.add('flipping');
 
         // Ждем окончания анимации
         setTimeout(() => {
-            const isFlipped = imgElement.classList.contains('flipped');
-
             if (isFlipped) {
                 // Возвращаем к исходному изображению
                 imgElement.classList.remove('flipped');
             } else {
-                // Показываем обратную сторону
+                // Показываем обратную сторону - загружаем изображение
+                if (backDiv) {
+                    // Создаем изображение для обратной стороны
+                    const backImg = new Image();
+                    backImg.onload = () => {
+                        // Заменяем placeholder на реальное изображение
+                        backDiv.innerHTML = '';
+                        backDiv.appendChild(backImg);
+                        backImg.classList.add('image-back');
+                        backImg.style.width = '100%';
+                        backImg.style.height = '100%';
+                        backImg.style.objectFit = 'contain';
+                    };
+                    backImg.onerror = () => {
+                        // Если изображение не найдено, оставляем placeholder
+                        console.warn('Обратная сторона не найдена:', backSideSrc);
+                        backDiv.innerHTML = `
+                        <div class="image-placeholder">
+                            Обратная сторона<br>${frontImg.alt}
+                        </div>
+                    `;
+                    };
+                    backImg.src = backSideSrc;
+                }
+
                 imgElement.classList.add('flipped');
             }
 
@@ -523,6 +558,7 @@ class ArkhamHorizonTracker {
             imgElement.classList.remove('flipping');
         }, 300);
     }
+
 
 
     handleGlobalClick(e) {
@@ -897,13 +933,17 @@ class ArkhamHorizonTracker {
         const modal = document.getElementById('image-modal');
         const modalBody = document.getElementById('image-modal-body');
 
+        // Создаем путь к обратной стороне
+        const basePath = src.replace(/\.[^/.]+$/, "");
+        const backSideSrc = `${basePath}-1.jpg`;
+
         modalBody.innerHTML = `
         <div class="image-modal-content">
             <div class="flippable-image modal-image-container" onclick="tracker.flipImage(this)">
                 <img src="${src}" alt="${alt}" class="image-front" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
                 <div class="image-back">
                     <div class="image-placeholder">
-                        Обратная сторона<br>${alt}
+                        Загрузка обратной стороны...
                     </div>
                 </div>
                 <div class="flip-indicator">🔄 Нажмите для переворота</div>
@@ -915,6 +955,7 @@ class ArkhamHorizonTracker {
         modal.style.display = 'block';
         document.body.classList.add('modal-open');
     }
+
 
 
     showRecordDetails(recordId) {
@@ -936,10 +977,18 @@ class ArkhamHorizonTracker {
         }[record.result] || '❓ Иной исход';
 
         // Сыщики в модальном окне - переворачиваемые
-        const investigatorsHTML = investigators.map(investigator => `
+        const investigatorsHTML = investigators.map(investigator => {
+            const backSideSrc = investigator.image.replace(/\.[^/.]+$/, "") + "-1.jpg";
+
+            return `
             <div class="detail-value">
                 <div class="flippable-image detail-image-large" onclick="tracker.flipImage(this)">
                     <img src="${investigator.image}" alt="${investigator.name}" class="image-front" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
+                    <div class="image-back">
+                        <div class="image-placeholder">
+                            Загрузка...
+                        </div>
+                    </div>
                     <div class="flip-indicator">🔄</div>
                 </div>
                 <div>
@@ -947,13 +996,22 @@ class ArkhamHorizonTracker {
                     <p class="detail-description">${investigator.description}</p>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
+
+        // Сценарий в модальном окне - переворачиваемый
+        const scenarioBackSideSrc = scenario.image.replace(/\.[^/.]+$/, "") + "-1.jpg";
 
         modalContent.innerHTML = `
         <div class="record-details">
             <div class="detail-header">
-                <div class="flippable-image detail-header-image" onclick="tracker.flipImage(this)" style="width: 100%; height: 100%; position: relative;">
-                    <img src="${scenario.image}" alt="${scenario.name}" class="image-front" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
+                <div class="flippable-image detail-header-image" onclick="tracker.flipImage(this)">
+                    <img src="${scenario.image}" alt="${scenario.name}" class="image-front" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
+                    <div class="image-back">
+                        <div class="image-placeholder">
+                            Загрузка обратной стороны...
+                        </div>
+                    </div>
                     <div class="flip-indicator">🔄 Нажмите для переворота</div>
                 </div>
                 <div class="detail-overlay">
