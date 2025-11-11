@@ -516,7 +516,6 @@ class ArkhamHorizonTracker {
         }, 300);
     }
 
-
     handleGlobalClick(e) {
         // Обработка переворота изображений в модальных окнах
         if ((e.target.classList.contains('flippable-image') ||
@@ -605,7 +604,6 @@ class ArkhamHorizonTracker {
             this.hideAllDropdowns();
         }
     }
-
 
     handleKeyboardNavigation(e) {
         const index = parseInt(e.target.dataset.index);
@@ -903,7 +901,6 @@ class ArkhamHorizonTracker {
         modal.style.display = 'block';
         document.body.classList.add('modal-open');
     }
-
 
     showRecordDetails(recordId) {
         const record = this.progress.find(item => item.id === recordId);
