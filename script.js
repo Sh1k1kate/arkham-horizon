@@ -260,6 +260,9 @@ class ArkhamHorizonTracker {
     }
 
     handleGlobalClick(e) {
+        if (e.target.closest('#record-modal')) {
+            // Не переворачиваем изображения в модальном окне записи
+            return;
         if ((e.target.classList.contains('flippable-image') ||
             e.target.closest('.flippable-image')) &&
             document.getElementById('image-modal').style.display === 'block') {
