@@ -1,339 +1,72 @@
 // Основной класс трекера
 class ArkhamHorizonTracker {
     constructor() {
-        // Не используем localStorage, только облачные данные
         this.progress = [];
-
         this.investigators = {
-            'agnes': {
-                name: 'Агнес Бейкер',
-                image: './images/investigators/agnes.jpg',
-                description: 'Официантка с пробудившимися экстрасенсорными способностями'
-            },
-            'pete': {
-                name: '«Жестянка» Пит',
-                image: './images/investigators/pete.jpg',
-                description: 'Бродяга с верным спутником - вороном'
-            },
-            'calvin': {
-                name: 'Кэлвин Райт',
-                image: './images/investigators/calvin.jpg',
-                description: 'Преследуемый прошлыми травмами'
-            },
-            'daniela': {
-                name: 'Даниэла Рейес',
-                image: './images/investigators/daniela.jpg',
-                description: 'Механик с техническим складом ума'
-            },
-            'dexter': {
-                name: 'Декстер Дрейк',
-                image: './images/investigators/dexter.jpg',
-                description: 'Фокусник, владеющий иллюзиями'
-            },
-            'jenny': {
-                name: 'Дженни Барнс',
-                image: './images/investigators/jenny.jpg',
-                description: 'Девушка из высшего общества с боевыми навыками'
-            },
-            'marie': {
-                name: 'Мари Ламбо',
-                image: './images/investigators/marie.jpg',
-                description: 'Певица с гипнотическим голосом'
-            },
-            'michael': {
-                name: 'Майкл МакГлен',
-                image: './images/investigators/michael.jpg',
-                description: 'Гангстер, привыкший решать вопросы силой'
-            },
-            'minh': {
-                name: 'Минь Тхи Фан',
-                image: './images/investigators/minh.jpg',
-                description: 'Секретарь-архивариус с феноменальной памятью'
-            },
-            'norman': {
-                name: 'Норман Уизерс',
-                image: './images/investigators/norman.jpg',
-                description: 'Астроном, открывший ужасающие тайны вселенной'
-            },
-            'rex': {
-                name: 'Рекс Мёрфи',
-                image: './images/investigators/rex.jpg',
-                description: 'Репортёр, ищущий сенсационные разоблачения'
-            },
-            'roland': {
-                name: 'Роланд Бэнкс',
-                image: './images/investigators/roland.jpg',
-                description: 'Федеральный агент с аналитическим складом ума'
-            },
-            'skids': {
-                name: '«Шквал» О\'Тул',
-                image: './images/investigators/skids.jpg',
-                description: 'Бывший заключенный, ищущий искупления'
-            },
-            'tommy': {
-                name: 'Томми Малдун',
-                image: './images/investigators/tommy.jpg',
-                description: 'Полицейский-новичок с обострённым чувством справедливости'
-            },
-            'wendy': {
-                name: 'Венди Адамс',
-                image: './images/investigators/wendy.jpg',
-                description: 'Бездомная сирота, мастер побегов и уклонений'
-            },
-            'zoey': {
-                name: 'Зои Сэмарас',
-                image: './images/investigators/zoey.jpg',
-                description: 'Повар с необычными кулинарными талантами'
-            },
-            'agatha': {
-                name: 'Агата Крейн',
-                image: './images/investigators/agatha.jpg',
-                description: 'Парапсихолог, изучающая потусторонние явления'
-            },
-            'carson': {
-                name: 'Карсон Синклер',
-                image: './images/investigators/carson.jpg',
-                description: 'Дворецкий с безупречными манерами и наблюдательностью'
-            },
-            'charley': {
-                name: 'Чарли Кейн',
-                image: './images/investigators/charley.jpg',
-                description: 'Политик, владеющий искусством убеждения'
-            },
-            'diana': {
-                name: 'Диана Стэнли',
-                image: './images/investigators/diana.jpg',
-                description: 'Искупившаяся культистка, борющаяся со своим прошлым'
-            },
-            'mateo': {
-                name: 'Отец Матео',
-                image: './images/investigators/mateo.jpg',
-                description: 'Священник, сражающийся с демоническими силами'
-            },
-            'kate': {
-                name: 'Кейт Уинтроп',
-                image: './images/investigators/kate.jpg',
-                description: 'Учёный-исследователь аномальных явлений'
-            },
-            'mark': {
-                name: 'Марк Харриган',
-                image: './images/investigators/mark.jpg',
-                description: 'Солдат с боевым опытом и железной волей'
-            },
-            'patrice': {
-                name: 'Патрис Хэтауэй',
-                image: './images/investigators/patrice.jpg',
-                description: 'Скрипачка с мистической связью через музыку'
-            },
-            'preston': {
-                name: 'Престон Фэйрмонт',
-                image: './images/investigators/preston.jpg',
-                description: 'Миллионер, использующий своё состояние в борьбе со злом'
-            },
-            'silas': {
-                name: 'Силас Марш',
-                image: './images/investigators/silas.jpg',
-                description: 'Моряк, повидавший ужасы морских глубин'
-            },
-            'stella': {
-                name: 'Стелла Кларк',
-                image: './images/investigators/stella.jpg',
-                description: 'Почтальон, знающий все тайны Аркхэма'
-            },
-            'winifred': {
-                name: 'Виннифред Хаббамок',
-                image: './images/investigators/winifred.jpg',
-                description: 'Авиатриса с жаждой приключений'
-            }
+            'agnes': { name: 'Агнес Бейкер', image: './images/investigators/agnes.jpg', description: 'Официантка с пробудившимися экстрасенсорными способностями' },
+            'pete': { name: '«Жестянка» Пит', image: './images/investigators/pete.jpg', description: 'Бродяга с верным спутником - вороном' },
+            'calvin': { name: 'Кэлвин Райт', image: './images/investigators/calvin.jpg', description: 'Преследуемый прошлыми травмами' },
+            'daniela': { name: 'Даниэла Рейес', image: './images/investigators/daniela.jpg', description: 'Механик с техническим складом ума' },
+            'dexter': { name: 'Декстер Дрейк', image: './images/investigators/dexter.jpg', description: 'Фокусник, владеющий иллюзиями' },
+            'jenny': { name: 'Дженни Барнс', image: './images/investigators/jenny.jpg', description: 'Девушка из высшего общества с боевыми навыками' },
+            'marie': { name: 'Мари Ламбо', image: './images/investigators/marie.jpg', description: 'Певица с гипнотическим голосом' },
+            'michael': { name: 'Майкл МакГлен', image: './images/investigators/michael.jpg', description: 'Гангстер, привыкший решать вопросы силой' },
+            'minh': { name: 'Минь Тхи Фан', image: './images/investigators/minh.jpg', description: 'Секретарь-архивариус с феноменальной памятью' },
+            'norman': { name: 'Норман Уизерс', image: './images/investigators/norman.jpg', description: 'Астроном, открывший ужасающие тайны вселенной' },
+            'rex': { name: 'Рекс Мёрфи', image: './images/investigators/rex.jpg', description: 'Репортёр, ищущий сенсационные разоблачения' },
+            'roland': { name: 'Роланд Бэнкс', image: './images/investigators/roland.jpg', description: 'Федеральный агент с аналитическим складом ума' },
+            'skids': { name: '«Шквал» О\'Тул', image: './images/investigators/skids.jpg', description: 'Бывший заключенный, ищущий искупления' },
+            'tommy': { name: 'Томми Малдун', image: './images/investigators/tommy.jpg', description: 'Полицейский-новичок с обострённым чувством справедливости' },
+            'wendy': { name: 'Венди Адамс', image: './images/investigators/wendy.jpg', description: 'Бездомная сирота, мастер побегов и уклонений' },
+            'zoey': { name: 'Зои Сэмарас', image: './images/investigators/zoey.jpg', description: 'Повар с необычными кулинарными талантами' },
+            'agatha': { name: 'Агата Крейн', image: './images/investigators/agatha.jpg', description: 'Парапсихолог, изучающая потусторонние явления' },
+            'carson': { name: 'Карсон Синклер', image: './images/investigators/carson.jpg', description: 'Дворецкий с безупречными манерами и наблюдательностью' },
+            'charley': { name: 'Чарли Кейн', image: './images/investigators/charley.jpg', description: 'Политик, владеющий искусством убеждения' },
+            'diana': { name: 'Диана Стэнли', image: './images/investigators/diana.jpg', description: 'Искупившаяся культистка, борющаяся со своим прошлым' },
+            'mateo': { name: 'Отец Матео', image: './images/investigators/mateo.jpg', description: 'Священник, сражающийся с демоническими силами' },
+            'kate': { name: 'Кейт Уинтроп', image: './images/investigators/kate.jpg', description: 'Учёный-исследователь аномальных явлений' },
+            'mark': { name: 'Марк Харриган', image: './images/investigators/mark.jpg', description: 'Солдат с боевым опытом и железной волей' },
+            'patrice': { name: 'Патрис Хэтауэй', image: './images/investigators/patrice.jpg', description: 'Скрипачка с мистической связью через музыку' },
+            'preston': { name: 'Престон Фэйрмонт', image: './images/investigators/preston.jpg', description: 'Миллионер, использующий своё состояние в борьбе со злом' },
+            'silas': { name: 'Силас Марш', image: './images/investigators/silas.jpg', description: 'Моряк, повидавший ужасы морских глубин' },
+            'stella': { name: 'Стелла Кларк', image: './images/investigators/stella.jpg', description: 'Почтальон, знающий все тайны Аркхэма' },
+            'winifred': { name: 'Виннифред Хаббамок', image: './images/investigators/winifred.jpg', description: 'Авиатриса с жаждой приключений' }
         };
 
         this.scenarios = {
-            'veil_twilight': {
-                name: 'Завеса сумерек',
-                image: './images/scenarios/veil_twilight.jpg',
-                description: 'Исследование таинственных исчезновений в старом квартале Аркхэма'
-            },
-            'feast_umordhoth': {
-                name: 'Пир для Умордхота',
-                image: './images/scenarios/feast_umordhoth.jpg',
-                description: 'Охота на древнее существо, пробудившееся в подземельях города'
-            },
-            'coming_azathoth': {
-                name: 'Пришествие Азатота',
-                image: './images/scenarios/coming_azathoth.jpg',
-                description: 'Безумный ритуал по призыву спящего божества угрожает уничтожить мир'
-            },
-            'echo_deep': {
-                name: 'Эхо из глубин',
-                image: './images/scenarios/echo_deep.jpg',
-                description: 'Загадочные события на побережье намекают на присутствие древних существ'
-            },
-            'silence_tsathoggua': {
-                name: 'Безмолвие Цатхоггуа',
-                image: './images/scenarios/silence_tsathoggua.jpg',
-                description: 'Расследование странных артефактов, связанных с подземным божеством'
-            },
-            'shots_blind': {
-                name: 'Выстрелы вслепую',
-                image: './images/scenarios/shots_blind.jpg',
-                description: 'Опасная конфронтация с тайным культом в тёмных переулках Аркхэма'
-            },
-            'pale_lantern': {
-                name: 'Бледный фонарь',
-                image: './images/scenarios/pale_lantern.jpg',
-                description: 'Поиск источника призрачного свечения, сводящего горожан с ума'
-            },
-            'children_ithaqua': {
-                name: 'Дети Итакуа',
-                image: './images/scenarios/children_ithaqua.jpg',
-                description: 'Ледяной ужас окутывает город, пробуждая древнее зло'
-            },
-            'dreams_rlyeh': {
-                name: 'Сны о Р\'льехе',
-                image: './images/scenarios/dreams_rlyeh.jpg',
-                description: 'Кошмары о затонувшем городе начинают проникать в реальность'
-            },
-            'tyrants_destruction': {
-                name: 'Тираны разрушения',
-                image: './images/scenarios/tyrants_destruction.jpg',
-                description: 'Битва с могущественными существами из иных измерений'
-            },
-            'revenge_past': {
-                name: 'Возмездие из прошлого',
-                image: './images/scenarios/revenge_past.jpg',
-                description: 'Старые грехи возвращаются, чтобы преследовать жителей Аркхэма'
-            },
-            'key_gate': {
-                name: 'Ключ и врата',
-                image: './images/scenarios/key_gate.jpg',
-                description: 'Поиск древнего артефакта, способного открыть врата между мирами'
-            },
-            'summoned_serve': {
-                name: 'Призваны служить',
-                image: './images/scenarios/summoned_serve.jpg',
-                description: 'Столкновение с культом, пытающимся призвать на службу тёмных существ'
-            }
+            'veil_twilight': { name: 'Завеса сумерек', image: './images/scenarios/veil_twilight.jpg', description: 'Исследование таинственных исчезновений в старом квартале Аркхэма' },
+            'feast_umordhoth': { name: 'Пир для Умордхота', image: './images/scenarios/feast_umordhoth.jpg', description: 'Охота на древнее существо, пробудившееся в подземельях города' },
+            'coming_azathoth': { name: 'Пришествие Азатота', image: './images/scenarios/coming_azathoth.jpg', description: 'Безумный ритуал по призыву спящего божества угрожает уничтожить мир' },
+            'echo_deep': { name: 'Эхо из глубин', image: './images/scenarios/echo_deep.jpg', description: 'Загадочные события на побережье намекают на присутствие древних существ' },
+            'silence_tsathoggua': { name: 'Безмолвие Цатхоггуа', image: './images/scenarios/silence_tsathoggua.jpg', description: 'Расследование странных артефактов, связанных с подземным божеством' },
+            'shots_blind': { name: 'Выстрелы вслепую', image: './images/scenarios/shots_blind.jpg', description: 'Опасная конфронтация с тайным культом в тёмных переулках Аркхэма' },
+            'pale_lantern': { name: 'Бледный фонарь', image: './images/scenarios/pale_lantern.jpg', description: 'Поиск источника призрачного свечения, сводящего горожан с ума' },
+            'children_ithaqua': { name: 'Дети Итакуа', image: './images/scenarios/children_ithaqua.jpg', description: 'Ледяной ужас окутывает город, пробуждая древнее зло' },
+            'dreams_rlyeh': { name: 'Сны о Р\'льехе', image: './images/scenarios/dreams_rlyeh.jpg', description: 'Кошмары о затонувшем городе начинают проникать в реальность' },
+            'tyrants_destruction': { name: 'Тираны разрушения', image: './images/scenarios/tyrants_destruction.jpg', description: 'Битва с могущественными существами из иных измерений' },
+            'revenge_past': { name: 'Возмездие из прошлого', image: './images/scenarios/revenge_past.jpg', description: 'Старые грехи возвращаются, чтобы преследовать жителей Аркхэма' },
+            'key_gate': { name: 'Ключ и врата', image: './images/scenarios/key_gate.jpg', description: 'Поиск древнего артефакта, способного открыть врата между мирами' },
+            'summoned_serve': { name: 'Призваны служить', image: './images/scenarios/summoned_serve.jpg', description: 'Столкновение с культом, пытающимся призвать на службу тёмных существ' }
         };
 
         this.achievements = {
-            beginner: {
-                name: 'Неофит',
-                description: 'Пройдите первый сюжет',
-                target: 1,
-                icon: '🥳',
-                unlocked: false,
-                progress: 0
-            },
-            adventurer: {
-                name: 'Искатель приключений',
-                description: 'Пройдите 5 сюжетов',
-                target: 5,
-                icon: '🏕️',
-                unlocked: false,
-                progress: 0
-            },
-            veteran: {
-                name: 'Ветеран Аркхема',
-                description: 'Пройдите 10 сюжетов',
-                target: 10,
-                icon: '🎖️',
-                unlocked: false,
-                progress: 0
-            },
-            expert: {
-                name: 'Эксперт по Древним',
-                description: 'Пройдите 20 сюжетов',
-                target: 20,
-                icon: '👑',
-                unlocked: false,
-                progress: 0
-            },
-            specialist: {
-                name: 'Мастер одного пути',
-                description: 'Пройдите 5 сюжетов одним сыщиком',
-                target: 5,
-                icon: '🎯',
-                unlocked: false,
-                progress: 0
-            },
-            collector: {
-                name: 'Собиратель опыта',
-                description: 'Испытайте всех сыщиков',
-                target: Object.keys(this.investigators).length,
-                icon: '📚',
-                unlocked: false,
-                progress: 0
-            },
-            triumphant: {
-                name: 'Триумфатор',
-                description: 'Одержите 100 побед',
-                target: 100,
-                icon: '🏆',
-                unlocked: false,
-                progress: 0
-            },
-            survivor: {
-                name: 'Выживший',
-                description: 'Переживите 5 поражений',
-                target: 5,
-                icon: '💀',
-                unlocked: false,
-                progress: 0
-            },
-            teamplayer: {
-                name: 'Командный игрок',
-                description: 'Пройдите 10 сюжетов в команде из 2+ сыщиков',
-                target: 10,
-                icon: '👥',
-                unlocked: false,
-                progress: 0
-            },
-            fullteam: {
-                name: 'Полная команда',
-                description: 'Пройдите сюжет в команде из 4 сыщиков',
-                target: 1,
-                icon: '🔄',
-                unlocked: false,
-                progress: 0
-            },
-            scholar: {
-                name: 'Ученый',
-                description: 'Пройдите все сюжеты кампании',
-                target: Object.keys(this.scenarios).length,
-                icon: '📖',
-                unlocked: false,
-                progress: 0
-            },
-            universal: {
-                name: 'Древнее божество',
-                description: 'Пройдите все сюжеты кампании за всех персонажей',
-                target: Object.keys(this.investigators).length * Object.keys(this.scenarios).length,
-                icon: '💀📖💀',
-                unlocked: false,
-                progress: 0
-            },
-            unlucky: {
-                name: 'Невезучий',
-                description: 'Проиграйте 3 сюжета подряд',
-                target: 3,
-                icon: '🍀',
-                unlocked: false,
-                progress: 0
-            },
-            hellspawn: {
-                name: 'Порождение ада',
-                description: 'Пройдите игру в режиме Тотальный пиздец',
-                target: 1,
-                icon: '☠️☠️☠️',
-                unlocked: false,
-                progress: 0
-            }
+            beginner: { name: 'Неофит', description: 'Пройдите первый сюжет', target: 1, icon: '🥳', unlocked: false, progress: 0 },
+            adventurer: { name: 'Искатель приключений', description: 'Пройдите 5 сюжетов', target: 5, icon: '🏕️', unlocked: false, progress: 0 },
+            veteran: { name: 'Ветеран Аркхема', description: 'Пройдите 10 сюжетов', target: 10, icon: '🎖️', unlocked: false, progress: 0 },
+            expert: { name: 'Эксперт по Древним', description: 'Пройдите 20 сюжетов', target: 20, icon: '👑', unlocked: false, progress: 0 },
+            specialist: { name: 'Мастер одного пути', description: 'Пройдите 5 сюжетов одним сыщиком', target: 5, icon: '🎯', unlocked: false, progress: 0 },
+            collector: { name: 'Собиратель опыта', description: 'Испытайте всех сыщиков', target: 28, icon: '📚', unlocked: false, progress: 0 },
+            triumphant: { name: 'Триумфатор', description: 'Одержите 100 побед', target: 100, icon: '🏆', unlocked: false, progress: 0 },
+            survivor: { name: 'Выживший', description: 'Переживите 5 поражений', target: 5, icon: '💀', unlocked: false, progress: 0 },
+            teamplayer: { name: 'Командный игрок', description: 'Пройдите 10 сюжетов в команде из 2+ сыщиков', target: 10, icon: '👥', unlocked: false, progress: 0 },
+            fullteam: { name: 'Полная команда', description: 'Пройдите сюжет в команде из 4 сыщиков', target: 1, icon: '🔄', unlocked: false, progress: 0 },
+            scholar: { name: 'Ученый', description: 'Пройдите все сюжеты кампании', target: 13, icon: '📖', unlocked: false, progress: 0 },
+            universal: { name: 'Древнее божество', description: 'Пройдите все сюжеты кампании за всех персонажей', target: 364, icon: '💀📖💀', unlocked: false, progress: 0 },
+            unlucky: { name: 'Невезучий', description: 'Проиграйте 3 сюжета подряд', target: 3, icon: '🍀', unlocked: false, progress: 0 }
         };
 
         this.selectedInvestigators = [];
         this.currentPlayerCount = 2;
-
-        // Менеджер синхронизации
         this.syncManager = new GitHubSyncManager(this);
         this.init();
     }
@@ -350,15 +83,10 @@ class ArkhamHorizonTracker {
         this.setupEventListeners();
         this.setupModal();
 
-        // Предзагружаем обратные стороны изображений
-        this.preloadBackImages();
-
-        // Загружаем данные только из облака
         setTimeout(() => {
             if (this.syncManager.isConfigured()) {
-                this.syncManager.pull(); // Загружаем данные при запуске
+                this.syncManager.pull();
             } else {
-                // Если синхронизация не настроена, показываем пустые данные
                 this.renderHexagonGrid();
                 this.renderStats();
                 this.updateAchievements();
@@ -367,31 +95,26 @@ class ArkhamHorizonTracker {
     }
 
     setupEventListeners() {
-        // Форма добавления
         document.getElementById('progress-form').addEventListener('submit', (e) => {
             e.preventDefault();
             this.addProgress();
         });
 
-        // Кнопки выбора количества игроков
         document.querySelectorAll('.count-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 this.setPlayerCount(parseInt(e.target.dataset.count));
             });
         });
 
-        // Превью сценария
         document.getElementById('scenario').addEventListener('change', (e) => {
             this.showScenarioPreview(e.target.value);
         });
 
-        // Фильтры
         document.getElementById('filter-investigator').addEventListener('change', () => this.applyFilters());
         document.getElementById('filter-scenario').addEventListener('change', () => this.applyFilters());
         document.getElementById('filter-result').addEventListener('change', () => this.applyFilters());
         document.getElementById('reset-filters').addEventListener('click', () => this.resetFilters());
 
-        // Синхронизация
         document.getElementById('setup-sync').addEventListener('click', () => {
             this.syncManager.setup();
         });
@@ -408,7 +131,6 @@ class ArkhamHorizonTracker {
             this.syncManager.createInitialFile();
         });
 
-        // Глобальные обработчики для поиска сыщиков
         document.addEventListener('click', this.handleGlobalClick.bind(this));
         document.addEventListener('input', this.handleSearchInput.bind(this));
     }
@@ -460,7 +182,6 @@ class ArkhamHorizonTracker {
             container.innerHTML += fieldHTML;
         }
 
-        // Добавляем обработчики для кнопок удаления
         document.querySelectorAll('.remove-investigator-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const index = parseInt(e.target.dataset.index);
@@ -468,7 +189,6 @@ class ArkhamHorizonTracker {
             });
         });
 
-        // Добавляем обработчики для полей поиска
         document.querySelectorAll('.investigator-search').forEach(input => {
             input.addEventListener('focus', (e) => {
                 const index = parseInt(e.target.dataset.index);
@@ -493,14 +213,12 @@ class ArkhamHorizonTracker {
         }
     }
 
-    // Метод для переворота изображения (исправленная версия)
     flipImage(imgElement) {
-        // Проверяем, находится ли изображение в модальном окне, где разрешен поворот
         const isInImageModal = imgElement.closest('#image-modal');
         const isInRecordModal = imgElement.closest('#record-modal');
 
         if (!isInImageModal && !isInRecordModal) {
-            return; // Запрещаем поворот вне модальных окон
+            return;
         }
 
         if (!imgElement.classList.contains('flippable-image')) {
@@ -513,28 +231,19 @@ class ArkhamHorizonTracker {
 
         if (!frontImg) return;
 
-        // Получаем путь к оригинальному изображению
         const originalSrc = frontImg.src;
-
-        // Создаем путь к обратной стороне (заменяем расширение на -1.jpg)
         const basePath = originalSrc.replace(/\.[^/.]+$/, "");
         const backSideSrc = `${basePath}-1.jpg`;
 
-        // Добавляем класс анимации
         imgElement.classList.add('flipping');
 
-        // Ждем окончания анимации
         setTimeout(() => {
             if (isFlipped) {
-                // Возвращаем к исходному изображению
                 imgElement.classList.remove('flipped');
             } else {
-                // Показываем обратную сторону - загружаем изображение
                 if (backDiv) {
-                    // Создаем изображение для обратной стороны
                     const backImg = new Image();
                     backImg.onload = () => {
-                        // Заменяем placeholder на реальное изображение
                         backDiv.innerHTML = '';
                         backImg.classList.add('image-back');
                         backImg.style.width = '100%';
@@ -543,8 +252,6 @@ class ArkhamHorizonTracker {
                         backDiv.appendChild(backImg);
                     };
                     backImg.onerror = () => {
-                        // Если изображение не найдено, оставляем placeholder
-                        console.warn('Обратная сторона не найдена:', backSideSrc);
                         backDiv.innerHTML = `
                         <div class="image-placeholder">
                             Обратная сторона<br>${frontImg.alt}
@@ -553,17 +260,13 @@ class ArkhamHorizonTracker {
                     };
                     backImg.src = backSideSrc;
                 }
-
                 imgElement.classList.add('flipped');
             }
-
-            // Убираем класс анимации
             imgElement.classList.remove('flipping');
         }, 300);
     }
 
     preloadBackImages() {
-        // Предзагружаем обратные стороны для всех изображений сыщиков и сценариев
         const allImages = [
             ...Object.values(this.investigators).map(inv => inv.image),
             ...Object.values(this.scenarios).map(scenario => scenario.image)
@@ -576,9 +279,7 @@ class ArkhamHorizonTracker {
         });
     }
 
-
     handleGlobalClick(e) {
-        // Обработка переворота изображений в модальных окнах
         if ((e.target.classList.contains('flippable-image') ||
             e.target.closest('.flippable-image')) &&
             (document.getElementById('record-modal').style.display === 'block' ||
@@ -588,7 +289,6 @@ class ArkhamHorizonTracker {
                 ? e.target
                 : e.target.closest('.flippable-image');
 
-            // Проверяем, что клик не по самому изображению внутри контейнера
             if (!e.target.classList.contains('image-front') &&
                 !e.target.classList.contains('image-back')) {
                 this.flipImage(imgElement);
@@ -596,7 +296,6 @@ class ArkhamHorizonTracker {
             return;
         }
 
-        // Обработка выбора сыщика из выпадающего списка
         if (e.target.classList.contains('investigator-option') ||
             e.target.parentElement.classList.contains('investigator-option')) {
 
@@ -610,14 +309,12 @@ class ArkhamHorizonTracker {
             return;
         }
 
-        // Удаление выбранного сыщика из превью
         if (e.target.classList.contains('remove-selected-investigator')) {
             const index = parseInt(e.target.dataset.index);
             this.clearInvestigatorField(index);
             return;
         }
 
-        // Открытие модального окна для изображений из гексагонов
         if (e.target.classList.contains('hexagon-image') ||
             e.target.classList.contains('hexagon-investigator-image') ||
             e.target.closest('.hexagon-image') ||
@@ -637,7 +334,6 @@ class ArkhamHorizonTracker {
             return;
         }
 
-        // Открытие модального окна для других изображений
         if (e.target.classList.contains('investigator-preview-img') ||
             e.target.classList.contains('scenario-preview-img') ||
             e.target.classList.contains('selected-investigator-avatar') ||
@@ -650,7 +346,6 @@ class ArkhamHorizonTracker {
             return;
         }
 
-        // Обработка кликов по гексагонам (для открытия деталей записи)
         const hexagon = e.target.closest('.hexagon');
         if (hexagon && !e.target.closest('.hexagon-image') &&
             !e.target.closest('.hexagon-investigator-image') &&
@@ -660,7 +355,6 @@ class ArkhamHorizonTracker {
             return;
         }
 
-        // Закрываем все выпадающие списки при клике вне их
         if (!e.target.classList.contains('investigator-search')) {
             this.hideAllDropdowns();
         }
@@ -686,10 +380,8 @@ class ArkhamHorizonTracker {
             return;
         }
 
-        // Убираем подсветку со всех опций
         options.forEach(opt => opt.classList.remove('highlighted'));
 
-        // Подсвечиваем текущую опцию
         if (currentIndex >= 0) {
             options[currentIndex].classList.add('highlighted');
             options[currentIndex].scrollIntoView({ block: 'nearest' });
@@ -744,13 +436,8 @@ class ArkhamHorizonTracker {
             const investigator = this.investigators[investigatorKey];
             searchInput.value = investigator.name;
             hiddenInput.value = investigatorKey;
-
-            // Скрываем выпадающий список
             this.hideAllDropdowns();
-
             this.updateSelectedInvestigatorsPreview();
-
-            // Показываем уведомление о выборе
             this.showNotification(`Выбран сыщик: ${investigator.name}`, 'success');
         }
     }
@@ -761,11 +448,9 @@ class ArkhamHorizonTracker {
 
         searchInput.value = '';
         hiddenInput.value = '';
-
         this.updateSelectedInvestigatorsPreview();
     }
 
-    // Обновляем метод updateSelectedInvestigatorsPreview для отключения поворота
     async updateSelectedInvestigatorsPreview() {
         let previewContainer = document.getElementById('selected-investigators-preview');
 
@@ -789,7 +474,6 @@ class ArkhamHorizonTracker {
         }
 
         if (selectedInvestigators.length > 0) {
-            // Создаем превью для всех сыщиков
             const previewsHTML = await Promise.all(selectedInvestigators.map(async (item) => {
                 const previewUrl = await this.createImagePreview(item.investigator.image, item.investigator.name, 'investigator');
 
@@ -840,24 +524,21 @@ class ArkhamHorizonTracker {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
 
-                // Размеры превью
                 const width = type === 'scenario' ? 240 : 60;
                 const height = type === 'scenario' ? 160 : 60;
 
                 canvas.width = width;
                 canvas.height = height;
 
-                // Определяем какую половину брать
                 const sourceWidth = img.width / 2;
-                const sourceX = type === 'scenario' ? 0 : img.width / 2; // Левая для сценариев, правая для сыщиков
+                const sourceX = type === 'scenario' ? 0 : img.width / 2;
                 const sourceY = 0;
                 const sourceHeight = img.height;
 
-                // Рисуем половинку изображения
                 ctx.drawImage(
                     img,
-                    sourceX, sourceY, sourceWidth, sourceHeight, // source rectangle
-                    0, 0, width, height // destination rectangle
+                    sourceX, sourceY, sourceWidth, sourceHeight,
+                    0, 0, width, height
                 );
 
                 const previewUrl = canvas.toDataURL('image/jpeg', 0.8);
@@ -865,7 +546,6 @@ class ArkhamHorizonTracker {
             };
 
             img.onerror = () => {
-                // Если изображение не загружается, используем оригинальный src
                 resolve(src);
             };
 
@@ -879,7 +559,6 @@ class ArkhamHorizonTracker {
         const imageModal = document.getElementById('image-modal');
         const closeBtns = document.querySelectorAll('.close');
 
-        // Закрытие модальных окон
         closeBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 if (e.target.classList.contains('fullscreen-close')) {
@@ -892,7 +571,6 @@ class ArkhamHorizonTracker {
             });
         });
 
-        // Закрытие при клике вне окна
         window.addEventListener('click', (e) => {
             if (e.target === recordModal) {
                 recordModal.style.display = 'none';
@@ -908,7 +586,6 @@ class ArkhamHorizonTracker {
             }
         });
 
-        // Закрытие по ESC
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 recordModal.style.display = 'none';
@@ -924,8 +601,6 @@ class ArkhamHorizonTracker {
 
         if (scenarioKey && this.scenarios[scenarioKey]) {
             const scenario = this.scenarios[scenarioKey];
-
-            // Создаем превью с левой половиной
             const previewUrl = await this.createImagePreview(scenario.image, scenario.name, 'scenario');
 
             preview.innerHTML = `
@@ -944,16 +619,13 @@ class ArkhamHorizonTracker {
         }
     }
 
-    // Обновляем метод showImageModal для правильного отображения больших изображений
     showImageModal(src, alt) {
         const modal = document.getElementById('image-modal');
         const modalBody = document.getElementById('image-modal-body');
 
-        // Создаем путь к обратной стороне
         const basePath = src.replace(/\.[^/.]+$/, "");
         const backSideSrc = `${basePath}-1.jpg`;
 
-        // Предзагружаем обратную сторону
         const backImg = new Image();
         backImg.src = backSideSrc;
 
@@ -975,7 +647,6 @@ class ArkhamHorizonTracker {
         document.body.classList.add('modal-open');
     }
 
-
     showRecordDetails(recordId) {
         const record = this.progress.find(item => item.id === recordId);
         if (!record) return;
@@ -994,7 +665,6 @@ class ArkhamHorizonTracker {
             'other': '❓ Иной исход'
         }[record.result] || '❓ Иной исход';
 
-        // Сыщики в модальном окне - переворачиваемые
         const investigatorsHTML = investigators.map(investigator => {
             const backSideSrc = investigator.image.replace(/\.[^/.]+$/, "") + "-1.jpg";
 
@@ -1017,7 +687,6 @@ class ArkhamHorizonTracker {
         `;
         }).join('');
 
-        // Сценарий в модальном окне - переворачиваемый
         const scenarioBackSideSrc = scenario.image.replace(/\.[^/.]+$/, "") + "-1.jpg";
 
         modalContent.innerHTML = `
@@ -1119,7 +788,6 @@ class ArkhamHorizonTracker {
             return;
         }
 
-        // Проверяем дубликаты сыщиков
         const uniqueInvestigators = [...new Set(investigators)];
         if (uniqueInvestigators.length !== investigators.length) {
             this.showNotification('Один и тот же сыщик не может быть выбран дважды', 'warning');
@@ -1137,10 +805,8 @@ class ArkhamHorizonTracker {
             playerCount: investigators.length
         };
 
-        // Добавляем в локальный массив (только для отображения)
         this.progress.push(progressItem);
 
-        // Немедленно сохраняем в облако
         if (this.syncManager.isConfigured()) {
             this.syncManager.push().then(success => {
                 if (success) {
@@ -1150,24 +816,20 @@ class ArkhamHorizonTracker {
                     this.updateAchievements();
                     this.resetForm();
                 } else {
-                    // Если не удалось сохранить в облако, убираем из локального массива
                     this.progress = this.progress.filter(item => item.id !== progressItem.id);
                     this.showNotification('Ошибка сохранения в облако', 'error');
                 }
             });
         } else {
             this.showNotification('Синхронизация не настроена', 'error');
-            // Убираем запись, так как не можем сохранить
             this.progress = this.progress.filter(item => item.id !== progressItem.id);
         }
     }
 
     deleteProgress(id) {
         if (confirm('Удалить эту запись из облачных архивов?')) {
-            // Удаляем из локального массива
             this.progress = this.progress.filter(item => item.id !== id);
 
-            // Немедленно сохраняем в облако
             if (this.syncManager.isConfigured()) {
                 this.syncManager.push().then(success => {
                     if (success) {
@@ -1176,7 +838,6 @@ class ArkhamHorizonTracker {
                         this.renderStats();
                         this.updateAchievements();
                     } else {
-                        // Если не удалось удалить из облака, перезагружаем данные
                         this.syncManager.pull();
                         this.showNotification('Ошибка удаления из облака', 'error');
                     }
@@ -1187,9 +848,7 @@ class ArkhamHorizonTracker {
         }
     }
 
-    // Сохраняем только в облако
     saveProgress() {
-        // Сохраняем только в облако
         if (this.syncManager.isConfigured()) {
             this.syncManager.push();
         }
@@ -1210,7 +869,6 @@ class ArkhamHorizonTracker {
         dateInput.value = today;
     }
 
-    // Обновляем метод renderHexagonGrid для отключения поворота в гексагонах
     async renderHexagonGrid() {
         const container = document.getElementById('hexagon-grid');
         const filteredProgress = this.getFilteredProgress();
@@ -1227,7 +885,6 @@ class ArkhamHorizonTracker {
             new Date(b.timestamp) - new Date(a.timestamp)
         );
 
-        // Создаем HTML для всех гексагонов с превью
         const hexagonsHTML = await Promise.all(sortedProgress.map(async (item) => {
             const scenario = this.scenarios[item.scenario];
             const investigators = Array.isArray(item.investigator)
@@ -1397,7 +1054,6 @@ class ArkhamHorizonTracker {
         const wins = this.progress.filter(p => p.result === 'win').length;
         const losses = this.progress.filter(p => p.result === 'loss').length;
 
-        // Прогресс по сыщикам
         const investigatorCounts = {};
         this.progress.forEach(item => {
             const investigators = Array.isArray(item.investigator)
@@ -1409,10 +1065,9 @@ class ArkhamHorizonTracker {
             });
         });
 
-        const maxScenariosWithOneInvestigator = Math.max(...Object.values(investigatorCounts));
+        const maxScenariosWithOneInvestigator = Math.max(...Object.values(investigatorCounts), 0);
         const uniqueInvestigatorsUsed = Object.keys(investigatorCounts).length;
 
-        // Статистика по командам
         const teamGames = this.progress.filter(item => {
             const teamSize = Array.isArray(item.investigator) ? item.investigator.length : 1;
             return teamSize >= 2;
@@ -1423,10 +1078,8 @@ class ArkhamHorizonTracker {
             return teamSize >= 4;
         }).length;
 
-        // Пройденные сценарии
         const completedScenarios = new Set(this.progress.map(item => item.scenario)).size;
 
-        // Поражения подряд
         const recentGames = this.progress.slice(-5);
         let consecutiveLosses = 0;
         let maxConsecutiveLosses = 0;
@@ -1440,7 +1093,6 @@ class ArkhamHorizonTracker {
             }
         }
 
-        // Уникальные комбинации сыщик-сценарий
         const uniqueCombinations = new Set();
         this.progress.forEach(item => {
             const investigators = Array.isArray(item.investigator)
@@ -1454,17 +1106,16 @@ class ArkhamHorizonTracker {
         });
         const universalProgress = uniqueCombinations.size;
 
-        // Обновляем статусы достижений
         this.achievements.beginner.progress = Math.min(totalScenarios, this.achievements.beginner.target);
         this.achievements.beginner.unlocked = this.achievements.beginner.progress >= this.achievements.beginner.target;
 
-        this.achievements.adventurer.progress = Math.min(wins, this.achievements.adventurer.target);
+        this.achievements.adventurer.progress = Math.min(totalScenarios, this.achievements.adventurer.target);
         this.achievements.adventurer.unlocked = this.achievements.adventurer.progress >= this.achievements.adventurer.target;
 
-        this.achievements.veteran.progress = Math.min(wins, this.achievements.veteran.target);
+        this.achievements.veteran.progress = Math.min(totalScenarios, this.achievements.veteran.target);
         this.achievements.veteran.unlocked = this.achievements.veteran.progress >= this.achievements.veteran.target;
 
-        this.achievements.expert.progress = Math.min(wins, this.achievements.expert.target);
+        this.achievements.expert.progress = Math.min(totalScenarios, this.achievements.expert.target);
         this.achievements.expert.unlocked = this.achievements.expert.progress >= this.achievements.expert.target;
 
         this.achievements.specialist.progress = Math.min(maxScenariosWithOneInvestigator, this.achievements.specialist.target);
@@ -1519,7 +1170,6 @@ class ArkhamHorizonTracker {
 
         const progressPercent = Math.round((completedCombinations.size / totalCombinations) * 100);
 
-        // Создаем превью для всех сыщиков в таблице
         const tableRows = await Promise.all(
             Object.entries(this.investigators).map(async ([invKey, investigator]) => {
                 const previewUrl = await this.createImagePreview(investigator.image, investigator.name, 'investigator');
@@ -1747,7 +1397,6 @@ class GitHubSyncManager {
 
                     modal.style.display = 'none';
 
-                    // Проверяем подключение
                     this.notify('🔍 Проверка подключения...', 'info');
 
                     this.token = token;
@@ -1761,7 +1410,6 @@ class GitHubSyncManager {
                         localStorage.setItem('github_repo', repo);
 
                         this.notify('✅ Синхронизация настроена!', 'success');
-                        // Загружаем данные после настройки
                         this.pull();
                         resolve(true);
                     } else {
@@ -1820,22 +1468,18 @@ class GitHubSyncManager {
         }
     }
 
-    // Безопасное кодирование в base64
     encodeBase64(str) {
         try {
-            // Используем TextEncoder для корректной работы с Unicode
             const encoder = new TextEncoder();
             const data = encoder.encode(str);
             const binaryString = String.fromCharCode(...data);
             return btoa(binaryString);
         } catch (error) {
             console.error('Base64 encode error:', error);
-            // Fallback для старых браузеров
             return btoa(unescape(encodeURIComponent(str)));
         }
     }
 
-    // Безопасное декодирование из base64
     decodeBase64(str) {
         try {
             const binaryString = atob(str);
@@ -1847,7 +1491,6 @@ class GitHubSyncManager {
             return decoder.decode(bytes);
         } catch (error) {
             console.error('Base64 decode error:', error);
-            // Fallback для старых браузеров
             return decodeURIComponent(escape(atob(str)));
         }
     }
@@ -1867,7 +1510,6 @@ class GitHubSyncManager {
         }
     }
 
-    // Загружаем данные из облака
     async pull() {
         if (!this.isConfigured() || this.syncing) return false;
 
@@ -1880,7 +1522,6 @@ class GitHubSyncManager {
             );
 
             if (response.status === 404) {
-                // Файла нет - создаем пустой
                 this.notify('📝 Файл данных не найден. Будет создан при сохранении.', 'warning');
                 this.tracker.progress = [];
                 return false;
@@ -1895,10 +1536,8 @@ class GitHubSyncManager {
             const remoteData = JSON.parse(content);
 
             if (remoteData && Array.isArray(remoteData.progress)) {
-                // Облачные данные - единственный источник истины
                 this.tracker.progress = remoteData.progress;
 
-                // Обновляем интерфейс
                 this.tracker.renderHexagonGrid();
                 this.tracker.renderStats();
                 this.tracker.updateAchievements();
@@ -1918,7 +1557,6 @@ class GitHubSyncManager {
         }
     }
 
-    // Сохраняем данные в облако
     async push() {
         if (!this.isConfigured() || this.syncing) return false;
 
@@ -2088,7 +1726,6 @@ document.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('error', function (e) {
     if (e.target.tagName === 'IMG') {
         console.warn('Изображение не загружено:', e.target.src);
-        // Заменяем на заглушку если изображение не найдено
         e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg==';
     }
 }, true);
