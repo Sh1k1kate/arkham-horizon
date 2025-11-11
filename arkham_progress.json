@@ -53,19 +53,6 @@
       "notes": "Играли долго, победили, Лиза почти сразу уснула после победы",
       "timestamp": "2025-11-04T13:19:39.833Z",
       "playerCount": 3
-    },
-    {
-      "id": 1762844827716,
-      "investigator": [
-        "agnes",
-        "minh"
-      ],
-      "scenario": "echo_deep",
-      "date": "2025-11-11",
-      "result": "win",
-      "notes": "",
-      "timestamp": "2025-11-11T07:07:07.716Z",
-      "playerCount": 2
     }
   ],
   "achievements": {
@@ -82,8 +69,8 @@
       "description": "Пройдите 5 сюжетов",
       "target": 5,
       "icon": "🏕️",
-      "unlocked": false,
-      "progress": 4
+      "unlocked": true,
+      "progress": 5
     },
     "veteran": {
       "name": "Ветеран Аркхема",
@@ -91,7 +78,7 @@
       "target": 10,
       "icon": "🎖️",
       "unlocked": false,
-      "progress": 4
+      "progress": 5
     },
     "expert": {
       "name": "Эксперт по Древним",
@@ -99,7 +86,7 @@
       "target": 20,
       "icon": "👑",
       "unlocked": false,
-      "progress": 4
+      "progress": 5
     },
     "specialist": {
       "name": "Мастер одного пути",
@@ -115,7 +102,7 @@
       "target": 28,
       "icon": "📚",
       "unlocked": false,
-      "progress": 4
+      "progress": 5
     },
     "triumphant": {
       "name": "Триумфатор",
@@ -123,7 +110,7 @@
       "target": 100,
       "icon": "🏆",
       "unlocked": false,
-      "progress": 3
+      "progress": 4
     },
     "survivor": {
       "name": "Выживший",
@@ -139,7 +126,7 @@
       "target": 10,
       "icon": "👥",
       "unlocked": false,
-      "progress": 4
+      "progress": 5
     },
     "fullteam": {
       "name": "Полная команда",
@@ -163,7 +150,7 @@
       "target": 364,
       "icon": "💀📖💀",
       "unlocked": false,
-      "progress": 8
+      "progress": 10
     },
     "unlucky": {
       "name": "Невезучий",
@@ -174,7 +161,7 @@
       "progress": 1
     }
   },
-  "timestamp": "2025-11-11T07:07:07.716Z",
+  "timestamp": "2025-11-11T07:07:15.944Z",
   "version": "3.0",
   "app": "Arkham Horror Tracker"
 }
