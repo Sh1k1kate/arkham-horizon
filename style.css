@@ -1809,73 +1809,6 @@ section {
         pointer-events: auto;
     }
 
-/* Стили для изображений в модальных окнах */
-.modal-image-container {
-    width: 100%;
-    max-width: 600px;
-    height: 400px;
-    margin: 0 auto;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-}
-
-    .modal-image-container .flippable-image {
-        width: 100%;
-        height: 100%;
-    }
-
-.image-modal-content .modal-content {
-    max-width: 95vw;
-    max-height: 95vh;
-    width: auto;
-    height: auto;
-    margin: 2.5vh auto;
-    background: rgba(26, 26, 46, 0.95);
-    border: 2px solid var(--accent);
-    box-shadow: var(--shadow-heavy);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.image-modal-body {
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    max-width: 100%;
-    max-height: 100%;
-}
-
-.modal-image-container {
-    width: 80vw;
-    height: 70vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-}
-
-    .modal-image-container .flippable-image {
-        width: 100%;
-        height: 100%;
-    }
-
-    .modal-image-container img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        display: block;
-    }
-
-
 /* Исправления для деталей записи */
 .record-details {
     max-width: 100%;
@@ -2431,67 +2364,6 @@ body.modal-open {
     object-position: right center !important;
 }
 
-/* Исправления для модальных окон - полное изображение */
-#image-modal .modal-image-container .image-front,
-#image-modal .modal-image-container .image-back {
-    object-fit: contain !important;
-    object-position: center center !important;
-}
-
-/* Стили для кнопок выбора количества игроков */
-.player-count-selector {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.count-btn {
-    background: var(--secondary-light);
-    color: var(--text-light);
-    border: 2px solid transparent;
-    border-radius: var(--border-radius);
-    padding: 12px 8px;
-    cursor: pointer;
-    font-family: 'Cinzel', serif;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    text-align: center;
-}
-
-    .count-btn:hover {
-        background: var(--secondary);
-        transform: translateY(-2px);
-    }
-
-    .count-btn.active {
-        background: var(--accent);
-        color: var(--secondary-dark);
-        border-color: var(--accent-dark);
-        box-shadow: var(--shadow);
-    }
-
-/* Адаптивность для кнопок выбора игроков */
-@media (max-width: 480px) {
-    .player-count-selector {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .count-btn {
-        padding: 10px 5px;
-        font-size: 0.9rem;
-    }
-}
-
-.no-records-message {
-    text-align: center;
-    color: var(--text-dark);
-    font-style: italic;
-    padding: 60px 20px;
-    font-size: 1.2em;
-    grid-column: 1 / -1;
-}
-
 /* Исправления для модальных окон с изображениями */
 .image-modal-content .modal-content {
     max-width: 95vw;
@@ -2621,3 +2493,57 @@ body.modal-open {
         object-fit: cover;
         border-radius: 50%;
     }
+
+/* Стили для кнопок выбора количества игроков */
+.player-count-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.count-btn {
+    background: var(--secondary-light);
+    color: var(--text-light);
+    border: 2px solid transparent;
+    border-radius: var(--border-radius);
+    padding: 12px 8px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+    .count-btn:hover {
+        background: var(--secondary);
+        transform: translateY(-2px);
+    }
+
+    .count-btn.active {
+        background: var(--accent);
+        color: var(--secondary-dark);
+        border-color: var(--accent-dark);
+        box-shadow: var(--shadow);
+    }
+
+/* Адаптивность для кнопок выбора игроков */
+@media (max-width: 480px) {
+    .player-count-selector {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .count-btn {
+        padding: 10px 5px;
+        font-size: 0.9rem;
+    }
+}
+
+.no-records-message {
+    text-align: center;
+    color: var(--text-dark);
+    font-style: italic;
+    padding: 60px 20px;
+    font-size: 1.2em;
+    grid-column: 1 / -1;
+}
