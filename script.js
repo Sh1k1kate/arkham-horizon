@@ -350,6 +350,9 @@ class ArkhamHorizonTracker {
         this.setupEventListeners();
         this.setupModal();
 
+        // Предзагружаем обратные стороны изображений
+        this.preloadBackImages();
+
         // Загружаем данные только из облака
         setTimeout(() => {
             if (this.syncManager.isConfigured()) {
@@ -533,11 +536,11 @@ class ArkhamHorizonTracker {
                     backImg.onload = () => {
                         // Заменяем placeholder на реальное изображение
                         backDiv.innerHTML = '';
-                        backDiv.appendChild(backImg);
                         backImg.classList.add('image-back');
                         backImg.style.width = '100%';
                         backImg.style.height = '100%';
                         backImg.style.objectFit = 'contain';
+                        backDiv.appendChild(backImg);
                     };
                     backImg.onerror = () => {
                         // Если изображение не найдено, оставляем placeholder
@@ -559,6 +562,19 @@ class ArkhamHorizonTracker {
         }, 300);
     }
 
+    preloadBackImages() {
+        // Предзагружаем обратные стороны для всех изображений сыщиков и сценариев
+        const allImages = [
+            ...Object.values(this.investigators).map(inv => inv.image),
+            ...Object.values(this.scenarios).map(scenario => scenario.image)
+        ];
+
+        allImages.forEach(src => {
+            const backSideSrc = src.replace(/\.[^/.]+$/, "") + "-1.jpg";
+            const img = new Image();
+            img.src = backSideSrc;
+        });
+    }
 
 
     handleGlobalClick(e) {
@@ -937,14 +953,17 @@ class ArkhamHorizonTracker {
         const basePath = src.replace(/\.[^/.]+$/, "");
         const backSideSrc = `${basePath}-1.jpg`;
 
+        // Предзагружаем обратную сторону
+        const backImg = new Image();
+        backImg.src = backSideSrc;
+
         modalBody.innerHTML = `
         <div class="image-modal-content">
             <div class="flippable-image modal-image-container" onclick="tracker.flipImage(this)">
                 <img src="${src}" alt="${alt}" class="image-front" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
                 <div class="image-back">
-                    <div class="image-placeholder">
-                        Загрузка обратной стороны...
-                    </div>
+                    <img src="${backSideSrc}" alt="Обратная сторона: ${alt}" class="image-back" 
+                         onerror="this.parentElement.innerHTML='<div class=\\'image-placeholder\\'>Обратная сторона<br>${alt}</div>'">
                 </div>
                 <div class="flip-indicator">🔄 Нажмите для переворота</div>
             </div>
@@ -955,7 +974,6 @@ class ArkhamHorizonTracker {
         modal.style.display = 'block';
         document.body.classList.add('modal-open');
     }
-
 
 
     showRecordDetails(recordId) {
