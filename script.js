@@ -501,22 +501,45 @@ class ArkhamHorizonTracker {
 
         // Ждем окончания анимации и меняем изображение
         setTimeout(() => {
-            const currentSrc = imgElement.querySelector('img').src;
-            const baseName = currentSrc.split('/').pop().replace('.jpg', '');
-            const isFlipped = currentSrc.includes('-1.jpg');
+            const img = imgElement.querySelector('img');
+            const currentSrc = img.src;
 
+            // Определяем базовое имя файла и проверяем, перевернуто ли уже изображение
+            const baseName = currentSrc.split('/').pop();
+            const isFlipped = baseName.includes('-1.jpg');
+
+            let newSrc;
             if (isFlipped) {
                 // Возвращаем к исходному изображению
-                const originalSrc = currentSrc.replace('-1.jpg', '.jpg');
-                imgElement.querySelector('img').src = originalSrc;
+                newSrc = currentSrc.replace('-1.jpg', '.jpg');
             } else {
                 // Показываем обратную сторону
-                const backSrc = currentSrc.replace('.jpg', '-1.jpg');
-                imgElement.querySelector('img').src = backSrc;
+                newSrc = currentSrc.replace('.jpg', '-1.jpg');
             }
 
-            // Убираем класс анимации
-            imgElement.classList.remove('flipping');
+            // Создаем новое изображение для предзагрузки
+            const newImage = new Image();
+            newImage.onload = () => {
+                // Когда изображение загружено, меняем src
+                img.src = newSrc;
+                // Убираем класс анимации
+                imgElement.classList.remove('flipping');
+
+                // Добавляем/убираем класс flipped для CSS
+                if (isFlipped) {
+                    imgElement.classList.remove('flipped');
+                } else {
+                    imgElement.classList.add('flipped');
+                }
+            };
+
+            newImage.onerror = () => {
+                // Если обратная сторона не найдена, оставляем как есть
+                console.warn('Обратная сторона изображения не найдена:', newSrc);
+                imgElement.classList.remove('flipping');
+            };
+
+            newImage.src = newSrc;
 
         }, 300);
     }
@@ -845,17 +868,20 @@ class ArkhamHorizonTracker {
         }[record.result] || '❓ Иной исход';
 
         const investigatorsHTML = investigators.map(investigator => `
-            <div class="detail-value">
-                <div class="flippable-image detail-image-large" onclick="tracker.flipImage(this)">
-                    <img src="${investigator.image}" alt="${investigator.name}" class="image-front">
-                    <div class="flip-indicator">🔄</div>
-                </div>
-                <div>
-                    <strong>${investigator.name}</strong>
-                    <p class="detail-description">${investigator.description}</p>
-                </div>
+    <div class="detail-value">
+        <div class="flippable-image detail-image-large" onclick="tracker.flipImage(this)">
+            <img src="${investigator.image}" alt="${investigator.name}" class="image-front">
+            <div class="image-placeholder" style="display: none;">
+                <div class="loading-shimmer" style="width: 100%; height: 100%; border-radius: 50%;"></div>
             </div>
-        `).join('');
+            <div class="flip-indicator">🔄</div>
+        </div>
+        <div>
+            <strong>${investigator.name}</strong>
+            <p class="detail-description">${investigator.description}</p>
+        </div>
+    </div>
+`).join('');
 
         modalContent.innerHTML = `
             <div class="record-details">
