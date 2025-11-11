@@ -1825,11 +1825,56 @@ section {
         height: 100%;
     }
 
-.image-modal-content .modal-title {
-    margin-top: 15px;
-    color: var(--accent);
-    text-align: center;
+.image-modal-content .modal-content {
+    max-width: 95vw;
+    max-height: 95vh;
+    width: auto;
+    height: auto;
+    margin: 2.5vh auto;
+    background: rgba(26, 26, 46, 0.95);
+    border: 2px solid var(--accent);
+    box-shadow: var(--shadow-heavy);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
 }
+
+.image-modal-body {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.modal-image-container {
+    width: 80vw;
+    height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+
+    .modal-image-container .flippable-image {
+        width: 100%;
+        height: 100%;
+    }
+
+    .modal-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+    }
+
 
 /* Исправления для деталей записи */
 .record-details {
@@ -2446,3 +2491,133 @@ body.modal-open {
     font-size: 1.2em;
     grid-column: 1 / -1;
 }
+
+/* Исправления для модальных окон с изображениями */
+.image-modal-content .modal-content {
+    max-width: 95vw;
+    max-height: 95vh;
+    width: auto;
+    height: auto;
+    margin: 2.5vh auto;
+    background: rgba(26, 26, 46, 0.95);
+    border: 2px solid var(--accent);
+    box-shadow: var(--shadow-heavy);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.image-modal-body {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.modal-image-container {
+    width: 80vw;
+    height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+
+    .modal-image-container .flippable-image {
+        width: 100%;
+        height: 100%;
+    }
+
+    .modal-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+    }
+
+/* Исправления для переворота изображений */
+.flippable-image {
+    position: relative;
+    display: inline-block;
+    transition: transform 0.6s ease;
+    transform-style: preserve-3d;
+    width: 100%;
+    height: 100%;
+}
+
+    .flippable-image.flipped {
+        transform: rotateY(180deg);
+    }
+
+    .flippable-image .image-front,
+    .flippable-image .image-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: inherit;
+        top: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .flippable-image .image-front {
+        z-index: 2;
+        transform: rotateY(0deg);
+    }
+
+    .flippable-image .image-back {
+        transform: rotateY(180deg);
+        z-index: 1;
+        background: var(--secondary-dark);
+    }
+
+        .flippable-image .image-front img,
+        .flippable-image .image-back img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: inherit;
+        }
+
+/* Для деталей записи */
+.detail-header-image {
+    height: 200px;
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+}
+
+    .detail-header-image .flippable-image {
+        width: 100%;
+        height: 100%;
+    }
+
+    .detail-header-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+.detail-image-large {
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
+}
+
+    .detail-image-large img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }

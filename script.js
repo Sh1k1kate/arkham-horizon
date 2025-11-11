@@ -214,6 +214,7 @@ class ArkhamHorizonTracker {
     }
 
     flipImage(imgElement) {
+        // Проверяем, находится ли изображение в модальном окне
         const isInImageModal = imgElement.closest('#image-modal');
         const isInRecordModal = imgElement.closest('#record-modal');
 
@@ -226,42 +227,21 @@ class ArkhamHorizonTracker {
         }
 
         const isFlipped = imgElement.classList.contains('flipped');
-        const frontImg = imgElement.querySelector('.image-front');
-        const backDiv = imgElement.querySelector('.image-back');
 
-        if (!frontImg) return;
-
-        const originalSrc = frontImg.src;
-        const basePath = originalSrc.replace(/\.[^/.]+$/, "");
-        const backSideSrc = `${basePath}-1.jpg`;
-
+        // Добавляем класс анимации
         imgElement.classList.add('flipping');
 
+        // Ждем окончания анимации
         setTimeout(() => {
             if (isFlipped) {
+                // Возвращаем к исходному изображению
                 imgElement.classList.remove('flipped');
             } else {
-                if (backDiv) {
-                    const backImg = new Image();
-                    backImg.onload = () => {
-                        backDiv.innerHTML = '';
-                        backImg.classList.add('image-back');
-                        backImg.style.width = '100%';
-                        backImg.style.height = '100%';
-                        backImg.style.objectFit = 'contain';
-                        backDiv.appendChild(backImg);
-                    };
-                    backImg.onerror = () => {
-                        backDiv.innerHTML = `
-                        <div class="image-placeholder">
-                            Обратная сторона<br>${frontImg.alt}
-                        </div>
-                    `;
-                    };
-                    backImg.src = backSideSrc;
-                }
+                // Переворачиваем на обратную сторону
                 imgElement.classList.add('flipped');
             }
+
+            // Убираем класс анимации
             imgElement.classList.remove('flipping');
         }, 300);
     }
@@ -623,24 +603,25 @@ class ArkhamHorizonTracker {
         const modal = document.getElementById('image-modal');
         const modalBody = document.getElementById('image-modal-body');
 
+        // Создаем путь к обратной стороне
         const basePath = src.replace(/\.[^/.]+$/, "");
         const backSideSrc = `${basePath}-1.jpg`;
 
-        const backImg = new Image();
-        backImg.src = backSideSrc;
-
         modalBody.innerHTML = `
-        <div class="image-modal-content">
-            <div class="flippable-image modal-image-container" onclick="tracker.flipImage(this)">
-                <img src="${src}" alt="${alt}" class="image-front" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
-                <div class="image-back">
-                    <img src="${backSideSrc}" alt="Обратная сторона: ${alt}" class="image-back" 
-                         onerror="this.parentElement.innerHTML='<div class=\\'image-placeholder\\'>Обратная сторона<br>${alt}</div>'">
-                </div>
-                <div class="flip-indicator">🔄 Нажмите для переворота</div>
+    <div class="image-modal-content">
+        <div class="flippable-image modal-image-container" onclick="tracker.flipImage(this)">
+            <div class="image-front">
+                <img src="${src}" alt="${alt}" 
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
             </div>
-            <h3 class="modal-title">${alt}</h3>
+            <div class="image-back">
+                <img src="${backSideSrc}" alt="Обратная сторона: ${alt}" 
+                     onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\"image-placeholder\">Обратная сторона<br>${alt}</div>'">
+            </div>
+            <div class="flip-indicator">🔄 Нажмите для переворота</div>
         </div>
+        <h3 class="modal-title">${alt}</h3>
+    </div>
     `;
 
         modal.style.display = 'block';
@@ -665,76 +646,82 @@ class ArkhamHorizonTracker {
             'other': '❓ Иной исход'
         }[record.result] || '❓ Иной исход';
 
+        // Сыщики в модальном окне - переворачиваемые
         const investigatorsHTML = investigators.map(investigator => {
             const backSideSrc = investigator.image.replace(/\.[^/.]+$/, "") + "-1.jpg";
 
             return `
-            <div class="detail-value">
-                <div class="flippable-image detail-image-large" onclick="tracker.flipImage(this)">
-                    <img src="${investigator.image}" alt="${investigator.name}" class="image-front" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
-                    <div class="image-back">
-                        <div class="image-placeholder">
-                            Загрузка...
-                        </div>
-                    </div>
-                    <div class="flip-indicator">🔄</div>
+        <div class="detail-value">
+            <div class="flippable-image detail-image-large" onclick="tracker.flipImage(this)">
+                <div class="image-front">
+                    <img src="${investigator.image}" alt="${investigator.name}" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
                 </div>
-                <div>
-                    <strong>${investigator.name}</strong>
-                    <p class="detail-description">${investigator.description}</p>
+                <div class="image-back">
+                    <img src="${backSideSrc}" alt="Обратная сторона: ${investigator.name}" 
+                         onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\"image-placeholder\">Обратная сторона<br>${investigator.name}</div>'">
                 </div>
+                <div class="flip-indicator">🔄</div>
             </div>
-        `;
+            <div>
+                <strong>${investigator.name}</strong>
+                <p class="detail-description">${investigator.description}</p>
+            </div>
+        </div>
+    `;
         }).join('');
 
+        // Сценарий в модальном окне - переворачиваемый
         const scenarioBackSideSrc = scenario.image.replace(/\.[^/.]+$/, "") + "-1.jpg";
 
         modalContent.innerHTML = `
-        <div class="record-details">
-            <div class="detail-header">
-                <div class="flippable-image detail-header-image" onclick="tracker.flipImage(this)">
-                    <img src="${scenario.image}" alt="${scenario.name}" class="image-front" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
-                    <div class="image-back">
-                        <div class="image-placeholder">
-                            Загрузка обратной стороны...
-                        </div>
-                    </div>
-                    <div class="flip-indicator">🔄 Нажмите для переворота</div>
+    <div class="record-details">
+        <div class="detail-header">
+            <div class="flippable-image detail-header-image" onclick="tracker.flipImage(this)">
+                <div class="image-front">
+                    <img src="${scenario.image}" alt="${scenario.name}" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
                 </div>
-                <div class="detail-overlay">
-                    <h2 class="detail-title">${scenario.name}</h2>
-                    <p class="detail-subtitle">Команда из ${investigators.length} исследователей</p>
+                <div class="image-back">
+                    <img src="${scenarioBackSideSrc}" alt="Обратная сторона: ${scenario.name}" 
+                         onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\"image-placeholder\">Обратная сторона<br>${scenario.name}</div>'">
+                </div>
+                <div class="flip-indicator">🔄 Нажмите для переворота</div>
+            </div>
+            <div class="detail-overlay">
+                <h2 class="detail-title">${scenario.name}</h2>
+                <p class="detail-subtitle">Команда из ${investigators.length} исследователей</p>
+            </div>
+        </div>
+        
+        <div class="detail-content">
+            <div class="detail-row">
+                <div class="detail-group">
+                    <h3 class="detail-label">🕵️ Сыщики (${investigators.length})</h3>
+                    ${investigatorsHTML}
+                </div>
+                
+                <div class="detail-group">
+                    <h3 class="detail-label">📅 Дата расследования</h3>
+                    <p class="detail-value">${this.formatDate(record.date)}</p>
+                    
+                    <h3 class="detail-label">⚔️ Исход</h3>
+                    <p class="detail-value ${record.result}">${resultText}</p>
                 </div>
             </div>
             
-            <div class="detail-content">
-                <div class="detail-row">
-                    <div class="detail-group">
-                        <h3 class="detail-label">🕵️ Сыщики (${investigators.length})</h3>
-                        ${investigatorsHTML}
-                    </div>
-                    
-                    <div class="detail-group">
-                        <h3 class="detail-label">📅 Дата расследования</h3>
-                        <p class="detail-value">${this.formatDate(record.date)}</p>
-                        
-                        <h3 class="detail-label">⚔️ Исход</h3>
-                        <p class="detail-value ${record.result}">${resultText}</p>
-                    </div>
-                </div>
-                
-                <div class="detail-group full-width">
-                    <h3 class="detail-label">📝 Заметки архивариуса</h3>
-                    <p class="detail-value notes-content">${record.notes || 'Заметки отсутствуют'}</p>
-                </div>
-                
-                <div class="detail-actions">
-                    <button class="control-btn secondary" onclick="tracker.deleteProgress(${record.id}); document.getElementById('record-modal').style.display='none'">
-                        🗑️ Удалить запись
-                    </button>
-                </div>
+            <div class="detail-group full-width">
+                <h3 class="detail-label">📝 Заметки архивариуса</h3>
+                <p class="detail-value notes-content">${record.notes || 'Заметки отсутствуют'}</p>
+            </div>
+            
+            <div class="detail-actions">
+                <button class="control-btn secondary" onclick="tracker.deleteProgress(${record.id}); document.getElementById('record-modal').style.display='none'">
+                    🗑️ Удалить запись
+                </button>
             </div>
         </div>
+    </div>
     `;
 
         modal.style.display = 'block';
