@@ -320,14 +320,14 @@ class ArkhamHorizonTracker {
                 unlocked: false,
                 progress: 0
             },
-            hellspawn:{
-                 name: ' Порождение ада',
-                 description: 'пройдите игру в режиме Тотальный пиздец',
-                 target:1,
-                 icon:'☠️☠️☠️',
-                 unlocked: false,
-                 progress:0
-              }
+            hellspawn: {
+                name: 'Порождение ада',
+                description: 'Пройдите игру в режиме Тотальный пиздец',
+                target: 1,
+                icon: '☠️☠️☠️',
+                unlocked: false,
+                progress: 0
+            }
         };
 
         this.selectedInvestigators = [];
@@ -545,10 +545,11 @@ class ArkhamHorizonTracker {
     }
 
     handleGlobalClick(e) {
-        // Обработка переворота изображений - только для уже открытых модальных окон
+        // Обработка переворота изображений
         if ((e.target.classList.contains('flippable-image') ||
             e.target.closest('.flippable-image')) &&
-            document.getElementById('record-modal').style.display === 'block') {
+            (document.getElementById('record-modal').style.display === 'block' ||
+                document.getElementById('image-modal').style.display === 'block')) {
 
             const imgElement = e.target.classList.contains('flippable-image')
                 ? e.target
@@ -578,7 +579,7 @@ class ArkhamHorizonTracker {
             return;
         }
 
-        // Открытие модального окна для изображений (БЕЗ переворота)
+        // Открытие модального окна для изображений
         if (e.target.classList.contains('investigator-preview-img') ||
             e.target.classList.contains('scenario-preview-img') ||
             e.target.classList.contains('hexagon-image') ||
@@ -589,7 +590,8 @@ class ArkhamHorizonTracker {
 
             // Проверяем, что клик не по переворачиваемому изображению в модальном окне
             if (!e.target.closest('.flippable-image') ||
-                document.getElementById('record-modal').style.display !== 'block') {
+                (document.getElementById('record-modal').style.display !== 'block' &&
+                    document.getElementById('image-modal').style.display !== 'block')) {
                 this.showImageModal(e.target.src, e.target.alt);
             }
             return;
@@ -661,7 +663,7 @@ class ArkhamHorizonTracker {
         } else {
             dropdown.innerHTML = investigatorsList.map(([key, investigator]) => `
                 <div class="investigator-option" data-key="${key}" data-index="${index}">
-                    <img src="${investigator.image}" alt="${investigator.name}" class="investigator-option-image">
+                    <img src="${investigator.image}" alt="${investigator.name}" class="investigator-option-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
                     <div class="investigator-option-info">
                         <div class="investigator-option-name">${investigator.name}</div>
                         <div class="investigator-option-desc">${investigator.description}</div>
@@ -732,15 +734,16 @@ class ArkhamHorizonTracker {
 
         if (selectedInvestigators.length > 0) {
             previewContainer.innerHTML = `
-                <div style="width: 200%; margin-bottom: 10px; font-weight: bold; color: var(--accent);">
+                <div style="width: 100%; margin-bottom: 10px; font-weight: bold; color: var(--accent);">
                     Выбранные сыщики (${selectedInvestigators.length}/${this.currentPlayerCount}):
                 </div>
                 ${selectedInvestigators.map(item => `
                     <div class="selected-investigator-item">
-                        <div class="selected-investigator-avatar" onclick="tracker.showImageModal('${item.investigator.image}', '${item.investigator.name}')">
+                        <div class="flippable-image selected-investigator-avatar" onclick="tracker.showImageModal('${item.investigator.image}', '${item.investigator.name}')">
                             <img src="${item.investigator.image}" 
                                  alt="${item.investigator.name}" 
-                                 class="image-front">
+                                 class="image-front"
+                                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
                             <div class="flip-indicator">🔄</div>
                         </div>
                         <span class="selected-investigator-name">${item.investigator.name}</span>
@@ -772,15 +775,17 @@ class ArkhamHorizonTracker {
     setupModal() {
         const recordModal = document.getElementById('record-modal');
         const progressModal = document.getElementById('progress-modal');
+        const imageModal = document.getElementById('image-modal');
         const closeBtns = document.querySelectorAll('.close');
 
-        // Закрытие обычного модального окна
+        // Закрытие модальных окон
         closeBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 if (e.target.classList.contains('fullscreen-close')) {
                     progressModal.style.display = 'none';
                 } else {
                     recordModal.style.display = 'none';
+                    imageModal.style.display = 'none';
                 }
                 document.body.classList.remove('modal-open');
             });
@@ -796,6 +801,10 @@ class ArkhamHorizonTracker {
                 progressModal.style.display = 'none';
                 document.body.classList.remove('modal-open');
             }
+            if (e.target === imageModal) {
+                imageModal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
         });
 
         // Закрытие по ESC
@@ -803,6 +812,7 @@ class ArkhamHorizonTracker {
             if (e.key === 'Escape') {
                 recordModal.style.display = 'none';
                 progressModal.style.display = 'none';
+                imageModal.style.display = 'none';
                 document.body.classList.remove('modal-open');
             }
         });
@@ -815,8 +825,8 @@ class ArkhamHorizonTracker {
             const scenario = this.scenarios[scenarioKey];
             preview.innerHTML = `
             <div class="scenario-preview-content">
-<div class="scenario-preview-large" onclick="tracker.showImageModal('${scenario.image}', '${scenario.name}')">
-                    <img src="${scenario.image}" alt="${scenario.name}" class="image-front">
+                <div class="flippable-image scenario-preview-large" onclick="tracker.showImageModal('${scenario.image}', '${scenario.name}')">
+                    <img src="${scenario.image}" alt="${scenario.name}" class="image-front" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
                     <div class="flip-indicator">🔄 Нажмите для переворота</div>
                 </div>
                 <div class="scenario-preview-info">
@@ -831,13 +841,13 @@ class ArkhamHorizonTracker {
     }
 
     showImageModal(src, alt) {
-        const modal = document.getElementById('record-modal');
-        const modalContent = document.getElementById('modal-content');
+        const modal = document.getElementById('image-modal');
+        const modalBody = document.getElementById('image-modal-body');
 
-        modalContent.innerHTML = `
+        modalBody.innerHTML = `
         <div class="image-modal-content">
             <div class="flippable-image modal-image-container" onclick="tracker.flipImage(this)">
-                <img src="${src}" alt="${alt}" class="image-front">
+                <img src="${src}" alt="${alt}" class="image-front" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
                 <div class="flip-indicator">🔄 Нажмите для переворота</div>
             </div>
             <h3 class="modal-title">${alt}</h3>
@@ -848,51 +858,43 @@ class ArkhamHorizonTracker {
         document.body.classList.add('modal-open');
     }
 
-        // Предзагружаем обратную сторону
-        const backImage = new Image();
-        backImage.src = backSrc;
+    showRecordDetails(recordId) {
+        const record = this.progress.find(item => item.id === recordId);
+        if (!record) return;
 
-        modal.style.display = 'block';
-        document.body.classList.add('modal-open');
-    }
+        const investigators = Array.isArray(record.investigator)
+            ? record.investigator.map(key => this.investigators[key])
+            : [this.investigators[record.investigator]];
 
-showRecordDetails(recordId) {
-    const record = this.progress.find(item => item.id === recordId);
-    if (!record) return;
+        const scenario = this.scenarios[record.scenario];
+        const modal = document.getElementById('record-modal');
+        const modalContent = document.getElementById('modal-content');
 
-    const investigators = Array.isArray(record.investigator)
-        ? record.investigator.map(key => this.investigators[key])
-        : [this.investigators[record.investigator]];
+        const resultText = {
+            'win': '🏆 Победа - Древние отступили',
+            'loss': '💀 Поражение - Безумие поглотило',
+            'other': '❓ Иной исход'
+        }[record.result] || '❓ Иной исход';
 
-    const scenario = this.scenarios[record.scenario];
-    const modal = document.getElementById('record-modal');
-    const modalContent = document.getElementById('modal-content');
-
-    const resultText = {
-        'win': '🏆 Победа - Древние отступили',
-        'loss': '💀 Поражение - Безумие поглотило',
-        'other': '❓ Иной исход'
-    }[record.result] || '❓ Иной исход';
-
-    // Сыщики в модальном окне - переворачиваемые
-    const investigatorsHTML = investigators.map(investigator => `
-        <div class="detail-value">
-            <div class="flippable-image detail-image-large" onclick="tracker.flipImage(this)">
-                <img src="${investigator.image}" alt="${investigator.name}" class="image-front">
-                <div class="flip-indicator">🔄</div>
+        // Сыщики в модальном окне - переворачиваемые
+        const investigatorsHTML = investigators.map(investigator => `
+            <div class="detail-value">
+                <div class="flippable-image detail-image-large" onclick="tracker.flipImage(this)">
+                    <img src="${investigator.image}" alt="${investigator.name}" class="image-front" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
+                    <div class="flip-indicator">🔄</div>
+                </div>
+                <div>
+                    <strong>${investigator.name}</strong>
+                    <p class="detail-description">${investigator.description}</p>
+                </div>
             </div>
-            <div>
-                <strong>${investigator.name}</strong>
-                <p class="detail-description">${investigator.description}</p>
-            </div>
-        </div>
-    `).join('');
+        `).join('');
 
-    modalContent.innerHTML = `
+        modalContent.innerHTML = `
         <div class="record-details">
             <div class="detail-header">
                 <div class="flippable-image detail-header-image" onclick="tracker.flipImage(this)" style="width: 100%; height: 100%; position: relative;">
-                    <img src="${scenario.image}" alt="${scenario.name}" class="image-front" style="width: 100%; height: 100%; object-fit: cover;">
+                    <img src="${scenario.image}" alt="${scenario.name}" class="image-front" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
                     <div class="flip-indicator">🔄 Нажмите для переворота</div>
                 </div>
                 <div class="detail-overlay">
@@ -931,9 +933,9 @@ showRecordDetails(recordId) {
         </div>
     `;
 
-    modal.style.display = 'block';
-    document.body.classList.add('modal-open');
-}
+        modal.style.display = 'block';
+        document.body.classList.add('modal-open');
+    }
 
     renderScenarioOptions() {
         const select = document.getElementById('scenario');
@@ -1107,10 +1109,11 @@ showRecordDetails(recordId) {
             let investigatorsHTML = '';
             if (investigators.length === 1) {
                 investigatorsHTML = `
-                    <img src="${investigators[0].image}"  alt="${investigators[0].name}" class="hexagon-image investigator-preview-img">
+                    <div class="flippable-image hexagon-image" onclick="tracker.showImageModal('${investigators[0].image}', '${investigators[0].name}')">
                         <img src="${investigators[0].image}" 
                              alt="${investigators[0].name}"
-                             class="image-front">
+                             class="image-front"
+                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
                         <div class="flip-indicator">🔄</div>
                     </div>
                     <div class="hexagon-investigator">${investigators[0].name}</div>
@@ -1119,10 +1122,11 @@ showRecordDetails(recordId) {
                 investigatorsHTML = `
                     <div class="hexagon-investigators">
                         ${investigators.slice(0, 4).map(inv => `
-                           <img src="${inv.image}"  alt="${inv.name}" class="hexagon-investigator-image investigator-preview-img">
+                            <div class="flippable-image hexagon-investigator-image" onclick="tracker.showImageModal('${inv.image}', '${inv.name}')">
                                 <img src="${inv.image}" 
                                      alt="${inv.name}"
-                                     class="image-front">
+                                     class="image-front"
+                                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
                                 <div class="flip-indicator">🔄</div>
                             </div>
                         `).join('')}
@@ -1410,7 +1414,7 @@ showRecordDetails(recordId) {
                         ${Object.entries(this.investigators).map(([invKey, investigator]) => `
                             <tr>
                                 <td class="investigator-cell" title="${investigator.description}">
-                                    <img src="${investigator.image}" alt="${investigator.name}" class="table-investigator-img">
+                                    <img src="${investigator.image}" alt="${investigator.name}" class="table-investigator-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
                                     ${investigator.name}
                                 </td>
                                 ${Object.keys(this.scenarios).map(scenarioKey => {
@@ -1918,373 +1922,6 @@ class GitHubSyncManager {
         });
     }
 }
-
-// Добавляем дополнительные стили
-const additionalStyles = document.createElement('style');
-additionalStyles.textContent = `
-    /* Стили для переворота изображений */
-    .flippable-image {
-        cursor: pointer;
-        transition: transform 0.6s ease;
-        transform-style: preserve-3d;
-        position: relative;
-        display: inline-block;
-    }
-
-    .flippable-image.flipped {
-        transform: rotateY(180deg);
-    }
-
-    .image-front,
-    .image-back {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        backface-visibility: hidden;
-        border-radius: inherit;
-        object-fit: cover;
-    }
-
-    .image-back {
-        transform: rotateY(180deg);
-    }
-
-    /* Индикатор переворота */
-    .flip-indicator {
-        position: absolute;
-        bottom: 10px;
-        right: 10px;
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 5px 10px;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        z-index: 10;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-    }
-
-    /* Анимация переворота */
-    @keyframes flip {
-        0% {
-            transform: rotateY(0deg);
-        }
-        100% {
-            transform: rotateY(180deg);
-        }
-    }
-
-    .flippable-image.flipping {
-        animation: flip 0.6s ease forwards;
-    }
-
-    /* Специфичные стили для разных типов изображений */
-    .detail-image-large.flippable-image {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        border: 3px solid var(--accent);
-    }
-
-    .scenario-preview-large.flippable-image {
-        width: 240px;
-        height: 160px;
-        border-radius: 12px;
-        border: 3px solid var(--accent);
-    }
-
-    .selected-investigator-avatar.flippable-image {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        border: 3px solid var(--accent);
-    }
-
-    .hexagon-image.flippable-image {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        border: 2px solid var(--text-light);
-    }
-
-    .hexagon-investigator-image.flippable-image {
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        border: 2px solid var(--text-light);
-    }
-
-    /* Стили для заголовка с переворачивающимся изображением */
-    .detail-header {
-        position: relative;
-        height: 200px;
-        border-radius: 12px 12px 0 0;
-        overflow: hidden;
-    }
-
-    .detail-header-image {
-        width: 100%;
-        height: 100%;
-    }
-
-    .detail-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.7);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        padding: 20px;
-        pointer-events: none;
-    }
-
-    .detail-overlay * {
-        pointer-events: auto;
-    }
-
-    .investigator-option {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px;
-        cursor: pointer;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        transition: background 0.3s ease;
-    }
-
-    .investigator-option:hover {
-        background: var(--secondary-light);
-    }
-
-    .investigator-option.highlighted {
-        background: var(--accent);
-        color: var(--secondary-dark);
-    }
-
-    .investigator-option-image {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid var(--accent);
-    }
-
-    .investigator-option-info {
-        flex: 1;
-    }
-
-    .investigator-option-name {
-        font-weight: bold;
-        font-size: 1rem;
-    }
-
-    .investigator-option-desc {
-        font-size: 0.8rem;
-        color: var(--text-dark);
-        margin-top: 2px;
-    }
-
-    .no-results {
-        justify-content: center;
-        color: var(--text-dark);
-        font-style: italic;
-    }
-
-    .scenario-preview-info {
-        text-align: center;
-        margin-top: 10px;
-    }
-
-    .scenario-preview-desc {
-        font-size: 0.9rem;
-        color: var(--text-dark);
-        margin-top: 5px;
-    }
-
-    .modal-image-large {
-        max-width: 90vw;
-        max-height: 70vh;
-        border-radius: 12px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-        object-fit: contain;
-    }
-
-    .notes-content {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 15px;
-        border-radius: var(--border-radius);
-        border-left: 4px solid var(--accent);
-        font-style: italic;
-    }
-
-    .no-records-message {
-        text-align: center;
-        color: var(--text-dark);
-        font-style: italic;
-        padding: 60px 20px;
-        font-size: 1.2em;
-        grid-column: 1 / -1;
-    }
-
-    .investigator-select-with-search {
-        width: 100%;
-        max-height: 300px;
-        overflow-y: auto;
-        background: var(--secondary-dark);
-        border: 2px solid var(--accent);
-        border-radius: var(--border-radius);
-        position: absolute;
-        top: 100%;
-        left: 0;
-        z-index: 1000;
-        display: none;
-        box-shadow: var(--shadow-heavy);
-    }
-
-    /* Стили для синхронизации */
-    .sync-setup-modal {
-        max-width: 600px;
-    }
-
-    .setup-instructions {
-        background: rgba(15, 15, 26, 0.5);
-        padding: 15px;
-        border-radius: var(--border-radius);
-        margin-bottom: 20px;
-        border-left: 3px solid var(--accent);
-    }
-
-    .setup-instructions ol {
-        margin-left: 20px;
-        margin-top: 10px;
-    }
-
-    .setup-instructions li {
-        margin: 5px 0;
-    }
-
-    .setup-instructions a {
-        color: var(--accent);
-        text-decoration: underline;
-    }
-
-    .setup-form .form-group {
-        margin: 15px 0;
-    }
-
-    .setup-form label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-    }
-
-    .sync-status {
-        max-width: 500px;
-    }
-
-    .status-info {
-        background: rgba(15, 15, 26, 0.5);
-        padding: 20px;
-        border-radius: var(--border-radius);
-        margin: 15px 0;
-    }
-
-    .status-item {
-        margin: 10px 0;
-        padding: 8px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .status-item:last-child {
-        border-bottom: none;
-    }
-
-    .status-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    /* Исправления для модальных окон */
-    .modal-content {
-        background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
-        margin: 5% auto;
-        padding: 0;
-        border-radius: 15px;
-        width: 90%;
-        max-width: 700px;
-        box-shadow: var(--shadow-heavy);
-        border: 2px solid var(--accent);
-        position: relative;
-        animation: modalAppear 0.3s ease-out;
-        max-height: 90vh;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .modal-body {
-        padding: 30px;
-        color: var(--text-light);
-        overflow-y: auto;
-        flex: 1;
-        max-height: calc(90vh - 60px);
-    }
-
-    /* Исправления для полноэкранного модального окна */
-    .fullscreen-modal .modal-content {
-        width: 95vw;
-        height: 95vh;
-        margin: 2.5vh auto;
-        max-width: none;
-        max-height: none;
-        overflow: hidden;
-    }
-
-    .fullscreen-content {
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    .fullscreen-body {
-        flex: 1;
-        overflow: auto;
-        padding: 20px;
-        max-height: calc(95vh - 40px);
-    }
-
-    /* Полоса прокрутки для модальных окон */
-    .modal-body::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    .modal-body::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 4px;
-    }
-
-    .modal-body::-webkit-scrollbar-thumb {
-        background: var(--accent);
-        border-radius: 4px;
-    }
-
-    .modal-body::-webkit-scrollbar-thumb:hover {
-        background: var(--accent-dark);
-    }
-
-    /* Предотвращаем скролл body когда открыто модальное окно */
-    body.modal-open {
-        overflow: hidden;
-    }
-`;
-document.head.appendChild(additionalStyles);
 
 // Инициализация
 let tracker;

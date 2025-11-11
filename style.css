@@ -73,6 +73,24 @@ body {
     animation-delay: 10s;
 }
 
+.tentacle-3 {
+    width: 180px;
+    height: 500px;
+    top: 10%;
+    right: 5%;
+    transform: rotate(-10deg);
+    animation-delay: 5s;
+}
+
+.tentacle-4 {
+    width: 220px;
+    height: 450px;
+    bottom: -120px;
+    left: 8%;
+    transform: rotate(15deg);
+    animation-delay: 12s;
+}
+
 .eldritch-symbol {
     position: absolute;
     font-size: 4rem;
@@ -90,6 +108,185 @@ body {
     bottom: 20%;
     right: 8%;
     animation-delay: 7s;
+}
+
+.symbol-3 {
+    top: 70%;
+    left: 20%;
+    animation-delay: 3s;
+    font-size: 3.5rem;
+}
+
+.symbol-4 {
+    top: 35%;
+    right: 12%;
+    animation-delay: 10s;
+    font-size: 3rem;
+}
+
+.symbol-5 {
+    top: 55%;
+    left: 75%;
+    animation-delay: 18s;
+    font-size: 2.8rem;
+}
+
+.ancient-rune {
+    position: absolute;
+    font-size: 2.5rem;
+    opacity: 0.03;
+    animation: floatRune 25s infinite linear;
+    font-family: 'Cinzel', serif;
+}
+
+.rune-1 {
+    top: 15%;
+    left: 8%;
+    animation-delay: 0s;
+    color: var(--accent);
+}
+
+.rune-2 {
+    top: 65%;
+    left: 85%;
+    animation-delay: 8s;
+    color: var(--primary);
+}
+
+.rune-3 {
+    top: 80%;
+    left: 12%;
+    animation-delay: 15s;
+    color: var(--accent);
+}
+
+.rune-4 {
+    top: 25%;
+    left: 90%;
+    animation-delay: 22s;
+    color: var(--primary);
+}
+
+.rune-5 {
+    top: 45%;
+    left: 5%;
+    animation-delay: 30s;
+    color: var(--accent);
+}
+
+.nebula {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(138, 43, 226, 0.1) 0%, transparent 70%);
+    filter: blur(20px);
+    animation: nebulaPulse 40s infinite ease-in-out;
+}
+
+.nebula-1 {
+    width: 400px;
+    height: 400px;
+    top: -100px;
+    left: -100px;
+    animation-delay: 0s;
+}
+
+.nebula-2 {
+    width: 300px;
+    height: 300px;
+    bottom: -50px;
+    right: 10%;
+    animation-delay: 20s;
+}
+
+.nebula-3 {
+    width: 500px;
+    height: 500px;
+    top: 30%;
+    right: -150px;
+    animation-delay: 10s;
+}
+
+.floating-eye {
+    position: absolute;
+    font-size: 2rem;
+    opacity: 0.05;
+    animation: eyeFloat 15s infinite ease-in-out;
+    filter: drop-shadow(0 0 5px rgba(218, 165, 32, 0.3));
+}
+
+.eye-1 {
+    top: 20%;
+    right: 20%;
+    animation-delay: 0s;
+}
+
+.eye-2 {
+    top: 60%;
+    left: 25%;
+    animation-delay: 7s;
+}
+
+.eye-3 {
+    top: 75%;
+    right: 30%;
+    animation-delay: 14s;
+}
+
+.pulsating-orb {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    filter: blur(15px);
+    animation: orbPulse 8s infinite ease-in-out;
+}
+
+.orb-1 {
+    width: 100px;
+    height: 100px;
+    top: 15%;
+    left: 15%;
+    animation-delay: 0s;
+}
+
+.orb-2 {
+    width: 80px;
+    height: 80px;
+    bottom: 25%;
+    right: 20%;
+    animation-delay: 4s;
+}
+
+.orb-3 {
+    width: 120px;
+    height: 120px;
+    top: 70%;
+    left: 80%;
+    animation-delay: 2s;
+}
+
+.whispering-shadow {
+    position: absolute;
+    background: linear-gradient(45deg, transparent, rgba(0, 0, 0, 0.3), transparent);
+    border-radius: 50%;
+    animation: shadowDrift 30s infinite linear;
+}
+
+.shadow-1 {
+    width: 200px;
+    height: 400px;
+    top: -100px;
+    right: 15%;
+    transform: rotate(45deg);
+    animation-delay: 0s;
+}
+
+.shadow-2 {
+    width: 150px;
+    height: 300px;
+    bottom: -80px;
+    left: 20%;
+    transform: rotate(-30deg);
+    animation-delay: 15s;
 }
 
 @keyframes float {
@@ -111,6 +308,86 @@ body {
     100% {
         opacity: 0.08;
         transform: scale(1.1);
+    }
+}
+
+@keyframes floatRune {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.03;
+    }
+
+    25% {
+        transform: translateY(-20px) rotate(90deg);
+        opacity: 0.06;
+    }
+
+    50% {
+        transform: translateY(0px) rotate(180deg);
+        opacity: 0.03;
+    }
+
+    75% {
+        transform: translateY(20px) rotate(270deg);
+        opacity: 0.06;
+    }
+}
+
+@keyframes nebulaPulse {
+    0%, 100% {
+        opacity: 0.1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.3;
+        transform: scale(1.2);
+    }
+}
+
+@keyframes eyeFloat {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.05;
+    }
+
+    25% {
+        transform: translate(10px, -15px) scale(1.1);
+        opacity: 0.08;
+    }
+
+    50% {
+        transform: translate(-5px, 10px) scale(0.9);
+        opacity: 0.05;
+    }
+
+    75% {
+        transform: translate(-15px, -5px) scale(1.05);
+        opacity: 0.08;
+    }
+}
+
+@keyframes orbPulse {
+    0%, 100% {
+        opacity: 0.1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.3;
+        transform: scale(1.5);
+    }
+}
+
+@keyframes shadowDrift {
+    0%, 100% {
+        transform: rotate(45deg) translateX(0);
+        opacity: 0.1;
+    }
+
+    50% {
+        transform: rotate(45deg) translateX(50px);
+        opacity: 0.3;
     }
 }
 
@@ -173,6 +450,26 @@ body {
     height: 2px;
     background: linear-gradient(90deg, transparent, var(--accent), transparent);
     margin: 0 auto;
+}
+
+.header-ornament {
+    color: var(--accent);
+    font-size: 1.2rem;
+    margin-top: 15px;
+    opacity: 0.7;
+    animation: ornamentGlow 4s infinite alternate;
+}
+
+@keyframes ornamentGlow {
+    from {
+        opacity: 0.5;
+        text-shadow: 0 0 5px rgba(218, 165, 32, 0.3);
+    }
+
+    to {
+        opacity: 0.8;
+        text-shadow: 0 0 10px rgba(218, 165, 32, 0.6);
+    }
 }
 
 /* Секции */
@@ -341,6 +638,26 @@ section {
     color: var(--text-dark);
     margin-top: 5px;
 }
+
+.clickable-achievement {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+    .clickable-achievement:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(218, 165, 32, 0.3);
+    }
+
+    .clickable-achievement::after {
+        content: 'ℹ️';
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
 
 /* Панель управления */
 .control-panel {
@@ -832,6 +1149,11 @@ section {
     flex-direction: column;
 }
 
+.image-modal-content {
+    max-width: 90%;
+    max-height: 90%;
+}
+
 @keyframes modalAppear {
     from {
         opacity: 0;
@@ -938,94 +1260,7 @@ section {
     }
 }
 
-/* Адаптивность */
-@media (max-width: 768px) {
-    .container {
-        padding: 10px;
-    }
-
-    section {
-        padding: 15px;
-    }
-
-    .main-title {
-        font-size: 2.5rem;
-    }
-
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-
-    .panel-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .control-buttons {
-        justify-content: center;
-    }
-
-    .filters {
-        grid-template-columns: 1fr;
-    }
-
-    .section-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-}
-
-@media (max-width: 480px) {
-    .hexagon {
-        width: 140px;
-        height: 160px;
-    }
-
-    .hexagon-inner {
-        padding: 15px 10px;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .achievements-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Скорллбар */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--secondary-dark);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--accent);
-    border-radius: 4px;
-}
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: var(--accent-dark);
-    }
-
 /* Стили для множественного выбора сыщиков */
-.form-select[multiple] {
-    height: auto;
-    min-height: 120px;
-}
-
-.form-hint {
-    font-size: 0.8rem;
-    color: var(--text-dark);
-    margin-top: 5px;
-    font-style: italic;
-}
-
-/* Стили для выбора количества игроков */
 .player-count-selector {
     display: flex;
     gap: 10px;
@@ -1224,47 +1459,6 @@ section {
     .remove-selected-investigator:hover {
         background: var(--danger);
         color: white;
-    }
-
-/* Адаптивность для мобильных */
-@media (max-width: 768px) {
-    .player-count-selector {
-        flex-wrap: wrap;
-    }
-
-    .count-btn {
-        flex: 1 0 calc(50% - 10px);
-    }
-
-    .investigator-field-group {
-        flex-direction: column;
-        gap: 5px;
-    }
-
-    .remove-investigator-btn {
-        align-self: flex-start;
-    }
-}
-
-/* Стили для кликабельных достижений */
-.clickable-achievement {
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-    .clickable-achievement:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(218, 165, 32, 0.3);
-    }
-
-    .clickable-achievement::after {
-        content: 'ℹ️';
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        font-size: 0.8rem;
-        opacity: 0.7;
     }
 
 /* Стили для таблицы прогресса */
@@ -1480,74 +1674,6 @@ section {
     animation: fadeInScale 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Полоса прокрутки для таблицы */
-.progress-table-container::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
-}
-
-.progress-table-container::-webkit-scrollbar-track {
-    background: var(--secondary-dark);
-    border-radius: 6px;
-}
-
-.progress-table-container::-webkit-scrollbar-thumb {
-    background: var(--accent);
-    border-radius: 6px;
-}
-
-    .progress-table-container::-webkit-scrollbar-thumb:hover {
-        background: var(--accent-dark);
-    }
-
-/* Адаптивность для мобильных */
-@media (max-width: 768px) {
-    .fullscreen-modal .modal-content {
-        width: 98vw;
-        height: 98vh;
-        margin: 1vh auto;
-    }
-
-    .fullscreen-close {
-        top: 15px;
-        right: 20px;
-        width: 40px;
-        height: 40px;
-        font-size: 30px;
-    }
-
-    .progress-header h3 {
-        font-size: 1.8rem;
-    }
-
-    .progress-stats {
-        grid-template-columns: 1fr;
-        font-size: 1.1rem;
-    }
-
-    .progress-table th {
-        padding: 10px 5px;
-        font-size: 0.7rem;
-    }
-
-    .progress-table .investigator-cell {
-        min-width: 150px;
-        padding: 8px 10px;
-        font-size: 0.8rem;
-    }
-
-    .table-investigator-img {
-        width: 30px;
-        height: 30px;
-    }
-
-    .scenario-cell {
-        padding: 10px 5px;
-        font-size: 1.1rem;
-        min-width: 60px;
-    }
-}
-
 /* Стили для переворота изображений */
 .flippable-image {
     cursor: pointer;
@@ -1612,10 +1738,6 @@ section {
     animation: flip 0.6s ease forwards;
 }
 
-.flippable-image.flipping {
-    animation: flip 0.6s ease forwards;
-}
-
 /* Специфичные стили для разных типов изображений */
 .detail-image-large.flippable-image {
     width: 80px;
@@ -1624,31 +1746,33 @@ section {
     border: 3px solid var(--accent);
 }
 
-.scenario-preview-large.flippable-image,
-.selected-investigator-avatar.flippable-image,
-.hexagon-image.flippable-image,
-.hexagon-investigator-image.flippable-image
-{
-
-    cursor: pointer;
+.scenario-preview-large.flippable-image {
+    width: 240px;
+    height: 160px;
+    border-radius: 12px;
+    border: 3px solid var(--accent);
 }
 
-.scenario-preview-large,
-.selected-investigator-avatar,
-.hexagon-image,
-.hexagon-investigator-image
-{
-    cursor: pointer;
-    transition: transform 0.3s ease;
+.selected-investigator-avatar.flippable-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
 }
 
-    .scenario-preview-large:hover,
-    .selected-investigator-avatar:hover,
-    .hexagon-image:hover,
-    .hexagon-investigator-image:hover
-    {
-        transform: scale(1.05);
-    }
+.hexagon-image.flippable-image {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: 2px solid var(--text-light);
+}
+
+.hexagon-investigator-image.flippable-image {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid var(--text-light);
+}
 
 /* Стили для заголовка с переворачивающимся изображением */
 .detail-header {
@@ -1684,22 +1808,26 @@ section {
     }
 
 /* Стили для изображений в модальных окнах */
-.modal-image-large {
-    max-width: 100%;
-    max-height: 70vh;
+.modal-image-container {
+    width: 100%;
+    max-width: 600px;
+    height: 400px;
+    margin: 0 auto;
     border-radius: 12px;
+    overflow: hidden;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-    object-fit: contain;
 }
 
-.image-modal-content {
+    .modal-image-container .flippable-image {
+        width: 100%;
+        height: 100%;
+    }
+
+.image-modal-content .modal-title {
+    margin-top: 15px;
+    color: var(--accent);
     text-align: center;
 }
-
-    .image-modal-content .modal-title {
-        margin-top: 15px;
-        color: var(--accent);
-    }
 
 /* Исправления для деталей записи */
 .record-details {
@@ -1887,63 +2015,6 @@ body.modal-open {
     opacity: 0.9;
     line-height: 1.1;
     margin-bottom: 5px;
-}
-
-/* Улучшенные стили для гексагонов с переворотом */
-.hexagon-image,
-.hexagon-investigator-image {
-    cursor: pointer;
-    transition: transform 0.3s ease;
-}
-
-    .hexagon-image:hover,
-    .hexagon-investigator-image:hover {
-        transform: scale(1.05);
-    }
-
-/* Стили для изображений в выпадающем списке */
-.investigator-option-image {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--accent);
-}
-
-/* Адаптивность для деталей записи */
-@media (max-width: 768px) {
-    .detail-row {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-
-    .detail-header {
-        height: 150px;
-    }
-
-    .detail-title {
-        font-size: 1.4rem;
-    }
-
-    .detail-value {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-    }
-}
-
-/* Стили для уведомлений о перевороте */
-.flip-notification {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-size: 0.7rem;
-    z-index: 10;
-    pointer-events: none;
 }
 
 /* Заглушка для отсутствующих изображений */
@@ -2164,78 +2235,191 @@ body.modal-open {
         opacity: 0.5;
     }
 
-/* Стили для состояний успеха */
-.success-highlight {
-    animation: successPulse 2s ease-in-out;
+.no-records-message {
+    text-align: center;
+    color: var(--text-dark);
+    font-style: italic;
+    padding: 60px 20px;
+    font-size: 1.2em;
+    grid-column: 1 / -1;
 }
 
-@keyframes successPulse {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+/* Адаптивность */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
     }
 
-    50% {
-        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+    section {
+        padding: 15px;
+    }
+
+    .main-title {
+        font-size: 2.5rem;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .panel-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .control-buttons {
+        justify-content: center;
+    }
+
+    .filters {
+        grid-template-columns: 1fr;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .player-count-selector {
+        flex-wrap: wrap;
+    }
+
+    .count-btn {
+        flex: 1 0 calc(50% - 10px);
+    }
+
+    .investigator-field-group {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .remove-investigator-btn {
+        align-self: flex-start;
+    }
+
+    .fullscreen-modal .modal-content {
+        width: 98vw;
+        height: 98vh;
+        margin: 1vh auto;
+    }
+
+    .fullscreen-close {
+        top: 15px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        font-size: 30px;
+    }
+
+    .progress-header h3 {
+        font-size: 1.8rem;
+    }
+
+    .progress-stats {
+        grid-template-columns: 1fr;
+        font-size: 1.1rem;
+    }
+
+    .progress-table th {
+        padding: 10px 5px;
+        font-size: 0.7rem;
+    }
+
+    .progress-table .investigator-cell {
+        min-width: 150px;
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+
+    .table-investigator-img {
+        width: 30px;
+        height: 30px;
+    }
+
+    .scenario-cell {
+        padding: 10px 5px;
+        font-size: 1.1rem;
+        min-width: 60px;
+    }
+
+    .ancient-rune,
+    .eldritch-symbol,
+    .floating-eye {
+        font-size: 1.5rem;
+    }
+
+    .nebula {
+        width: 200px !important;
+        height: 200px !important;
+    }
+
+    .pulsating-orb {
+        width: 60px !important;
+        height: 60px !important;
+    }
+
+    .tentacle {
+        width: 150px !important;
+        height: 300px !important;
     }
 }
 
-/* Стили для состояний ошибки */
-.error-highlight {
-    animation: errorPulse 2s ease-in-out;
-}
-
-@keyframes errorPulse {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
+@media (max-width: 480px) {
+    .hexagon {
+        width: 140px;
+        height: 160px;
     }
 
-    50% {
-        box-shadow: 0 0 0 10px rgba(244, 67, 54, 0);
-    }
-}
-
-/* Стили для состояний предупреждения */
-.warning-highlight {
-    animation: warningPulse 2s ease-in-out;
-}
-
-@keyframes warningPulse {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7);
+    .hexagon-inner {
+        padding: 15px 10px;
     }
 
-    50% {
-        box-shadow: 0 0 0 10px rgba(255, 152, 0, 0);
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .achievements-grid {
+        grid-template-columns: 1fr;
     }
 }
 
-/* Финальные улучшения для лучшей читаемости */
-.enhanced-contrast {
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+/* Скорллбар */
+::-webkit-scrollbar {
+    width: 8px;
 }
 
-.smooth-transitions * {
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+::-webkit-scrollbar-track {
+    background: var(--secondary-dark);
 }
 
-.performance-optimized {
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000;
+::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 4px;
 }
 
-/* Стили для улучшенной доступности */
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--accent-dark);
+    }
+
+/* Полоса прокрутки для таблицы */
+.progress-table-container::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
 }
+
+.progress-table-container::-webkit-scrollbar-track {
+    background: var(--secondary-dark);
+    border-radius: 6px;
+}
+
+.progress-table-container::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 6px;
+}
+
+    .progress-table-container::-webkit-scrollbar-thumb:hover {
+        background: var(--accent-dark);
+    }
 
 /* Стили для высококонтрастного режима */
 @media (prefers-contrast: high) {
@@ -2261,88 +2445,4 @@ body.modal-open {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
-}
-/* Стили для изображений в модальных окнах */
-.modal-image-container {
-    width: 100%;
-    max-width: 600px;
-    height: 400px;
-    margin: 0 auto;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-}
-
-    .modal-image-container .image-front {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-.detail-header-image {
-    width: 100%;
-    height: 100%;
-    position: relative;
-}
-
-    .detail-header-image .image-front {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-/* Специфичные стили для больших изображений в модальных окнах */
-.image-modal-content .flippable-image {
-    cursor: pointer;
-    transition: transform 0.6s ease;
-    transform-style: preserve-3d;
-    position: relative;
-}
-
-    .image-modal-content .flippable-image.flipped {
-        transform: rotateY(180deg);
-    }
-
-.image-modal-content .image-front,
-.image-modal-content .image-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border-radius: inherit;
-    object-fit: cover;
-    top: 0;
-    left: 0;
-}
-
-.image-modal-content .image-front {
-    z-index: 2;
-}
-
-.image-modal-content .image-back {
-    transform: rotateY(180deg);
-    z-index: 1;
-}
-
-/* Улучшенные индикаторы для модальных окон */
-.image-modal-content .flip-indicator {
-    position: absolute;
-    bottom: 15px;
-    right: 15px;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    z-index: 10;
-    pointer-events: none;
-    backdrop-filter: blur(5px);
-}
-
-.detail-header-image .flip-indicator {
-    bottom: 20px;
-    right: 20px;
-    background: rgba(0, 0, 0, 0.9);
-    padding: 10px 15px;
-    font-size: 1rem;
 }
