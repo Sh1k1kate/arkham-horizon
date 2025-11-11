@@ -1624,33 +1624,31 @@ section {
     border: 3px solid var(--accent);
 }
 
-.scenario-preview-large.flippable-image {
-    width: 240px;
-    height: 160px;
-    border-radius: 12px;
-    border: 3px solid var(--accent);
+.scenario-preview-large.flippable-image,
+.selected-investigator-avatar.flippable-image,
+.hexagon-image.flippable-image,
+.hexagon-investigator-image.flippable-image
+{
+
+    cursor: pointer;
 }
 
-.selected-investigator-avatar.flippable-image {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    border: 3px solid var(--accent);
+.scenario-preview-large,
+.selected-investigator-avatar,
+.hexagon-image,
+.hexagon-investigator-image
+{
+    cursor: pointer;
+    transition: transform 0.3s ease;
 }
 
-.hexagon-image.flippable-image {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    border: 2px solid var(--text-light);
-}
-
-.hexagon-investigator-image.flippable-image {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    border: 2px solid var(--text-light);
-}
+    .scenario-preview-large:hover,
+    .selected-investigator-avatar:hover,
+    .hexagon-image:hover,
+    .hexagon-investigator-image:hover
+    {
+        transform: scale(1.05);
+    }
 
 /* Стили для заголовка с переворачивающимся изображением */
 .detail-header {

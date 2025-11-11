@@ -545,9 +545,10 @@ class ArkhamHorizonTracker {
     }
 
     handleGlobalClick(e) {
-        // Обработка переворота изображений
-        if (e.target.classList.contains('flippable-image') ||
-            e.target.closest('.flippable-image')) {
+        // Обработка переворота изображений - только для уже открытых модальных окон
+        if ((e.target.classList.contains('flippable-image') ||
+            e.target.closest('.flippable-image')) &&
+            document.getElementById('record-modal').style.display === 'block') {
 
             const imgElement = e.target.classList.contains('flippable-image')
                 ? e.target
@@ -577,13 +578,20 @@ class ArkhamHorizonTracker {
             return;
         }
 
-        // Открытие модального окна для изображений (без переворота)
+        // Открытие модального окна для изображений (БЕЗ переворота)
         if (e.target.classList.contains('investigator-preview-img') ||
             e.target.classList.contains('scenario-preview-img') ||
             e.target.classList.contains('hexagon-image') ||
             e.target.classList.contains('selected-investigator-avatar') ||
-            e.target.tagName === 'IMG') {
-            this.showImageModal(e.target.src, e.target.alt);
+            (e.target.tagName === 'IMG' &&
+                !e.target.classList.contains('image-front') &&
+                !e.target.closest('.flippable-image'))) {
+
+            // Проверяем, что клик не по переворачиваемому изображению в модальном окне
+            if (!e.target.closest('.flippable-image') ||
+                document.getElementById('record-modal').style.display !== 'block') {
+                this.showImageModal(e.target.src, e.target.alt);
+            }
             return;
         }
 
@@ -729,7 +737,7 @@ class ArkhamHorizonTracker {
                 </div>
                 ${selectedInvestigators.map(item => `
                     <div class="selected-investigator-item">
-                        <div class="flippable-image selected-investigator-avatar" onclick="tracker.flipImage(this)">
+                        <div class="selected-investigator-avatar" onclick="tracker.showImageModal('${item.investigator.image}', '${item.investigator.name}')">
                             <img src="${item.investigator.image}" 
                                  alt="${item.investigator.name}" 
                                  class="image-front">
@@ -807,7 +815,7 @@ class ArkhamHorizonTracker {
             const scenario = this.scenarios[scenarioKey];
             preview.innerHTML = `
             <div class="scenario-preview-content">
-                <div class="flippable-image scenario-preview-large" onclick="tracker.flipImage(this)">
+<div class="scenario-preview-large" onclick="tracker.showImageModal('${scenario.image}', '${scenario.name}')">
                     <img src="${scenario.image}" alt="${scenario.name}" class="image-front">
                     <div class="flip-indicator">🔄 Нажмите для переворота</div>
                 </div>
@@ -829,7 +837,7 @@ class ArkhamHorizonTracker {
         modalContent.innerHTML = `
         <div class="image-modal-content">
             <div class="flippable-image modal-image-container" onclick="tracker.flipImage(this)">
-                <img src="${src}" alt="${alt}" class="image-front modal-image-large">
+                <img src="${src}" alt="${alt}" class="image-front">
                 <div class="flip-indicator">🔄 Нажмите для переворота</div>
             </div>
             <h3 class="modal-title">${alt}</h3>
@@ -848,86 +856,84 @@ class ArkhamHorizonTracker {
         document.body.classList.add('modal-open');
     }
 
-    showRecordDetails(recordId) {
-        const record = this.progress.find(item => item.id === recordId);
-        if (!record) return;
+showRecordDetails(recordId) {
+    const record = this.progress.find(item => item.id === recordId);
+    if (!record) return;
 
-        const investigators = Array.isArray(record.investigator)
-            ? record.investigator.map(key => this.investigators[key])
-            : [this.investigators[record.investigator]];
+    const investigators = Array.isArray(record.investigator)
+        ? record.investigator.map(key => this.investigators[key])
+        : [this.investigators[record.investigator]];
 
-        const scenario = this.scenarios[record.scenario];
-        const modal = document.getElementById('record-modal');
-        const modalContent = document.getElementById('modal-content');
+    const scenario = this.scenarios[record.scenario];
+    const modal = document.getElementById('record-modal');
+    const modalContent = document.getElementById('modal-content');
 
-        const resultText = {
-            'win': '🏆 Победа - Древние отступили',
-            'loss': '💀 Поражение - Безумие поглотило',
-            'other': '❓ Иной исход'
-        }[record.result] || '❓ Иной исход';
+    const resultText = {
+        'win': '🏆 Победа - Древние отступили',
+        'loss': '💀 Поражение - Безумие поглотило',
+        'other': '❓ Иной исход'
+    }[record.result] || '❓ Иной исход';
 
-        const investigatorsHTML = investigators.map(investigator => `
-    <div class="detail-value">
-        <div class="flippable-image detail-image-large" onclick="tracker.flipImage(this)">
-            <img src="${investigator.image}" alt="${investigator.name}" class="image-front">
-            <div class="image-placeholder" style="display: none;">
-                <div class="loading-shimmer" style="width: 100%; height: 100%; border-radius: 50%;"></div>
+    // Сыщики в модальном окне - переворачиваемые
+    const investigatorsHTML = investigators.map(investigator => `
+        <div class="detail-value">
+            <div class="flippable-image detail-image-large" onclick="tracker.flipImage(this)">
+                <img src="${investigator.image}" alt="${investigator.name}" class="image-front">
+                <div class="flip-indicator">🔄</div>
             </div>
-            <div class="flip-indicator">🔄</div>
+            <div>
+                <strong>${investigator.name}</strong>
+                <p class="detail-description">${investigator.description}</p>
+            </div>
         </div>
-        <div>
-            <strong>${investigator.name}</strong>
-            <p class="detail-description">${investigator.description}</p>
-        </div>
-    </div>
-`).join('');
+    `).join('');
 
     modalContent.innerHTML = `
-    <div class="record-details">
-        <div class="detail-header">
-            <div class="flippable-image detail-header-image" onclick="tracker.flipImage(this)" style="width: 100%; height: 100%; position: relative;">
-                <img src="${scenario.image}" alt="${scenario.name}" class="image-front" style="width: 100%; height: 100%; object-fit: cover;">
-                <div class="flip-indicator">🔄 Нажмите для переворота</div>
+        <div class="record-details">
+            <div class="detail-header">
+                <div class="flippable-image detail-header-image" onclick="tracker.flipImage(this)" style="width: 100%; height: 100%; position: relative;">
+                    <img src="${scenario.image}" alt="${scenario.name}" class="image-front" style="width: 100%; height: 100%; object-fit: cover;">
+                    <div class="flip-indicator">🔄 Нажмите для переворота</div>
+                </div>
+                <div class="detail-overlay">
+                    <h2 class="detail-title">${scenario.name}</h2>
+                    <p class="detail-subtitle">Команда из ${investigators.length} исследователей</p>
+                </div>
             </div>
-            <div class="detail-overlay">
-                <h2 class="detail-title">${scenario.name}</h2>
-                <p class="detail-subtitle">Команда из ${investigators.length} исследователей</p>
-            </div>
-        </div>
-        
-        <div class="detail-content">
-            <div class="detail-row">
-                <div class="detail-group">
-                    <h3 class="detail-label">🕵️ Сыщики (${investigators.length})</h3>
-                    ${investigatorsHTML}
+            
+            <div class="detail-content">
+                <div class="detail-row">
+                    <div class="detail-group">
+                        <h3 class="detail-label">🕵️ Сыщики (${investigators.length})</h3>
+                        ${investigatorsHTML}
+                    </div>
+                    
+                    <div class="detail-group">
+                        <h3 class="detail-label">📅 Дата расследования</h3>
+                        <p class="detail-value">${this.formatDate(record.date)}</p>
+                        
+                        <h3 class="detail-label">⚔️ Исход</h3>
+                        <p class="detail-value ${record.result}">${resultText}</p>
+                    </div>
                 </div>
                 
-                <div class="detail-group">
-                    <h3 class="detail-label">📅 Дата расследования</h3>
-                    <p class="detail-value">${this.formatDate(record.date)}</p>
-                    
-                    <h3 class="detail-label">⚔️ Исход</h3>
-                    <p class="detail-value ${record.result}">${resultText}</p>
+                <div class="detail-group full-width">
+                    <h3 class="detail-label">📝 Заметки архивариуса</h3>
+                    <p class="detail-value notes-content">${record.notes || 'Заметки отсутствуют'}</p>
+                </div>
+                
+                <div class="detail-actions">
+                    <button class="control-btn secondary" onclick="tracker.deleteProgress(${record.id}); document.getElementById('record-modal').style.display='none'">
+                        🗑️ Удалить запись
+                    </button>
                 </div>
             </div>
-            
-            <div class="detail-group full-width">
-                <h3 class="detail-label">📝 Заметки архивариуса</h3>
-                <p class="detail-value notes-content">${record.notes || 'Заметки отсутствуют'}</p>
-            </div>
-            
-            <div class="detail-actions">
-                <button class="control-btn secondary" onclick="tracker.deleteProgress(${record.id}); document.getElementById('record-modal').style.display='none'">
-                    🗑️ Удалить запись
-                </button>
-            </div>
         </div>
-    </div>
-`;
+    `;
 
-        modal.style.display = 'block';
-        document.body.classList.add('modal-open');
-    }
+    modal.style.display = 'block';
+    document.body.classList.add('modal-open');
+}
 
     renderScenarioOptions() {
         const select = document.getElementById('scenario');
@@ -1101,7 +1107,7 @@ class ArkhamHorizonTracker {
             let investigatorsHTML = '';
             if (investigators.length === 1) {
                 investigatorsHTML = `
-                    <div class="flippable-image hexagon-image" onclick="tracker.flipImage(this)">
+                    <img src="${investigators[0].image}"  alt="${investigators[0].name}" class="hexagon-image investigator-preview-img">
                         <img src="${investigators[0].image}" 
                              alt="${investigators[0].name}"
                              class="image-front">
@@ -1113,7 +1119,7 @@ class ArkhamHorizonTracker {
                 investigatorsHTML = `
                     <div class="hexagon-investigators">
                         ${investigators.slice(0, 4).map(inv => `
-                            <div class="flippable-image hexagon-investigator-image" onclick="tracker.flipImage(this)">
+                           <img src="${inv.image}"  alt="${inv.name}" class="hexagon-investigator-image investigator-preview-img">
                                 <img src="${inv.image}" 
                                      alt="${inv.name}"
                                      class="image-front">
