@@ -2834,3 +2834,229 @@ body.modal-open {
         font-size: 0.9rem;
     }
 }
+/* ДОБАВИТЬ В КОНЕЦ ФАЙЛА style.css */
+
+/* Исправления для модальных окон с изображениями - правильный размер и поворот */
+.image-modal-content .modal-content {
+    max-width: 95vw;
+    max-height: 95vh;
+    width: auto;
+    height: auto;
+    margin: 2.5vh auto;
+    background: rgba(26, 26, 46, 0.95);
+    border: 2px solid var(--accent);
+    box-shadow: var(--shadow-heavy);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.image-modal-body {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.modal-image-container {
+    max-width: 85vw;
+    max-height: 75vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+
+    .modal-image-container .flippable-image {
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    .modal-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+    }
+
+.modal-title {
+    margin-top: 15px;
+    color: var(--accent);
+    text-align: center;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    max-width: 90vw;
+    word-wrap: break-word;
+    font-size: 1.3rem;
+}
+
+/* Убираем возможность поворота на превью изображениях */
+.scenario-preview-large .flippable-image,
+.selected-investigator-avatar .flippable-image,
+.hexagon-image .flippable-image,
+.hexagon-investigator-image .flippable-image,
+.detail-image-large .flippable-image {
+    cursor: default !important;
+}
+
+.scenario-preview-large .flip-indicator,
+.selected-investigator-avatar .flip-indicator,
+.hexagon-image .flip-indicator,
+.hexagon-investigator-image .flip-indicator,
+.detail-image-large .flip-indicator {
+    display: none !important;
+}
+
+/* Разрешаем поворот только в модальных окнах */
+#image-modal .flippable-image,
+#record-modal .flippable-image {
+    cursor: pointer !important;
+}
+
+#image-modal .flip-indicator,
+#record-modal .flip-indicator {
+    display: block !important;
+}
+
+/* Исправления для переворота изображений */
+.flippable-image {
+    position: relative;
+    display: inline-block;
+    transition: transform 0.6s ease;
+    transform-style: preserve-3d;
+}
+
+    .flippable-image.flipped {
+        transform: rotateY(180deg);
+    }
+
+    .flippable-image .image-front,
+    .flippable-image .image-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: inherit;
+        top: 0;
+        left: 0;
+    }
+
+    .flippable-image .image-front {
+        z-index: 2;
+        transform: rotateY(0deg);
+    }
+
+    .flippable-image .image-back {
+        transform: rotateY(180deg);
+        z-index: 1;
+        background: var(--secondary-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-dark);
+        font-style: italic;
+    }
+
+/* Для модальных окон - полноразмерные изображения */
+#image-modal .flippable-image .image-front,
+#image-modal .flippable-image .image-back {
+    object-fit: contain;
+}
+
+/* Стили для кнопок выбора количества игроков (6 кнопок) */
+.player-count-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.count-btn {
+    background: var(--secondary-light);
+    color: var(--text-light);
+    border: 2px solid transparent;
+    border-radius: var(--border-radius);
+    padding: 12px 8px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+    .count-btn:hover {
+        background: var(--secondary);
+        transform: translateY(-2px);
+    }
+
+    .count-btn.active {
+        background: var(--accent);
+        color: var(--secondary-dark);
+        border-color: var(--accent-dark);
+        box-shadow: var(--shadow);
+    }
+
+/* Улучшения для деталей записи - большие изображения */
+.detail-image-large {
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
+}
+
+.detail-header-image {
+    height: 200px;
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+}
+
+    .detail-header-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+/* Адаптивность для кнопок выбора игроков */
+@media (max-width: 480px) {
+    .player-count-selector {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .count-btn {
+        padding: 10px 5px;
+        font-size: 0.9rem;
+    }
+
+    .modal-image-container {
+        max-width: 95vw;
+        max-height: 70vh;
+    }
+}
+
+/* Убираем анимацию переворота для превью */
+.scenario-preview-large,
+.selected-investigator-avatar,
+.hexagon-image,
+.hexagon-investigator-image,
+.detail-image-large {
+    transform-style: flat !important;
+}
+
+    .scenario-preview-large.flipped,
+    .selected-investigator-avatar.flipped,
+    .hexagon-image.flipped,
+    .hexagon-investigator-image.flipped,
+    .detail-image-large.flipped {
+        transform: none !important;
+    }

@@ -490,8 +490,16 @@ class ArkhamHorizonTracker {
         }
     }
 
-    // Метод для переворота изображения
+    // Метод для переворота изображения (исправленная версия)
     flipImage(imgElement) {
+        // Проверяем, находится ли изображение в модальном окне, где разрешен поворот
+        const isInImageModal = imgElement.closest('#image-modal');
+        const isInRecordModal = imgElement.closest('#record-modal');
+
+        if (!isInImageModal && !isInRecordModal) {
+            return; // Запрещаем поворот вне модальных окон
+        }
+
         if (!imgElement.classList.contains('flippable-image')) {
             return;
         }
@@ -515,6 +523,7 @@ class ArkhamHorizonTracker {
             imgElement.classList.remove('flipping');
         }, 300);
     }
+
 
     handleGlobalClick(e) {
         // Обработка переворота изображений в модальных окнах
@@ -704,6 +713,7 @@ class ArkhamHorizonTracker {
         this.updateSelectedInvestigatorsPreview();
     }
 
+    // Обновляем метод updateSelectedInvestigatorsPreview для отключения поворота
     async updateSelectedInvestigatorsPreview() {
         let previewContainer = document.getElementById('selected-investigators-preview');
 
@@ -733,11 +743,10 @@ class ArkhamHorizonTracker {
 
                 return `
                 <div class="selected-investigator-item">
-                    <div class="flippable-image selected-investigator-avatar" onclick="tracker.showImageModal('${item.investigator.image}', '${item.investigator.name}')">
+                    <div class="selected-investigator-avatar" onclick="tracker.showImageModal('${item.investigator.image}', '${item.investigator.name}')">
                         <img src="${previewUrl}" 
                              alt="${item.investigator.name}" 
                              class="image-front">
-                        <div class="flip-indicator">🔄</div>
                     </div>
                     <span class="selected-investigator-name">${item.investigator.name}</span>
                     <button type="button" 
@@ -869,9 +878,8 @@ class ArkhamHorizonTracker {
 
             preview.innerHTML = `
             <div class="scenario-preview-content">
-                <div class="flippable-image scenario-preview-large" onclick="tracker.showImageModal('${scenario.image}', '${scenario.name}')">
+                <div class="scenario-preview-large" onclick="tracker.showImageModal('${scenario.image}', '${scenario.name}')">
                     <img src="${previewUrl}" alt="${scenario.name}" class="image-front">
-                    <div class="flip-indicator">🔄 Нажмите для переворота</div>
                 </div>
                 <div class="scenario-preview-info">
                     <strong>${scenario.name}</strong>
@@ -884,6 +892,7 @@ class ArkhamHorizonTracker {
         }
     }
 
+    // Обновляем метод showImageModal для правильного отображения больших изображений
     showImageModal(src, alt) {
         const modal = document.getElementById('image-modal');
         const modalBody = document.getElementById('image-modal-body');
@@ -892,6 +901,11 @@ class ArkhamHorizonTracker {
         <div class="image-modal-content">
             <div class="flippable-image modal-image-container" onclick="tracker.flipImage(this)">
                 <img src="${src}" alt="${alt}" class="image-front" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
+                <div class="image-back">
+                    <div class="image-placeholder">
+                        Обратная сторона<br>${alt}
+                    </div>
+                </div>
                 <div class="flip-indicator">🔄 Нажмите для переворота</div>
             </div>
             <h3 class="modal-title">${alt}</h3>
@@ -901,6 +915,7 @@ class ArkhamHorizonTracker {
         modal.style.display = 'block';
         document.body.classList.add('modal-open');
     }
+
 
     showRecordDetails(recordId) {
         const record = this.progress.find(item => item.id === recordId);
@@ -1119,6 +1134,7 @@ class ArkhamHorizonTracker {
         dateInput.value = today;
     }
 
+    // Обновляем метод renderHexagonGrid для отключения поворота в гексагонах
     async renderHexagonGrid() {
         const container = document.getElementById('hexagon-grid');
         const filteredProgress = this.getFilteredProgress();
@@ -1156,11 +1172,10 @@ class ArkhamHorizonTracker {
                 const previewUrl = await this.createImagePreview(investigators[0].image, investigators[0].name, 'investigator');
 
                 investigatorsHTML = `
-                <div class="flippable-image hexagon-image">
+                <div class="hexagon-image" onclick="tracker.showImageModal('${investigators[0].image}', '${investigators[0].name}')">
                     <img src="${previewUrl}" 
                          alt="${investigators[0].name}"
                          class="image-front">
-                    <div class="flip-indicator">🔄</div>
                 </div>
                 <div class="hexagon-investigator">${investigators[0].name}</div>
             `;
@@ -1169,11 +1184,10 @@ class ArkhamHorizonTracker {
                     investigators.slice(0, 4).map(async (inv) => {
                         const previewUrl = await this.createImagePreview(inv.image, inv.name, 'investigator');
                         return `
-                        <div class="flippable-image hexagon-investigator-image">
+                        <div class="hexagon-investigator-image" onclick="tracker.showImageModal('${inv.image}', '${inv.name}')">
                             <img src="${previewUrl}" 
                                  alt="${inv.name}"
                                  class="image-front">
-                            <div class="flip-indicator">🔄</div>
                         </div>
                     `;
                     })
