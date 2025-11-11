@@ -262,19 +262,13 @@ class ArkhamHorizonTracker {
     handleGlobalClick(e) {
         if ((e.target.classList.contains('flippable-image') ||
             e.target.closest('.flippable-image')) &&
-            (document.getElementById('record-modal').style.display === 'block' ||
-                document.getElementById('image-modal').style.display === 'block')) {
-
+            document.getElementById('image-modal').style.display === 'block') {
+            // Только для модального окна изображений
             const imgElement = e.target.classList.contains('flippable-image')
                 ? e.target
                 : e.target.closest('.flippable-image');
-
-            if (!e.target.classList.contains('image-front') &&
-                !e.target.classList.contains('image-back')) {
-                this.flipImage(imgElement);
-            }
+            this.flipImage(imgElement);
             return;
-        }
 
         if (e.target.classList.contains('investigator-option') ||
             e.target.parentElement.classList.contains('investigator-option')) {

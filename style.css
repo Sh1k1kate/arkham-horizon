@@ -2547,3 +2547,48 @@ body.modal-open {
     font-size: 1.2em;
     grid-column: 1 / -1;
 }
+/* Убираем возможность поворота в модальном окне записи */
+#record-modal .flippable-image {
+    cursor: default !important;
+    transform-style: flat !important;
+}
+
+    #record-modal .flippable-image.flipped {
+        transform: none !important;
+    }
+
+#record-modal .flip-indicator {
+    display: none !important;
+}
+
+/* Исправляем отображение изображений сыщиков в модальном окне */
+.selected-investigator-avatar .flippable-image,
+.detail-image-large .flippable-image {
+    cursor: pointer !important;
+    transform-style: preserve-3d !important;
+}
+
+    .selected-investigator-avatar .flippable-image .image-front img,
+    .detail-image-large .flippable-image .image-front img,
+    .selected-investigator-avatar .flippable-image .image-back img,
+    .detail-image-large .flippable-image .image-back img {
+        object-fit: cover !important;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+    }
+
+/* Для модального окна изображений - полноразмерное отображение */
+#image-modal .modal-image-container .flippable-image .image-front img,
+#image-modal .modal-image-container .flippable-image .image-back img {
+    object-fit: contain !important;
+    width: 100%;
+    height: 100%;
+}
+
+/* Убираем обрезку для превью сыщиков */
+.selected-investigator-avatar .image-front,
+.detail-image-large .image-front {
+    object-fit: cover !important;
+    object-position: center center !important;
+}
