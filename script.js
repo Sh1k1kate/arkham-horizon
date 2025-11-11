@@ -499,53 +499,26 @@ class ArkhamHorizonTracker {
         // Добавляем класс анимации
         imgElement.classList.add('flipping');
 
-        // Ждем окончания анимации и меняем изображение
+        // Ждем окончания анимации
         setTimeout(() => {
-            const img = imgElement.querySelector('img');
-            const currentSrc = img.src;
+            const isFlipped = imgElement.classList.contains('flipped');
 
-            // Определяем базовое имя файла и проверяем, перевернуто ли уже изображение
-            const baseName = currentSrc.split('/').pop();
-            const isFlipped = baseName.includes('-1.jpg');
-
-            let newSrc;
             if (isFlipped) {
                 // Возвращаем к исходному изображению
-                newSrc = currentSrc.replace('-1.jpg', '.jpg');
+                imgElement.classList.remove('flipped');
             } else {
                 // Показываем обратную сторону
-                newSrc = currentSrc.replace('.jpg', '-1.jpg');
+                imgElement.classList.add('flipped');
             }
 
-            // Создаем новое изображение для предзагрузки
-            const newImage = new Image();
-            newImage.onload = () => {
-                // Когда изображение загружено, меняем src
-                img.src = newSrc;
-                // Убираем класс анимации
-                imgElement.classList.remove('flipping');
-
-                // Добавляем/убираем класс flipped для CSS
-                if (isFlipped) {
-                    imgElement.classList.remove('flipped');
-                } else {
-                    imgElement.classList.add('flipped');
-                }
-            };
-
-            newImage.onerror = () => {
-                // Если обратная сторона не найдена, оставляем как есть
-                console.warn('Обратная сторона изображения не найдена:', newSrc);
-                imgElement.classList.remove('flipping');
-            };
-
-            newImage.src = newSrc;
-
+            // Убираем класс анимации
+            imgElement.classList.remove('flipping');
         }, 300);
     }
 
+
     handleGlobalClick(e) {
-        // Обработка переворота изображений
+        // Обработка переворота изображений в модальных окнах
         if ((e.target.classList.contains('flippable-image') ||
             e.target.closest('.flippable-image')) &&
             (document.getElementById('record-modal').style.display === 'block' ||
@@ -554,7 +527,12 @@ class ArkhamHorizonTracker {
             const imgElement = e.target.classList.contains('flippable-image')
                 ? e.target
                 : e.target.closest('.flippable-image');
-            this.flipImage(imgElement);
+
+            // Проверяем, что клик не по самому изображению внутри контейнера
+            if (!e.target.classList.contains('image-front') &&
+                !e.target.classList.contains('image-back')) {
+                this.flipImage(imgElement);
+            }
             return;
         }
 
@@ -579,27 +557,44 @@ class ArkhamHorizonTracker {
             return;
         }
 
-        // Открытие модального окна для изображений
-        if (e.target.classList.contains('investigator-preview-img') ||
-            e.target.classList.contains('scenario-preview-img') ||
-            e.target.classList.contains('hexagon-image') ||
-            e.target.classList.contains('selected-investigator-avatar') ||
-            (e.target.tagName === 'IMG' &&
-                !e.target.classList.contains('image-front') &&
-                !e.target.closest('.flippable-image'))) {
+        // Открытие модального окна для изображений из гексагонов
+        if (e.target.classList.contains('hexagon-image') ||
+            e.target.classList.contains('hexagon-investigator-image') ||
+            e.target.closest('.hexagon-image') ||
+            e.target.closest('.hexagon-investigator-image')) {
 
-            // Проверяем, что клик не по переворачиваемому изображению в модальном окне
-            if (!e.target.closest('.flippable-image') ||
-                (document.getElementById('record-modal').style.display !== 'block' &&
-                    document.getElementById('image-modal').style.display !== 'block')) {
-                this.showImageModal(e.target.src, e.target.alt);
+            const imgElement = e.target.classList.contains('hexagon-image') ||
+                e.target.classList.contains('hexagon-investigator-image')
+                ? e.target
+                : e.target.closest('.hexagon-image') ||
+                e.target.closest('.hexagon-investigator-image');
+
+            const img = imgElement.querySelector('img');
+            if (img) {
+                this.showImageModal(img.src, img.alt);
             }
+            e.stopPropagation();
             return;
         }
 
-        // Обработка кликов по гексагонам
+        // Открытие модального окна для других изображений
+        if (e.target.classList.contains('investigator-preview-img') ||
+            e.target.classList.contains('scenario-preview-img') ||
+            e.target.classList.contains('selected-investigator-avatar') ||
+            (e.target.tagName === 'IMG' &&
+                e.target.classList.contains('image-front') &&
+                !e.target.closest('.flippable-image'))) {
+
+            this.showImageModal(e.target.src, e.target.alt);
+            e.stopPropagation();
+            return;
+        }
+
+        // Обработка кликов по гексагонам (для открытия деталей записи)
         const hexagon = e.target.closest('.hexagon');
-        if (hexagon) {
+        if (hexagon && !e.target.closest('.hexagon-image') &&
+            !e.target.closest('.hexagon-investigator-image') &&
+            !e.target.classList.contains('hexagon-delete')) {
             const recordId = parseInt(hexagon.dataset.id);
             this.showRecordDetails(recordId);
             return;
@@ -610,6 +605,7 @@ class ArkhamHorizonTracker {
             this.hideAllDropdowns();
         }
     }
+
 
     handleKeyboardNavigation(e) {
         const index = parseInt(e.target.dataset.index);
@@ -710,7 +706,7 @@ class ArkhamHorizonTracker {
         this.updateSelectedInvestigatorsPreview();
     }
 
-    updateSelectedInvestigatorsPreview() {
+    async updateSelectedInvestigatorsPreview() {
         let previewContainer = document.getElementById('selected-investigators-preview');
 
         if (!previewContainer) {
@@ -733,29 +729,35 @@ class ArkhamHorizonTracker {
         }
 
         if (selectedInvestigators.length > 0) {
-            previewContainer.innerHTML = `
-                <div style="width: 100%; margin-bottom: 10px; font-weight: bold; color: var(--accent);">
-                    Выбранные сыщики (${selectedInvestigators.length}/${this.currentPlayerCount}):
-                </div>
-                ${selectedInvestigators.map(item => `
-                    <div class="selected-investigator-item">
-                        <div class="flippable-image selected-investigator-avatar" onclick="tracker.showImageModal('${item.investigator.image}', '${item.investigator.name}')">
-                            <img src="${item.investigator.image}" 
-                                 alt="${item.investigator.name}" 
-                                 class="image-front"
-                                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
-                            <div class="flip-indicator">🔄</div>
-                        </div>
-                        <span class="selected-investigator-name">${item.investigator.name}</span>
-                        <button type="button" 
-                                class="remove-selected-investigator"
-                                data-index="${item.index}"
-                                title="Удалить сыщика">
-                            ×
-                        </button>
+            // Создаем превью для всех сыщиков
+            const previewsHTML = await Promise.all(selectedInvestigators.map(async (item) => {
+                const previewUrl = await this.createImagePreview(item.investigator.image, item.investigator.name, 'investigator');
+
+                return `
+                <div class="selected-investigator-item">
+                    <div class="flippable-image selected-investigator-avatar" onclick="tracker.showImageModal('${item.investigator.image}', '${item.investigator.name}')">
+                        <img src="${previewUrl}" 
+                             alt="${item.investigator.name}" 
+                             class="image-front">
+                        <div class="flip-indicator">🔄</div>
                     </div>
-                `).join('')}
+                    <span class="selected-investigator-name">${item.investigator.name}</span>
+                    <button type="button" 
+                            class="remove-selected-investigator"
+                            data-index="${item.index}"
+                            title="Удалить сыщика">
+                        ×
+                    </button>
+                </div>
             `;
+            }));
+
+            previewContainer.innerHTML = `
+            <div style="width: 100%; margin-bottom: 10px; font-weight: bold; color: var(--accent);">
+                Выбранные сыщики (${selectedInvestigators.length}/${this.currentPlayerCount}):
+            </div>
+            ${previewsHTML.join('')}
+        `;
         } else {
             previewContainer.innerHTML = '<div style="color: var(--text-dark); font-style: italic;">Сыщики не выбраны</div>';
         }
@@ -770,6 +772,46 @@ class ArkhamHorizonTracker {
             }
         }
         return selected;
+    }
+
+    createImagePreview(src, alt, type = 'scenario') {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                // Размеры превью
+                const width = type === 'scenario' ? 240 : 60;
+                const height = type === 'scenario' ? 160 : 60;
+
+                canvas.width = width;
+                canvas.height = height;
+
+                // Определяем какую половину брать
+                const sourceWidth = img.width / 2;
+                const sourceX = type === 'scenario' ? 0 : img.width / 2; // Левая для сценариев, правая для сыщиков
+                const sourceY = 0;
+                const sourceHeight = img.height;
+
+                // Рисуем половинку изображения
+                ctx.drawImage(
+                    img,
+                    sourceX, sourceY, sourceWidth, sourceHeight, // source rectangle
+                    0, 0, width, height // destination rectangle
+                );
+
+                const previewUrl = canvas.toDataURL('image/jpeg', 0.8);
+                resolve(previewUrl);
+            };
+
+            img.onerror = () => {
+                // Если изображение не загружается, используем оригинальный src
+                resolve(src);
+            };
+
+            img.src = src;
+        });
     }
 
     setupModal() {
@@ -818,15 +860,19 @@ class ArkhamHorizonTracker {
         });
     }
 
-    showScenarioPreview(scenarioKey) {
+    async showScenarioPreview(scenarioKey) {
         const preview = document.getElementById('scenario-preview');
 
         if (scenarioKey && this.scenarios[scenarioKey]) {
             const scenario = this.scenarios[scenarioKey];
+
+            // Создаем превью с левой половиной
+            const previewUrl = await this.createImagePreview(scenario.image, scenario.name, 'scenario');
+
             preview.innerHTML = `
             <div class="scenario-preview-content">
                 <div class="flippable-image scenario-preview-large" onclick="tracker.showImageModal('${scenario.image}', '${scenario.name}')">
-                    <img src="${scenario.image}" alt="${scenario.name}" class="image-front" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
+                    <img src="${previewUrl}" alt="${scenario.name}" class="image-front">
                     <div class="flip-indicator">🔄 Нажмите для переворота</div>
                 </div>
                 <div class="scenario-preview-info">
@@ -857,6 +903,7 @@ class ArkhamHorizonTracker {
         modal.style.display = 'block';
         document.body.classList.add('modal-open');
     }
+
 
     showRecordDetails(recordId) {
         const record = this.progress.find(item => item.id === recordId);
@@ -1075,7 +1122,7 @@ class ArkhamHorizonTracker {
         dateInput.value = today;
     }
 
-    renderHexagonGrid() {
+    async renderHexagonGrid() {
         const container = document.getElementById('hexagon-grid');
         const filteredProgress = this.getFilteredProgress();
         const recordsCount = document.getElementById('records-count');
@@ -1091,7 +1138,8 @@ class ArkhamHorizonTracker {
             new Date(b.timestamp) - new Date(a.timestamp)
         );
 
-        container.innerHTML = sortedProgress.map(item => {
+        // Создаем HTML для всех гексагонов с превью
+        const hexagonsHTML = await Promise.all(sortedProgress.map(async (item) => {
             const scenario = this.scenarios[item.scenario];
             const investigators = Array.isArray(item.investigator)
                 ? item.investigator.map(key => this.investigators[key])
@@ -1108,64 +1156,73 @@ class ArkhamHorizonTracker {
 
             let investigatorsHTML = '';
             if (investigators.length === 1) {
+                const previewUrl = await this.createImagePreview(investigators[0].image, investigators[0].name, 'investigator');
+
                 investigatorsHTML = `
-                    <div class="flippable-image hexagon-image" onclick="tracker.showImageModal('${investigators[0].image}', '${investigators[0].name}')">
-                        <img src="${investigators[0].image}" 
-                             alt="${investigators[0].name}"
-                             class="image-front"
-                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
-                        <div class="flip-indicator">🔄</div>
-                    </div>
-                    <div class="hexagon-investigator">${investigators[0].name}</div>
-                `;
+                <div class="flippable-image hexagon-image">
+                    <img src="${previewUrl}" 
+                         alt="${investigators[0].name}"
+                         class="image-front">
+                    <div class="flip-indicator">🔄</div>
+                </div>
+                <div class="hexagon-investigator">${investigators[0].name}</div>
+            `;
             } else {
+                const investigatorPreviews = await Promise.all(
+                    investigators.slice(0, 4).map(async (inv) => {
+                        const previewUrl = await this.createImagePreview(inv.image, inv.name, 'investigator');
+                        return `
+                        <div class="flippable-image hexagon-investigator-image">
+                            <img src="${previewUrl}" 
+                                 alt="${inv.name}"
+                                 class="image-front">
+                            <div class="flip-indicator">🔄</div>
+                        </div>
+                    `;
+                    })
+                );
+
                 investigatorsHTML = `
-                    <div class="hexagon-investigators">
-                        ${investigators.slice(0, 4).map(inv => `
-                            <div class="flippable-image hexagon-investigator-image" onclick="tracker.showImageModal('${inv.image}', '${inv.name}')">
-                                <img src="${inv.image}" 
-                                     alt="${inv.name}"
-                                     class="image-front"
-                                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
-                                <div class="flip-indicator">🔄</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="hexagon-investigator-list">
-                        ${investigators.map(inv => inv.name).join(', ')}
-                    </div>
-                `;
+                <div class="hexagon-investigators">
+                    ${investigatorPreviews.join('')}
+                </div>
+                <div class="hexagon-investigator-list">
+                    ${investigators.map(inv => inv.name).join(', ')}
+                </div>
+            `;
             }
 
             return `
-                <div class="hexagon ${item.result}" data-id="${item.id}">
-                    <div class="hexagon-inner" ${backgroundStyle}>
-                        <div class="hexagon-actions">
-                            <button class="hexagon-delete" onclick="event.stopPropagation(); tracker.deleteProgress(${item.id})" title="Удалить запись">
-                                ×
-                            </button>
-                        </div>
-                        
-                        <div class="hexagon-header">
-                            ${investigatorsHTML}
-                            <div class="hexagon-scenario">${scenario.name}</div>
-                        </div>
-                        
-                        <div class="hexagon-meta">
-                            <div class="hexagon-date">${this.formatDate(item.date)}</div>
-                            <div class="hexagon-team-size">👥 ${investigators.length}</div>
-                            <div class="hexagon-result">${resultText}</div>
-                        </div>
-                        
-                        ${item.notes ? `
-                            <div class="hexagon-notes" title="${item.notes}">
-                                💬 ${this.truncateText(item.notes, 60)}
-                            </div>
-                        ` : ''}
+            <div class="hexagon ${item.result}" data-id="${item.id}">
+                <div class="hexagon-inner" ${backgroundStyle}>
+                    <div class="hexagon-actions">
+                        <button class="hexagon-delete" onclick="event.stopPropagation(); tracker.deleteProgress(${item.id})" title="Удалить запись">
+                            ×
+                        </button>
                     </div>
+                    
+                    <div class="hexagon-header">
+                        ${investigatorsHTML}
+                        <div class="hexagon-scenario">${scenario.name}</div>
+                    </div>
+                    
+                    <div class="hexagon-meta">
+                        <div class="hexagon-date">${this.formatDate(item.date)}</div>
+                        <div class="hexagon-team-size">👥 ${investigators.length}</div>
+                        <div class="hexagon-result">${resultText}</div>
+                    </div>
+                    
+                    ${item.notes ? `
+                        <div class="hexagon-notes" title="${item.notes}">
+                            💬 ${this.truncateText(item.notes, 60)}
+                        </div>
+                    ` : ''}
                 </div>
-            `;
-        }).join('');
+            </div>
+        `;
+        }));
+
+        container.innerHTML = hexagonsHTML.join('');
     }
 
     getFilteredProgress() {
@@ -1358,7 +1415,7 @@ class ArkhamHorizonTracker {
         }
     }
 
-    showUniversalProgress() {
+    async showUniversalProgress() {
         const totalCombinations = Object.keys(this.investigators).length * Object.keys(this.scenarios).length;
         const completedCombinations = new Set();
 
@@ -1375,7 +1432,34 @@ class ArkhamHorizonTracker {
 
         const progressPercent = Math.round((completedCombinations.size / totalCombinations) * 100);
 
-        let progressHTML = `
+        // Создаем превью для всех сыщиков в таблице
+        const tableRows = await Promise.all(
+            Object.entries(this.investigators).map(async ([invKey, investigator]) => {
+                const previewUrl = await this.createImagePreview(investigator.image, investigator.name, 'investigator');
+
+                const scenarioCells = Object.keys(this.scenarios).map(scenarioKey => {
+                    const combination = `${invKey}-${scenarioKey}`;
+                    const isCompleted = completedCombinations.has(combination);
+                    const scenario = this.scenarios[scenarioKey];
+                    return `<td class="scenario-cell ${isCompleted ? 'completed' : 'pending'}"
+                          title="${scenario.name} - ${investigator.name} (${isCompleted ? 'Пройдено' : 'Не пройдено'})">
+                    ${isCompleted ? '✅' : '❌'}
+                </td>`;
+                }).join('');
+
+                return `
+                <tr>
+                    <td class="investigator-cell" title="${investigator.description}">
+                        <img src="${previewUrl}" alt="${investigator.name}" class="table-investigator-img">
+                        ${investigator.name}
+                    </td>
+                    ${scenarioCells}
+                </tr>
+            `;
+            })
+        );
+
+        const progressHTML = `
         <div class="universal-progress">
             <div class="progress-header">
                 <h3>🌍 Прогресс достижения "Древнее божество"</h3>
@@ -1411,23 +1495,7 @@ class ArkhamHorizonTracker {
                         </tr>
                     </thead>
                     <tbody>
-                        ${Object.entries(this.investigators).map(([invKey, investigator]) => `
-                            <tr>
-                                <td class="investigator-cell" title="${investigator.description}">
-                                    <img src="${investigator.image}" alt="${investigator.name}" class="table-investigator-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
-                                    ${investigator.name}
-                                </td>
-                                ${Object.keys(this.scenarios).map(scenarioKey => {
-            const combination = `${invKey}-${scenarioKey}`;
-            const isCompleted = completedCombinations.has(combination);
-            const scenario = this.scenarios[scenarioKey];
-            return `<td class="scenario-cell ${isCompleted ? 'completed' : 'pending'}"
-                                              title="${scenario.name} - ${investigator.name} (${isCompleted ? 'Пройдено' : 'Не пройдено'})">
-                                        ${isCompleted ? '✅' : '❌'}
-                                    </td>`;
-        }).join('')}
-                            </tr>
-                        `).join('')}
+                        ${tableRows.join('')}
                     </tbody>
                 </table>
             </div>
