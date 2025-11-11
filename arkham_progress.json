@@ -1,6 +1,20 @@
 {
   "progress": [
     {
+      "id": 1762527414152,
+      "investigator": [
+        "dexter",
+        "minh",
+        "rex"
+      ],
+      "scenario": "feast_umordhoth",
+      "date": "2025-11-07",
+      "result": "win",
+      "notes": "Сняли почти все хп дебафами и добили в 3 штыкас",
+      "timestamp": "2025-11-07T14:56:54.152Z",
+      "playerCount": 3
+    },
+    {
       "id": 1762455665493,
       "investigator": [
         "dexter",
@@ -41,18 +55,17 @@
       "playerCount": 3
     },
     {
-      "id": 1762527414152,
+      "id": 1762844827716,
       "investigator": [
-        "dexter",
-        "minh",
-        "rex"
+        "agnes",
+        "minh"
       ],
-      "scenario": "feast_umordhoth",
-      "date": "2025-11-07",
+      "scenario": "echo_deep",
+      "date": "2025-11-11",
       "result": "win",
-      "notes": "Сняли почти все хп дебафами и добили в 3 штыкас",
-      "timestamp": "2025-11-07T14:56:54.152Z",
-      "playerCount": 3
+      "notes": "",
+      "timestamp": "2025-11-11T07:07:07.716Z",
+      "playerCount": 2
     }
   ],
   "achievements": {
@@ -70,7 +83,7 @@
       "target": 5,
       "icon": "🏕️",
       "unlocked": false,
-      "progress": 2
+      "progress": 4
     },
     "veteran": {
       "name": "Ветеран Аркхема",
@@ -78,7 +91,7 @@
       "target": 10,
       "icon": "🎖️",
       "unlocked": false,
-      "progress": 2
+      "progress": 4
     },
     "expert": {
       "name": "Эксперт по Древним",
@@ -86,7 +99,7 @@
       "target": 20,
       "icon": "👑",
       "unlocked": false,
-      "progress": 2
+      "progress": 4
     },
     "specialist": {
       "name": "Мастер одного пути",
@@ -94,7 +107,7 @@
       "target": 5,
       "icon": "🎯",
       "unlocked": false,
-      "progress": 3
+      "progress": 4
     },
     "collector": {
       "name": "Собиратель опыта",
@@ -102,7 +115,7 @@
       "target": 28,
       "icon": "📚",
       "unlocked": false,
-      "progress": 3
+      "progress": 4
     },
     "triumphant": {
       "name": "Триумфатор",
@@ -110,7 +123,7 @@
       "target": 100,
       "icon": "🏆",
       "unlocked": false,
-      "progress": 2
+      "progress": 3
     },
     "survivor": {
       "name": "Выживший",
@@ -126,7 +139,7 @@
       "target": 10,
       "icon": "👥",
       "unlocked": false,
-      "progress": 3
+      "progress": 4
     },
     "fullteam": {
       "name": "Полная команда",
@@ -142,7 +155,7 @@
       "target": 13,
       "icon": "📖",
       "unlocked": false,
-      "progress": 2
+      "progress": 3
     },
     "universal": {
       "name": "Древнее божество",
@@ -150,7 +163,7 @@
       "target": 364,
       "icon": "💀📖💀",
       "unlocked": false,
-      "progress": 5
+      "progress": 8
     },
     "unlucky": {
       "name": "Невезучий",
@@ -159,17 +172,9 @@
       "icon": "🍀",
       "unlocked": false,
       "progress": 1
-    },
-    "hellspawn": {
-      "name": " Порождение ада",
-      "description": "пройдите игру в режиме Тотальный пиздец",
-      "target": 1,
-      "icon": "☠️☠️☠️",
-      "unlocked": false,
-      "progress": 0
     }
   },
-  "timestamp": "2025-11-07T14:56:54.152Z",
+  "timestamp": "2025-11-11T07:07:07.716Z",
   "version": "3.0",
   "app": "Arkham Horror Tracker"
 }
