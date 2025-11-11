@@ -266,8 +266,8 @@ class ArkhamHorizonTracker {
             },
             triumphant: {
                 name: 'Триумфатор',
-                description: 'Одержите 10 побед',
-                target: 10,
+                description: 'Одержите 100 побед',
+                target: 100,
                 icon: '🏆',
                 unlocked: false,
                 progress: 0
@@ -308,7 +308,7 @@ class ArkhamHorizonTracker {
                 name: 'Древнее божество',
                 description: 'Пройдите все сюжеты кампании за всех персонажей',
                 target: Object.keys(this.investigators).length * Object.keys(this.scenarios).length,
-                icon: '💀📖',
+                icon: '💀📖💀',
                 unlocked: false,
                 progress: 0
             },
@@ -319,7 +319,15 @@ class ArkhamHorizonTracker {
                 icon: '🍀',
                 unlocked: false,
                 progress: 0
-            }
+            },
+            hellspawn:{
+                 name: ' Порождение ада',
+                 description: 'пройдите игру в режиме Тотальный пиздец',
+                 target:1,
+                 icon:'☠️☠️☠️',
+                 unlocked: false,
+                 progress:0
+              }
         };
 
         this.selectedInvestigators = [];
@@ -1271,13 +1279,13 @@ class ArkhamHorizonTracker {
         this.achievements.beginner.progress = Math.min(totalScenarios, this.achievements.beginner.target);
         this.achievements.beginner.unlocked = this.achievements.beginner.progress >= this.achievements.beginner.target;
 
-        this.achievements.adventurer.progress = Math.min(totalScenarios, this.achievements.adventurer.target);
+        this.achievements.adventurer.progress = Math.min(wins, this.achievements.adventurer.target);
         this.achievements.adventurer.unlocked = this.achievements.adventurer.progress >= this.achievements.adventurer.target;
 
-        this.achievements.veteran.progress = Math.min(totalScenarios, this.achievements.veteran.target);
+        this.achievements.veteran.progress = Math.min(wins, this.achievements.veteran.target);
         this.achievements.veteran.unlocked = this.achievements.veteran.progress >= this.achievements.veteran.target;
 
-        this.achievements.expert.progress = Math.min(totalScenarios, this.achievements.expert.target);
+        this.achievements.expert.progress = Math.min(wins, this.achievements.expert.target);
         this.achievements.expert.unlocked = this.achievements.expert.progress >= this.achievements.expert.target;
 
         this.achievements.specialist.progress = Math.min(maxScenariosWithOneInvestigator, this.achievements.specialist.target);
