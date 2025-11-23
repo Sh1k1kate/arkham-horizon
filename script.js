@@ -214,11 +214,10 @@ class ArkhamHorizonTracker {
     }
 
     flipImage(imgElement) {
-        // Проверяем, находится ли изображение в модальном окне
+        // Проверяем, находится ли изображение в модальном окне изображений
         const isInImageModal = imgElement.closest('#image-modal');
-        const isInRecordModal = imgElement.closest('#record-modal');
 
-        if (!isInImageModal && !isInRecordModal) {
+        if (!isInImageModal) {
             return;
         }
 
@@ -260,19 +259,7 @@ class ArkhamHorizonTracker {
     }
 
     handleGlobalClick(e) {
-        if (e.target.closest('#record-modal')) {
-            // Не переворачиваем изображения в модальном окне записи
-            return;
-        if ((e.target.classList.contains('flippable-image') ||
-            e.target.closest('.flippable-image')) &&
-            document.getElementById('image-modal').style.display === 'block') {
-            // Только для модального окна изображений
-            const imgElement = e.target.classList.contains('flippable-image')
-                ? e.target
-                : e.target.closest('.flippable-image');
-            this.flipImage(imgElement);
-            return;
-
+        // Обработка кликов на опции сыщиков
         if (e.target.classList.contains('investigator-option') ||
             e.target.parentElement.classList.contains('investigator-option')) {
 
@@ -286,12 +273,14 @@ class ArkhamHorizonTracker {
             return;
         }
 
+        // Обработка удаления выбранных сыщиков
         if (e.target.classList.contains('remove-selected-investigator')) {
             const index = parseInt(e.target.dataset.index);
             this.clearInvestigatorField(index);
             return;
         }
 
+        // Обработка кликов на изображения в гексагонах
         if (e.target.classList.contains('hexagon-image') ||
             e.target.classList.contains('hexagon-investigator-image') ||
             e.target.closest('.hexagon-image') ||
@@ -311,6 +300,7 @@ class ArkhamHorizonTracker {
             return;
         }
 
+        // Обработка кликов на превью изображения
         if (e.target.classList.contains('investigator-preview-img') ||
             e.target.classList.contains('scenario-preview-img') ||
             e.target.classList.contains('selected-investigator-avatar') ||
@@ -323,6 +313,7 @@ class ArkhamHorizonTracker {
             return;
         }
 
+        // Обработка кликов на гексагоны
         const hexagon = e.target.closest('.hexagon');
         if (hexagon && !e.target.closest('.hexagon-image') &&
             !e.target.closest('.hexagon-investigator-image') &&
@@ -332,6 +323,7 @@ class ArkhamHorizonTracker {
             return;
         }
 
+        // Скрытие всех выпадающих списков
         if (!e.target.classList.contains('investigator-search')) {
             this.hideAllDropdowns();
         }
@@ -643,22 +635,13 @@ class ArkhamHorizonTracker {
             'other': '❓ Иной исход'
         }[record.result] || '❓ Иной исход';
 
-        // Сыщики в модальном окне - переворачиваемые
+        // Сыщики в модальном окне
         const investigatorsHTML = investigators.map(investigator => {
-            const backSideSrc = investigator.image.replace(/\.[^/.]+$/, "") + "-1.jpg";
-
             return `
         <div class="detail-value">
-            <div class="flippable-image detail-image-large" onclick="tracker.flipImage(this)">
-                <div class="image-front">
-                    <img src="${investigator.image}" alt="${investigator.name}" 
-                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
-                </div>
-                <div class="image-back">
-                    <img src="${backSideSrc}" alt="Обратная сторона: ${investigator.name}" 
-                         onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\"image-placeholder\">Обратная сторона<br>${investigator.name}</div>'">
-                </div>
-                <div class="flip-indicator">🔄</div>
+            <div class="detail-image-large" onclick="tracker.showImageModal('${investigator.image}', '${investigator.name}')">
+                <img src="${investigator.image}" alt="${investigator.name}" 
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
             </div>
             <div>
                 <strong>${investigator.name}</strong>
@@ -668,22 +651,12 @@ class ArkhamHorizonTracker {
     `;
         }).join('');
 
-        // Сценарий в модальном окне - переворачиваемый
-        const scenarioBackSideSrc = scenario.image.replace(/\.[^/.]+$/, "") + "-1.jpg";
-
         modalContent.innerHTML = `
     <div class="record-details">
         <div class="detail-header">
-            <div class="flippable-image detail-header-image" onclick="tracker.flipImage(this)">
-                <div class="image-front">
-                    <img src="${scenario.image}" alt="${scenario.name}" 
-                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
-                </div>
-                <div class="image-back">
-                    <img src="${scenarioBackSideSrc}" alt="Обратная сторона: ${scenario.name}" 
-                         onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\"image-placeholder\">Обратная сторона<br>${scenario.name}</div>'">
-                </div>
-                <div class="flip-indicator">🔄 Нажмите для переворота</div>
+            <div class="detail-header-image" onclick="tracker.showImageModal('${scenario.image}', '${scenario.name}')">
+                <img src="${scenario.image}" alt="${scenario.name}" 
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
             </div>
             <div class="detail-overlay">
                 <h2 class="detail-title">${scenario.name}</h2>
