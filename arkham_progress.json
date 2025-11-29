@@ -53,6 +53,23 @@
       "notes": "Играли долго, победили, Лиза почти сразу уснула после победы",
       "timestamp": "2025-11-04T13:19:39.833Z",
       "playerCount": 3
+    },
+    {
+      "id": 1764421356262,
+      "investigator": [
+        "dexter",
+        "rex",
+        "calvin",
+        "roland",
+        "michael",
+        "carson"
+      ],
+      "scenario": "coming_azathoth",
+      "date": "2025-11-29",
+      "result": "loss",
+      "notes": "",
+      "timestamp": "2025-11-29T13:02:36.262Z",
+      "playerCount": 6
     }
   ],
   "achievements": {
@@ -69,8 +86,8 @@
       "description": "Пройдите 5 сюжетов",
       "target": 5,
       "icon": "🏕️",
-      "unlocked": true,
-      "progress": 5
+      "unlocked": false,
+      "progress": 4
     },
     "veteran": {
       "name": "Ветеран Аркхема",
@@ -78,7 +95,7 @@
       "target": 10,
       "icon": "🎖️",
       "unlocked": false,
-      "progress": 5
+      "progress": 4
     },
     "expert": {
       "name": "Эксперт по Древним",
@@ -86,7 +103,7 @@
       "target": 20,
       "icon": "👑",
       "unlocked": false,
-      "progress": 5
+      "progress": 4
     },
     "specialist": {
       "name": "Мастер одного пути",
@@ -102,7 +119,7 @@
       "target": 28,
       "icon": "📚",
       "unlocked": false,
-      "progress": 5
+      "progress": 4
     },
     "triumphant": {
       "name": "Триумфатор",
@@ -110,7 +127,7 @@
       "target": 100,
       "icon": "🏆",
       "unlocked": false,
-      "progress": 4
+      "progress": 3
     },
     "survivor": {
       "name": "Выживший",
@@ -126,7 +143,7 @@
       "target": 10,
       "icon": "👥",
       "unlocked": false,
-      "progress": 5
+      "progress": 4
     },
     "fullteam": {
       "name": "Полная команда",
@@ -150,7 +167,7 @@
       "target": 364,
       "icon": "💀📖💀",
       "unlocked": false,
-      "progress": 10
+      "progress": 8
     },
     "unlucky": {
       "name": "Невезучий",
@@ -161,7 +178,7 @@
       "progress": 1
     }
   },
-  "timestamp": "2025-11-11T07:07:15.944Z",
+  "timestamp": "2025-11-29T13:02:36.262Z",
   "version": "3.0",
   "app": "Arkham Horror Tracker"
 }
