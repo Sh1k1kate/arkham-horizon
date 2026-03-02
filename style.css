@@ -1507,12 +1507,12 @@ section {
     font-style: italic;
 }
 
-/* Превью выбранных сыщиков */
+/* Стили для превью выбранных сыщиков */
 .selected-investigators-preview {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 15px;
+    gap: 15px;
+    margin-top: 20px;
     padding: 15px;
     background: rgba(15, 15, 26, 0.5);
     border-radius: var(--border-radius);
@@ -1522,15 +1522,31 @@ section {
 .selected-investigator-item {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     background: var(--secondary-light);
     padding: 8px 12px;
     border-radius: var(--border-radius);
     border: 1px solid rgba(218, 165, 32, 0.3);
 }
 
+.selected-investigator-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--accent);
+    cursor: pointer;
+}
+
+.selected-investigator-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 .selected-investigator-name {
     font-size: 0.9rem;
+    color: var(--text-light);
 }
 
 .remove-selected-investigator {
@@ -1538,15 +1554,17 @@ section {
     border: none;
     color: var(--danger);
     cursor: pointer;
-    padding: 2px 5px;
+    padding: 2px 8px;
     border-radius: 3px;
-    transition: background 0.3s ease;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
 }
 
-    .remove-selected-investigator:hover {
-        background: var(--danger);
-        color: white;
-    }
+.remove-selected-investigator:hover {
+    background: var(--danger);
+    color: white;
+}
+
 
 /* Стили для таблицы прогресса */
 .universal-progress {
@@ -2094,11 +2112,40 @@ body.modal-open {
 /* Стили для превью сценария */
 .scenario-preview-content {
     text-align: center;
+    padding: 15px;
+    background: rgba(15, 15, 26, 0.5);
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(218, 165, 32, 0.2);
+}
+
+.scenario-preview-large {
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.scenario-preview-large img {
+    width: 240px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 3px solid var(--accent);
+    transition: transform 0.3s ease;
+}
+
+.scenario-preview-large img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(218, 165, 32, 0.5);
 }
 
 .scenario-preview-info {
     text-align: center;
-    margin-top: 10px;
+}
+
+.scenario-preview-info strong {
+    color: var(--accent);
+    font-size: 1.1rem;
+    display: block;
+    margin-bottom: 5px;
 }
 
 .scenario-preview-desc {
