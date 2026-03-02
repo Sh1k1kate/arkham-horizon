@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аркхем Хорайзон - Справочник карт</title>
+    <meta name="description" content="Полный справочник карт для игры Ужас Аркхема 3-я редакция">
+    <meta name="keywords" content="Ужас Аркхема, Arkham Horror, карты, справочник, сыщики, сценарии, древние">
+    
+    <!-- Favicon с щупальцем и глазом -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='tentacleGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%238b0000' /%3E%3Cstop offset='100%25' style='stop-color:%235a0000' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M50 10 Q30 30 25 50 Q20 70 30 85 Q40 95 55 90 Q70 85 75 70 Q80 55 70 40 Q60 25 50 10' fill='url(%23tentacleGrad)' stroke='%23daa520' stroke-width='3'/%3E%3Ccircle cx='45' cy='40' r='12' fill='%23ffffff' stroke='%23daa520' stroke-width='2'/%3E%3Ccircle cx='45' cy='40' r='6' fill='%23000000'/%3E%3Ccircle cx='42' cy='37' r='2' fill='%23ffffff'/%3E%3C/svg%3E">
+    <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='tentacleGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%238b0000' /%3E%3Cstop offset='100%25' style='stop-color:%235a0000' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M50 10 Q30 30 25 50 Q20 70 30 85 Q40 95 55 90 Q70 85 75 70 Q80 55 70 40 Q60 25 50 10' fill='url(%23tentacleGrad)' stroke='%23daa520' stroke-width='3'/%3E%3Ccircle cx='45' cy='40' r='12' fill='%23ffffff' stroke='%23daa520' stroke-width='2'/%3E%3Ccircle cx='45' cy='40' r='6' fill='%23000000'/%3E%3Ccircle cx='42' cy='37' r='2' fill='%23ffffff'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='tentacleGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%238b0000' /%3E%3Cstop offset='100%25' style='stop-color:%235a0000' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M50 10 Q30 30 25 50 Q20 70 30 85 Q40 95 55 90 Q70 85 75 70 Q80 55 70 40 Q60 25 50 10' fill='url(%23tentacleGrad)' stroke='%23daa520' stroke-width='3'/%3E%3Ccircle cx='45' cy='40' r='12' fill='%23ffffff' stroke='%23daa520' stroke-width='2'/%3E%3Ccircle cx='45' cy='40' r='6' fill='%23000000'/%3E%3Ccircle cx='42' cy='37' r='2' fill='%23ffffff'/%3E%3C/svg%3E">
+    
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Дополнительные стили только для страницы справочника */
+        .help-page {
+            padding-top: 20px;
+        }
+        
+        .help-controls {
+            background: rgba(26, 26, 46, 0.7);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(218, 165, 32, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            transform: translateX(-5px);
+            text-shadow: 0 0 10px var(--accent);
+        }
+        
+        .cards-count {
+            text-align: center;
+            color: var(--text-dark);
+            margin: 20px 0;
+            font-size: 1.1rem;
+        }
+        
+        .cards-count span {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+        
+        .no-results-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--text-dark);
+            font-style: italic;
+            padding: 60px 20px;
+            font-size: 1.2rem;
+            background: rgba(15, 15, 26, 0.5);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(218, 165, 32, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Фон с атмосферными элементами -->
+    <div class="background-elements">
+        <div class="tentacle tentacle-1"></div>
+        <div class="tentacle tentacle-2"></div>
+        <div class="tentacle tentacle-3"></div>
+        <div class="tentacle tentacle-4"></div>
+        <div class="eldritch-symbol symbol-1">⚸</div>
+        <div class="eldritch-symbol symbol-2">♆</div>
+        <div class="eldritch-symbol symbol-3">♇</div>
+        <div class="eldritch-symbol symbol-4">⚕</div>
+        <div class="eldritch-symbol symbol-5">⚚</div>
+        <div class="ancient-rune rune-1">ᚠ</div>
+        <div class="ancient-rune rune-2">ᚢ</div>
+        <div class="ancient-rune rune-3">ᚦ</div>
+        <div class="ancient-rune rune-4">ᚨ</div>
+        <div class="ancient-rune rune-5">ᚱ</div>
+        <div class="nebula nebula-1"></div>
+        <div class="nebula nebula-2"></div>
+        <div class="nebula nebula-3"></div>
+        <div class="floating-eye eye-1">👁️</div>
+        <div class="floating-eye eye-2">👁️</div>
+        <div class="floating-eye eye-3">👁️</div>
+        <div class="pulsating-orb orb-1"></div>
+        <div class="pulsating-orb orb-2"></div>
+        <div class="pulsating-orb orb-3"></div>
+        <div class="whispering-shadow shadow-1"></div>
+        <div class="whispering-shadow shadow-2"></div>
+    </div>
+
+    <div class="container help-page">
+        <!-- Заголовок -->
+        <header class="main-header">
+            <div class="title-container">
+                <h1 class="main-title eldritch-text">Справочник исследователя</h1>
+                <p class="subtitle ancient-script">Все карты игры Ужас Аркхэма 3-я редакция</p>
+                <div class="decoration-line"></div>
+                <div class="header-ornament">
+                    <a href="index.html" class="back-link">← Вернуться к трекеру</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Поиск и фильтры -->
+        <div class="help-controls">
+            <div class="help-search">
+                <input type="text" id="help-search" class="help-search-input" placeholder="🔍 Поиск карт по названию...">
+            </div>
+            <div class="help-filters">
+                <button class="help-filter-btn active" data-category="all">Все</button>
+                <button class="help-filter-btn" data-category="investigator">Сыщики</button>
+                <button class="help-filter-btn" data-category="scenario">Сценарии</button>
+                <button class="help-filter-btn" data-category="ancient">Древние</button>
+                <button class="help-filter-btn" data-category="item">Предметы</button>
+                <button class="help-filter-btn" data-category="spell">Заклинания</button>
+            </div>
+            <div class="cards-count" id="cards-count">Загружается...</div>
+        </div>
+
+        <!-- Сетка карт -->
+        <section class="records-section">
+            <h2 class="section-title eldritch-text">⬡ Картотека Аркхэма</h2>
+            <div class="help-grid" id="cards-container">
+                <!-- Карты будут загружаться через JavaScript -->
+                <div class="no-results-message">Загрузка картотеки...</div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Модальное окно для изображений -->
+    <div id="image-modal" class="modal">
+        <div class="modal-content image-modal-content">
+            <span class="close" onclick="document.getElementById('image-modal').style.display='none'">&times;</span>
+            <div id="image-modal-body" class="modal-body image-modal-body">
+                <!-- Содержимое будет вставлено через JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомления -->
+    <div id="notification-container" class="notification-container"></div>
+
+    <script>
+        // Класс для управления справочником
+        class CardReference {
+            constructor() {
+                this.cards = {
+                    investigators: [],
+                    scenarios: [],
+                    ancient: [],
+                    items: [],
+                    spells: []
+                };
+            }
+
+            // Загрузка данных о картах
+            async loadCardData() {
+                // Сыщики
+                this.cards.investigators = [
+                    { name: 'Агнес Бейкер', image: './images/investigators/agnes.jpg', description: 'Официантка с пробудившимися экстрасенсорными способностями', type: 'investigator' },
+                    { name: '«Жестянка» Пит', image: './images/investigators/pete.jpg', description: 'Бродяга с верным спутником - вороном', type: 'investigator' },
+                    { name: 'Кэлвин Райт', image: './images/investigators/calvin.jpg', description: 'Преследуемый прошлыми травмами', type: 'investigator' },
+                    { name: 'Даниэла Рейес', image: './images/investigators/daniela.jpg', description: 'Механик с техническим складом ума', type: 'investigator' },
+                    { name: 'Декстер Дрейк', image: './images/investigators/dexter.jpg', description: 'Фокусник, владеющий иллюзиями', type: 'investigator' },
+                    { name: 'Дженни Барнс', image: './images/investigators/jenny.jpg', description: 'Девушка из высшего общества с боевыми навыками', type: 'investigator' },
+                    { name: 'Мари Ламбо', image: './images/investigators/marie.jpg', description: 'Певица с гипнотическим голосом', type: 'investigator' },
+                    { name: 'Майкл МакГлен', image: './images/investigators/michael.jpg', description: 'Гангстер, привыкший решать вопросы силой', type: 'investigator' },
+                    { name: 'Минь Тхи Фан', image: './images/investigators/minh.jpg', description: 'Секретарь-архивариус с феноменальной памятью', type: 'investigator' },
+                    { name: 'Норман Уизерс', image: './images/investigators/norman.jpg', description: 'Астроном, открывший ужасающие тайны вселенной', type: 'investigator' },
+                    { name: 'Рекс Мёрфи', image: './images/investigators/rex.jpg', description: 'Репортёр, ищущий сенсационные разоблачения', type: 'investigator' },
+                    { name: 'Роланд Бэнкс', image: './images/investigators/roland.jpg', description: 'Федеральный агент с аналитическим складом ума', type: 'investigator' },
+                    { name: '«Шквал» О\'Тул', image: './images/investigators/skids.jpg', description: 'Бывший заключенный, ищущий искупления', type: 'investigator' },
+                    { name: 'Томми Малдун', image: './images/investigators/tommy.jpg', description: 'Полицейский-новичок с обострённым чувством справедливости', type: 'investigator' },
+                    { name: 'Венди Адамс', image: './images/investigators/wendy.jpg', description: 'Бездомная сирота, мастер побегов и уклонений', type: 'investigator' },
+                    { name: 'Зои Сэмарас', image: './images/investigators/zoey.jpg', description: 'Повар с необычными кулинарными талантами', type: 'investigator' },
+                    { name: 'Агата Крейн', image: './images/investigators/agatha.jpg', description: 'Парапсихолог, изучающая потусторонние явления', type: 'investigator' },
+                    { name: 'Карсон Синклер', image: './images/investigators/carson.jpg', description: 'Дворецкий с безупречными манерами и наблюдательностью', type: 'investigator' },
+                    { name: 'Чарли Кейн', image: './images/investigators/charley.jpg', description: 'Политик, владеющий искусством убеждения', type: 'investigator' },
+                    { name: 'Диана Стэнли', image: './images/investigators/diana.jpg', description: 'Искупившаяся культистка, борющаяся со своим прошлым', type: 'investigator' },
+                    { name: 'Отец Матео', image: './images/investigators/mateo.jpg', description: 'Священник, сражающийся с демоническими силами', type: 'investigator' },
+                    { name: 'Кейт Уинтроп', image: './images/investigators/kate.jpg', description: 'Учёный-исследователь аномальных явлений', type: 'investigator' },
+                    { name: 'Марк Харриган', image: './images/investigators/mark.jpg', description: 'Солдат с боевым опытом и железной волей', type: 'investigator' },
+                    { name: 'Патрис Хэтауэй', image: './images/investigators/patrice.jpg', description: 'Скрипачка с мистической связью через музыку', type: 'investigator' },
+                    { name: 'Престон Фэйрмонт', image: './images/investigators/preston.jpg', description: 'Миллионер, использующий своё состояние в борьбе со злом', type: 'investigator' },
+                    { name: 'Силас Марш', image: './images/investigators/silas.jpg', description: 'Моряк, повидавший ужасы морских глубин', type: 'investigator' },
+                    { name: 'Стелла Кларк', image: './images/investigators/stella.jpg', description: 'Почтальон, знающий все тайны Аркхэма', type: 'investigator' },
+                    { name: 'Виннифред Хаббамок', image: './images/investigators/winifred.jpg', description: 'Авиатриса с жаждой приключений', type: 'investigator' }
+                ];
+
+                // Сценарии
+                this.cards.scenarios = [
+                    { name: 'Завеса сумерек', image: './images/scenarios/veil_twilight.jpg', description: 'Исследование таинственных исчезновений в старом квартале Аркхэма', type: 'scenario' },
+                    { name: 'Пир для Умордхота', image: './images/scenarios/feast_umordhoth.jpg', description: 'Охота на древнее существо, пробудившееся в подземельях города', type: 'scenario' },
+                    { name: 'Пришествие Азатота', image: './images/scenarios/coming_azathoth.jpg', description: 'Безумный ритуал по призыву спящего божества угрожает уничтожить мир', type: 'scenario' },
+                    { name: 'Эхо из глубин', image: './images/scenarios/echo_deep.jpg', description: 'Загадочные события на побережье намекают на присутствие древних существ', type: 'scenario' },
+                    { name: 'Безмолвие Цатхоггуа', image: './images/scenarios/silence_tsathoggua.jpg', description: 'Расследование странных артефактов, связанных с подземным божеством', type: 'scenario' },
+                    { name: 'Выстрелы вслепую', image: './images/scenarios/shots_blind.jpg', description: 'Опасная конфронтация с тайным культом в тёмных переулках Аркхэма', type: 'scenario' },
+                    { name: 'Бледный фонарь', image: './images/scenarios/pale_lantern.jpg', description: 'Поиск источника призрачного свечения, сводящего горожан с ума', type: 'scenario' },
+                    { name: 'Дети Итакуа', image: './images/scenarios/children_ithaqua.jpg', description: 'Ледяной ужас окутывает город, пробуждая древнее зло', type: 'scenario' },
+                    { name: 'Сны о Р\'льехе', image: './images/scenarios/dreams_rlyeh.jpg', description: 'Кошмары о затонувшем городе начинают проникать в реальность', type: 'scenario' },
+                    { name: 'Тираны разрушения', image: './images/scenarios/tyrants_destruction.jpg', description: 'Битва с могущественными существами из иных измерений', type: 'scenario' },
+                    { name: 'Возмездие из прошлого', image: './images/scenarios/revenge_past.jpg', description: 'Старые грехи возвращаются, чтобы преследовать жителей Аркхэма', type: 'scenario' },
+                    { name: 'Ключ и врата', image: './images/scenarios/key_gate.jpg', description: 'Поиск древнего артефакта, способного открыть врата между мирами', type: 'scenario' },
+                    { name: 'Призваны служить', image: './images/scenarios/summoned_serve.jpg', description: 'Столкновение с культом, пытающимся призвать на службу тёмных существ', type: 'scenario' }
+                ];
+
+                // Древние
+                this.cards.ancient = [
+                    { name: 'Азатот', image: './images/ancient/azathoth.jpg', description: 'Слепой бог-ид, правящий в центре вселенной', type: 'ancient' },
+                    { name: 'Ктулху', image: './images/ancient/cthulhu.jpg', description: 'Великий Древний, спящий в Р\'льехе', type: 'ancient' },
+                    { name: 'Йог-Сотот', image: './images/ancient/yog_sothoth.jpg', description: 'Врата и ключ, открывающий все пути', type: 'ancient' },
+                    { name: 'Шуб-Ниггурат', image: './images/ancient/shub.jpg', description: 'Черный козел с тысячью детенышей', type: 'ancient' },
+                    { name: 'Хастур', image: './images/ancient/hastur.jpg', description: 'Король в желтом, живущий в Кадисе', type: 'ancient' },
+                    { name: 'Ньярлатхотеп', image: './images/ancient/nyarlathotep.jpg', description: 'Ползучий хаос, вестник Древних', type: 'ancient' }
+                ];
+
+                // Предметы
+                this.cards.items = [
+                    { name: 'Том Эльтдаун', image: './images/items/tome.jpg', description: 'Древний фолиант с запретными знаниями', type: 'item' },
+                    { name: 'Серебряный ключ', image: './images/items/key.jpg', description: 'Открывает врата между мирами', type: 'item' },
+                    { name: 'Знак Древних', image: './images/items/sign.jpg', description: 'Защитный символ против темных сил', type: 'item' },
+                    { name: 'Святая вода', image: './images/items/holy_water.jpg', description: 'Освященная вода, вредящая нежити', type: 'item' },
+                    { name: 'Крест', image: './images/items/cross.jpg', description: 'Религиозный символ, дающий защиту', type: 'item' },
+                    { name: 'Древний пистолет', image: './images/items/gun.jpg', description: 'Старинное огнестрельное оружие', type: 'item' },
+                    { name: 'Защитный амулет', image: './images/items/amulet.jpg', description: 'Оберегает от темных чар', type: 'item' },
+                    { name: 'Фонарь', image: './images/items/lantern.jpg', description: 'Освещает путь во тьме', type: 'item' }
+                ];
+
+                // Заклинания
+                this.cards.spells = [
+                    { name: 'Призыв', image: './images/spells/summon.jpg', description: 'Призвать существо из иных миров', type: 'spell' },
+                    { name: 'Изгнание', image: './images/spells/banish.jpg', description: 'Изгнать враждебное существо', type: 'spell' },
+                    { name: 'Предвидение', image: './images/spells/foresight.jpg', description: 'Заглянуть в будущее', type: 'spell' },
+                    { name: 'Щит разума', image: './images/spells/shield.jpg', description: 'Защищает от психических атак', type: 'spell' },
+                    { name: 'Проклятие', image: './images/spells/curse.jpg', description: 'Насылает проклятие на врага', type: 'spell' },
+                    { name: 'Исцеление', image: './images/spells/heal.jpg', description: 'Восстанавливает рассудок', type: 'spell' },
+                    { name: 'Телепортация', image: './images/spells/teleport.jpg', description: 'Мгновенное перемещение', type: 'spell' }
+                ];
+            }
+
+            // Получить общее количество карт
+            getTotalCards() {
+                let total = 0;
+                for (let category in this.cards) {
+                    total += this.cards[category].length;
+                }
+                return total;
+            }
+
+            // Отрисовка карт на странице
+            renderCards() {
+                const container = document.getElementById('cards-container');
+                const countElement = document.getElementById('cards-count');
+                
+                if (!container) return;
+                
+                let html = '';
+                for (let category in this.cards) {
+                    html += this.cards[category].map(card => this.renderCard(card)).join('');
+                }
+                
+                container.innerHTML = html;
+                
+                if (countElement) {
+                    countElement.innerHTML = `Всего карт в картотеке: <span>${this.getTotalCards()}</span>`;
+                }
+                
+                // Инициализируем поиск и фильтры после отрисовки
+                this.initSearchAndFilters();
+            }
+
+            // Отрисовка одной карты
+            renderCard(card) {
+                const defaultImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPtCd0LXRgiDRjdC70LXQvNC10L3RgtCwPC90ZXh0Pjwvc3ZnPg==';
+                
+                return `
+                <div class="help-card" data-category="${card.type}" data-name="${card.name.toLowerCase()}">
+                    <div class="help-card-inner">
+                        <div class="help-card-image" onclick="showImageModal('${card.image}', '${card.name}')">
+                            <img src="${card.image}" alt="${card.name}" 
+                                 onerror="this.src='${defaultImage}'">
+                        </div>
+                        <div class="help-card-content">
+                            <h3 class="help-card-title">${card.name}</h3>
+                            <p class="help-card-description">${card.description || 'Описание отсутствует'}</p>
+                            <span class="help-card-type">${this.getTypeLabel(card.type)}</span>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+
+            getTypeLabel(type) {
+                const labels = {
+                    'investigator': 'Сыщик',
+                    'scenario': 'Сценарий',
+                    'ancient': 'Древний',
+                    'item': 'Предмет',
+                    'spell': 'Заклинание'
+                };
+                return labels[type] || type;
+            }
+
+            // Инициализация поиска и фильтров
+            initSearchAndFilters() {
+                const searchInput = document.getElementById('help-search');
+                const filterBtns = document.querySelectorAll('.help-filter-btn');
+                const cards = document.querySelectorAll('.help-card');
+                const countElement = document.getElementById('cards-count');
+
+                if (!searchInput || !cards.length) return;
+
+                // Функция обновления видимости карт
+                const updateVisibility = () => {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    const activeFilter = document.querySelector('.help-filter-btn.active')?.dataset.category || 'all';
+                    
+                    let visibleCount = 0;
+                    
+                    cards.forEach(card => {
+                        const name = card.dataset.name;
+                        const category = card.dataset.category;
+                        
+                        const matchesSearch = name.includes(searchTerm);
+                        const matchesFilter = activeFilter === 'all' || category === activeFilter;
+                        
+                        const shouldShow = matchesSearch && matchesFilter;
+                        card.style.display = shouldShow ? 'block' : 'none';
+                        
+                        if (shouldShow) visibleCount++;
+                    });
+                    
+                    // Показываем сообщение, если нет результатов
+                    const container = document.getElementById('cards-container');
+                    let noResultsMsg = document.querySelector('.no-results-dynamic');
+                    
+                    if (visibleCount === 0) {
+                        if (!noResultsMsg) {
+                            noResultsMsg = document.createElement('div');
+                            noResultsMsg.className = 'no-results-message no-results-dynamic';
+                            container.appendChild(noResultsMsg);
+                        }
+                        noResultsMsg.textContent = '😔 Ничего не найдено. Попробуйте изменить запрос.';
+                    } else {
+                        if (noResultsMsg) {
+                            noResultsMsg.remove();
+                        }
+                    }
+                    
+                    // Обновляем счетчик
+                    if (countElement) {
+                        const totalCards = this.getTotalCards();
+                        countElement.innerHTML = `Показано карт: <span>${visibleCount}</span> из <span>${totalCards}</span>`;
+                    }
+                };
+
+                // Поиск при вводе
+                searchInput.addEventListener('input', updateVisibility);
+
+                // Фильтры при клике
+                filterBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        filterBtns.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        updateVisibility();
+                    });
+                });
+            }
+        }
+
+        // Функция для показа изображений в модальном окне
+        async function showImageModal(src, alt) {
+            const modal = document.getElementById('image-modal');
+            const modalBody = document.getElementById('image-modal-body');
+            
+            const basePath = src.replace(/\.[^/.]+$/, "");
+            const backSideSrc = `${basePath}-1.jpg`;
+            
+            // Проверяем существование обратной стороны
+            const checkBackImage = new Image();
+            checkBackImage.onload = () => {
+                // Обратная сторона существует
+                modalBody.innerHTML = `
+                <div class="image-modal-content">
+                    <div class="simple-image-container" style="position: relative; width: 100%; height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; perspective: 1000px;">
+                        <div id="flipper" style="position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer;">
+                            <div style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center;">
+                                <img src="${src}" alt="${alt}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);">
+                            </div>
+                            <div style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; transform: rotateY(180deg); display: flex; align-items: center; justify-content: center;">
+                                <img src="${backSideSrc}" alt="${alt} (обратная сторона)" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);">
+                            </div>
+                        </div>
+                        <div style="text-align: center; margin-top: 15px; color: var(--accent);">👆 Нажмите на изображение для переворота</div>
+                    </div>
+                    <h3 style="text-align: center; margin-top: 15px; color: var(--text-light);">${alt}</h3>
+                </div>
+                `;
+                
+                let isFlipped = false;
+                const flipper = document.getElementById('flipper');
+                flipper.addEventListener('click', () => {
+                    isFlipped = !isFlipped;
+                    flipper.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+                });
+            };
+            
+            checkBackImage.onerror = () => {
+                // Обратной стороны нет
+                modalBody.innerHTML = `
+                <div class="image-modal-content">
+                    <div class="simple-image-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70vh;">
+                        <img src="${src}" alt="${alt}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);">
+                        <div style="text-align: center; margin-top: 15px; color: var(--text-dark);">ℹ️ Обратная сторона отсутствует</div>
+                    </div>
+                    <h3 style="text-align: center; margin-top: 15px; color: var(--text-light);">${alt}</h3>
+                </div>
+                `;
+            };
+            
+            checkBackImage.src = backSideSrc;
+            
+            modal.style.display = 'block';
+            document.body.classList.add('modal-open');
+        }
+
+        // Закрытие модального окна по клику вне его
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('image-modal');
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
+        });
+
+        // Закрытие по Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('image-modal');
+                modal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
+        });
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', async () => {
+            const reference = new CardReference();
+            await reference.loadCardData();
+            reference.renderCards();
+        });
+    </script>
+</body>
+</html>
