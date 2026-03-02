@@ -215,6 +215,7 @@ class ArkhamHorizonTracker {
 
     // Единый метод для показа изображений
     async // Единый метод для показа изображений
+async // Единый метод для показа изображений
 async showImageModal(src, alt) {
     const modal = document.getElementById('image-modal');
     const modalBody = document.getElementById('image-modal-body');
@@ -227,25 +228,25 @@ async showImageModal(src, alt) {
     const hasBackSide = await this.imageExists(backSideSrc);
     
     modalBody.innerHTML = `
-    <div class="image-modal-content">
-        <div class="simple-image-container" style="position: relative; width: 100%; height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-            <div id="flip-container" style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; perspective: 1000px;">
-                <div id="flipper" class="flipper" style="position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer; max-width: 100%; max-height: 100%;">
+    <div class="image-modal-content" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+        <div class="simple-image-container" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+            <div id="flip-container" style="width: 90vw; height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; perspective: 1000px;">
+                <div id="flipper" class="flipper" style="position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer;">
                     <div class="front" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center;">
-                        <img id="front-image" src="${src}" alt="${alt}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);"
-                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
+                        <img id="front-image" src="${src}" alt="${alt}" style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);"
+                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIzNiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
                     </div>
                     <div class="back" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; transform: rotateY(180deg); display: flex; align-items: center; justify-content: center;">
-                        <img id="back-image" src="${hasBackSide ? backSideSrc : src}" alt="${alt} (обратная сторона)" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);"
-                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBPYgEgbm90IGZvdW5kIOKEojwvdGV4dD48L3N2Zz4='">
+                        <img id="back-image" src="${hasBackSide ? backSideSrc : src}" alt="${alt} (обратная сторона)" style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);"
+                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIzNiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBPYgEgbm90IGZvdW5kIOKEojwvdGV4dD48L3N2Zz4='">
                     </div>
                 </div>
             </div>
-            <div id="flip-instruction" style="text-align: center; margin-top: 15px; color: var(--accent); font-size: 1.1rem;">
+            <div id="flip-instruction" style="text-align: center; margin-top: 20px; color: var(--accent); font-size: 1.2rem; padding: 10px;">
                 ${hasBackSide ? '👆 Нажмите на изображение для переворота' : 'ℹ️ Обратная сторона отсутствует'}
             </div>
         </div>
-        <h3 class="modal-title" style="text-align: center; margin-top: 15px; color: var(--text-light);">${alt}</h3>
+        <h3 class="modal-title" style="text-align: center; margin: 10px 0 20px 0; color: var(--text-light); font-size: 1.5rem;">${alt}</h3>
     </div>
     `;
     
