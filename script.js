@@ -214,37 +214,22 @@ class ArkhamHorizonTracker {
         }
     }
 
-    flipImage(imgElement) {
-        // Проверяем, находится ли изображение в модальном окне изображений
-        const isInImageModal = imgElement.closest('#image-modal');
+   flipImage(imgElement) {
+    // Проверяем, находится ли изображение в модальном окне изображений
+    const isInImageModal = imgElement.closest('#image-modal');
 
-        if (!isInImageModal) {
-            return;
-        }
-
-        if (!imgElement.classList.contains('flippable-image')) {
-            return;
-        }
-
-        const isFlipped = imgElement.classList.contains('flipped');
-
-        // Добавляем класс анимации
-        imgElement.classList.add('flipping');
-
-        // Ждем окончания анимации
-        setTimeout(() => {
-            if (isFlipped) {
-                // Возвращаем к исходному изображению
-                imgElement.classList.remove('flipped');
-            } else {
-                // Переворачиваем на обратную сторону
-                imgElement.classList.add('flipped');
-            }
-
-            // Убираем класс анимации
-            imgElement.classList.remove('flipping');
-        }, 300);
+    if (!isInImageModal) {
+        return;
     }
+
+    if (!imgElement.classList.contains('flippable-image')) {
+        return;
+    }
+
+    // Просто переключаем класс flipped для 3D трансформации
+    // Без дополнительной анимации и таймеров
+    imgElement.classList.toggle('flipped');
+}
 
     preloadBackImages() {
         const allImages = [
@@ -593,35 +578,52 @@ class ArkhamHorizonTracker {
         }
     }
 
-    showImageModal(src, alt) {
-        const modal = document.getElementById('image-modal');
-        const modalBody = document.getElementById('image-modal-body');
+    async showImageModal(src, alt) {
+    const modal = document.getElementById('image-modal');
+    const modalBody = document.getElementById('image-modal-body');
 
-        // Создаем путь к обратной стороне
-        const basePath = src.replace(/\.[^/.]+$/, "");
-        const backSideSrc = `${basePath}-1.jpg`;
+    // Создаем путь к обратной стороне
+    const basePath = src.replace(/\.[^/.]+$/, "");
+    const backSideSrc = `${basePath}-1.jpg`;
 
-        modalBody.innerHTML = `
+    // Проверяем, существует ли обратная сторона
+    const backSideExists = await this.imageExists(backSideSrc);
+
+    modalBody.innerHTML = `
     <div class="image-modal-content">
         <div class="flippable-image modal-image-container" onclick="tracker.flipImage(this)">
             <div class="image-front">
                 <img src="${src}" alt="${alt}" 
                      onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
             </div>
+            ${backSideExists ? `
             <div class="image-back">
-                <img src="${backSideSrc}" alt="Обратная сторона: ${alt}" 
-                     onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\"image-placeholder\">Обратная сторона<br>${alt}</div>'">
+                <img src="${backSideSrc}" alt="Обратная сторона: ${alt}">
             </div>
-            <div class="flip-indicator">🔄 Нажмите для переворота</div>
+            ` : `
+            <div class="image-back">
+                <div class="image-placeholder">Обратная сторона<br>${alt}</div>
+            </div>
+            `}
+            ${backSideExists ? '<div class="flip-indicator">🔄 Нажмите для переворота</div>' : ''}
         </div>
         <h3 class="modal-title">${alt}</h3>
     </div>
     `;
 
-        modal.style.display = 'block';
-        document.body.classList.add('modal-open');
-    }
+    modal.style.display = 'block';
+    document.body.classList.add('modal-open');
+}
 
+// Вспомогательный метод для проверки существования изображения
+imageExists(url) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+    });
+}
     showRecordDetails(recordId) {
         const record = this.progress.find(item => item.id === recordId);
         if (!record) return;
