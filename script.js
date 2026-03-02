@@ -82,7 +82,6 @@ class ArkhamHorizonTracker {
         this.updateAchievements();
         this.setupEventListeners();
         this.setupModal();
-        this.preloadBackImages();
 
         setTimeout(() => {
             if (this.syncManager.isConfigured()) {
@@ -213,91 +212,61 @@ class ArkhamHorizonTracker {
             this.renderInvestigatorFields();
         }
     }
-showImageModal(src, alt) {
-    const modal = document.getElementById('image-modal');
-    const modalBody = document.getElementById('image-modal-body');
-    
-    // Создаем путь к обратной стороне
-    const basePath = src.replace(/\.[^/.]+$/, "");
-    const backSideSrc = `${basePath}-1.jpg`;
-    
-    // Сохраняем текущее состояние (показываем лицевую сторону)
-    let showingFront = true;
-    
-    modalBody.innerHTML = `
-    <div class="image-modal-content">
-        <div class="simple-image-container">
-            <img id="modal-image" src="${src}" alt="${alt}" 
-                 style="max-width: 90vw; max-height: 80vh; object-fit: contain; cursor: pointer; border: 2px solid var(--accent); border-radius: 8px;"
-                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
-            <div style="text-align: center; margin-top: 10px; color: var(--accent);">
-                👆 Нажмите на изображение для переворота
+
+    // Единый метод для показа изображений
+    async showImageModal(src, alt) {
+        const modal = document.getElementById('image-modal');
+        const modalBody = document.getElementById('image-modal-body');
+
+        // Создаем путь к обратной стороне
+        const basePath = src.replace(/\.[^/.]+$/, "");
+        const backSideSrc = `${basePath}-1.jpg`;
+
+        // Проверяем, существует ли обратная сторона
+        const backSideExists = await this.imageExists(backSideSrc);
+
+        modalBody.innerHTML = `
+        <div class="image-modal-content">
+            <div class="flippable-image modal-image-container" onclick="tracker.flipImage(this)">
+                <div class="image-front">
+                    <img src="${src}" alt="${alt}" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
+                </div>
+                ${backSideExists ? `
+                <div class="image-back">
+                    <img src="${backSideSrc}" alt="Обратная сторона: ${alt}">
+                </div>
+                ` : `
+                <div class="image-back">
+                    <div class="image-placeholder">Обратная сторона<br>${alt}</div>
+                </div>
+                `}
+                ${backSideExists ? '<div class="flip-indicator">🔄 Нажмите для переворота</div>' : ''}
             </div>
+            <h3 class="modal-title">${alt}</h3>
         </div>
-        <h3 class="modal-title" style="text-align: center; margin-top: 15px;">${alt}</h3>
-    </div>
-    `;
-    
-    // Добавляем обработчик клика на изображение
-    const modalImage = document.getElementById('modal-image');
-    
-    // Проверяем, существует ли обратная сторона
-    const checkBackImage = new Image();
-    checkBackImage.onload = () => {
-        // Обратная сторона существует, добавляем обработчик
-        modalImage.addEventListener('click', function() {
-            if (showingFront) {
-                // Переворачиваем на обратную сторону
-                this.src = backSideSrc;
-                showingFront = false;
-            } else {
-                // Возвращаем лицевую сторону
-                this.src = src;
-                showingFront = true;
-            }
-        });
-        modalImage.title = "Нажмите для переворота";
-    };
-    
-    checkBackImage.onerror = () => {
-        // Обратной стороны нет, показываем обычное изображение без переворота
-        modalImage.style.cursor = 'default';
-        modalImage.title = "Обратная сторона отсутствует";
-        document.querySelector('.simple-image-container div').style.display = 'none';
-    };
-    
-    checkBackImage.src = backSideSrc;
-    
-    modal.style.display = 'block';
-    document.body.classList.add('modal-open');
-}
-   flipImage(imgElement) {
-    // Проверяем, находится ли изображение в модальном окне изображений
-    const isInImageModal = imgElement.closest('#image-modal');
+        `;
 
-    if (!isInImageModal) {
-        return;
+        modal.style.display = 'block';
+        document.body.classList.add('modal-open');
     }
 
-    if (!imgElement.classList.contains('flippable-image')) {
-        return;
+    // Метод для переворота изображения
+    flipImage(imgElement) {
+        const isInImageModal = imgElement.closest('#image-modal');
+        if (!isInImageModal || !imgElement.classList.contains('flippable-image')) {
+            return;
+        }
+        imgElement.classList.toggle('flipped');
     }
 
-    // Просто переключаем класс flipped для 3D трансформации
-    // Без дополнительной анимации и таймеров
-    imgElement.classList.toggle('flipped');
-}
-
-    preloadBackImages() {
-        const allImages = [
-            ...Object.values(this.investigators).map(inv => inv.image),
-            ...Object.values(this.scenarios).map(scenario => scenario.image)
-        ];
-
-        allImages.forEach(src => {
-            const backSideSrc = src.replace(/\.[^/.]+$/, "") + "-1.jpg";
+    // Вспомогательный метод для проверки существования изображения
+    imageExists(url) {
+        return new Promise((resolve) => {
             const img = new Image();
-            img.src = backSideSrc;
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            img.src = url;
         });
     }
 
@@ -635,52 +604,6 @@ showImageModal(src, alt) {
         }
     }
 
-    async showImageModal(src, alt) {
-    const modal = document.getElementById('image-modal');
-    const modalBody = document.getElementById('image-modal-body');
-
-    // Создаем путь к обратной стороне
-    const basePath = src.replace(/\.[^/.]+$/, "");
-    const backSideSrc = `${basePath}-1.jpg`;
-
-    // Проверяем, существует ли обратная сторона
-    const backSideExists = await this.imageExists(backSideSrc);
-
-    modalBody.innerHTML = `
-    <div class="image-modal-content">
-        <div class="flippable-image modal-image-container" onclick="tracker.flipImage(this)">
-            <div class="image-front">
-                <img src="${src}" alt="${alt}" 
-                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
-            </div>
-            ${backSideExists ? `
-            <div class="image-back">
-                <img src="${backSideSrc}" alt="Обратная сторона: ${alt}">
-            </div>
-            ` : `
-            <div class="image-back">
-                <div class="image-placeholder">Обратная сторона<br>${alt}</div>
-            </div>
-            `}
-            ${backSideExists ? '<div class="flip-indicator">🔄 Нажмите для переворота</div>' : ''}
-        </div>
-        <h3 class="modal-title">${alt}</h3>
-    </div>
-    `;
-
-    modal.style.display = 'block';
-    document.body.classList.add('modal-open');
-}
-
-// Вспомогательный метод для проверки существования изображения
-imageExists(url) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(true);
-        img.onerror = () => resolve(false);
-        img.src = url;
-    });
-}
     showRecordDetails(recordId) {
         const record = this.progress.find(item => item.id === recordId);
         if (!record) return;
@@ -699,7 +622,6 @@ imageExists(url) {
             'other': '❓ Иной исход'
         }[record.result] || '❓ Иной исход';
 
-        // Сыщики в модальном окне
         const investigatorsHTML = investigators.map(investigator => {
             return `
         <div class="detail-value">
@@ -1343,7 +1265,7 @@ imageExists(url) {
     }
 }
 
-// GitHubSyncManager остается без изменений
+// GitHubSyncManager (без изменений)
 class GitHubSyncManager {
     constructor(tracker) {
         this.tracker = tracker;
