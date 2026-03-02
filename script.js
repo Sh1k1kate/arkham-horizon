@@ -147,11 +147,14 @@ class ArkhamHorizonTracker {
         document.getElementById('player-count').value = this.currentPlayerCount;
     }
 
-    setPlayerCount(count) {
-        this.currentPlayerCount = count;
-        this.renderPlayerCountSelector();
-        this.renderInvestigatorFields();
-    }
+    // Добавим метод для принудительного обновления превью при изменении количества игроков
+setPlayerCount(count) {
+    this.currentPlayerCount = count;
+    this.renderPlayerCountSelector();
+    this.renderInvestigatorFields();
+    // Обновляем превью после перерисовки полей
+    setTimeout(() => this.updateSelectedInvestigatorsPreview(), 100);
+}
 
     renderInvestigatorFields() {
         const container = document.getElementById('investigators-container');
@@ -263,17 +266,6 @@ async showImageModal(src, alt) {
     modal.style.display = 'block';
     document.body.classList.add('modal-open');
 }
-
-// Вспомогательный метод для проверки существования изображения
-imageExists(url) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(true);
-        img.onerror = () => resolve(false);
-        img.src = url;
-    });
-}
-
     // Метод для переворота изображения
     flipImage(imgElement) {
         const isInImageModal = imgElement.closest('#image-modal');
@@ -283,15 +275,15 @@ imageExists(url) {
         imgElement.classList.toggle('flipped');
     }
 
-    // Вспомогательный метод для проверки существования изображения
-    imageExists(url) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => resolve(true);
-            img.onerror = () => resolve(false);
-            img.src = url;
-        });
-    }
+   // Упрощенный метод для проверки существования изображения
+imageExists(url) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+    });
+}
 
     handleGlobalClick(e) {
         // Обработка кликов на опции сыщиков
@@ -432,86 +424,98 @@ imageExists(url) {
         });
     }
 
-    selectInvestigator(index, investigatorKey) {
-        const searchInput = document.getElementById(`investigator-search-${index}`);
-        const hiddenInput = document.getElementById(`investigator-${index}`);
+   // Обновленный метод selectInvestigator для немедленного обновления превью
+selectInvestigator(index, investigatorKey) {
+    const searchInput = document.getElementById(`investigator-search-${index}`);
+    const hiddenInput = document.getElementById(`investigator-${index}`);
 
-        if (this.investigators[investigatorKey]) {
-            const investigator = this.investigators[investigatorKey];
-            searchInput.value = investigator.name;
-            hiddenInput.value = investigatorKey;
-            this.hideAllDropdowns();
-            this.updateSelectedInvestigatorsPreview();
-            this.showNotification(`Выбран сыщик: ${investigator.name}`, 'success');
-        }
-    }
-
-    clearInvestigatorField(index) {
-        const searchInput = document.getElementById(`investigator-search-${index}`);
-        const hiddenInput = document.getElementById(`investigator-${index}`);
-
-        searchInput.value = '';
-        hiddenInput.value = '';
+    if (this.investigators[investigatorKey]) {
+        const investigator = this.investigators[investigatorKey];
+        searchInput.value = investigator.name;
+        hiddenInput.value = investigatorKey;
+        this.hideAllDropdowns();
+        
+        // Немедленно обновляем превью
         this.updateSelectedInvestigatorsPreview();
+        
+        this.showNotification(`Выбран сыщик: ${investigator.name}`, 'success');
+    }
+}
+
+
+    // Обновленный метод clearInvestigatorField
+clearInvestigatorField(index) {
+    const searchInput = document.getElementById(`investigator-search-${index}`);
+    const hiddenInput = document.getElementById(`investigator-${index}`);
+
+    searchInput.value = '';
+    hiddenInput.value = '';
+    
+    // Немедленно обновляем превью
+    this.updateSelectedInvestigatorsPreview();
+}
+
+    // Обновленный метод для обновления превью выбранных сыщиков
+async updateSelectedInvestigatorsPreview() {
+    let previewContainer = document.getElementById('selected-investigators-preview');
+
+    if (!previewContainer) {
+        previewContainer = document.createElement('div');
+        previewContainer.id = 'selected-investigators-preview';
+        previewContainer.className = 'selected-investigators-preview';
+        document.getElementById('investigators-container').after(previewContainer);
     }
 
-    async updateSelectedInvestigatorsPreview() {
-        let previewContainer = document.getElementById('selected-investigators-preview');
-
-        if (!previewContainer) {
-            previewContainer = document.createElement('div');
-            previewContainer.id = 'selected-investigators-preview';
-            previewContainer.className = 'selected-investigators-preview';
-            document.getElementById('investigators-container').after(previewContainer);
+    const selectedInvestigators = [];
+    for (let i = 0; i < this.currentPlayerCount; i++) {
+        const hiddenInput = document.getElementById(`investigator-${i}`);
+        if (hiddenInput && hiddenInput.value && this.investigators[hiddenInput.value]) {
+            selectedInvestigators.push({
+                index: i,
+                key: hiddenInput.value,
+                investigator: this.investigators[hiddenInput.value]
+            });
         }
+    }
 
-        const selectedInvestigators = [];
-        for (let i = 0; i < this.currentPlayerCount; i++) {
-            const hiddenInput = document.getElementById(`investigator-${i}`);
-            if (hiddenInput && hiddenInput.value && this.investigators[hiddenInput.value]) {
-                selectedInvestigators.push({
-                    index: i,
-                    key: hiddenInput.value,
-                    investigator: this.investigators[hiddenInput.value]
-                });
-            }
-        }
+    if (selectedInvestigators.length > 0) {
+        const previewsHTML = selectedInvestigators.map((item) => {
+            // Проверяем существование изображения
+            const imgSrc = item.investigator.image;
+            const defaultImg = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7QkdC10Lcg0LjQvNC10L3QuDwvdGV4dD48L3N2Zz4=';
 
-        if (selectedInvestigators.length > 0) {
-            const previewsHTML = await Promise.all(selectedInvestigators.map(async (item) => {
-                const previewUrl = await this.createImagePreview(item.investigator.image, item.investigator.name, 'investigator');
-
-                return `
-                <div class="selected-investigator-item">
-                    <div class="selected-investigator-avatar" onclick="tracker.showImageModal('${item.investigator.image}', '${item.investigator.name}')">
-                        <div class="flippable-image">
-                            <img src="${previewUrl}" 
-                                 alt="${item.investigator.name}" 
-                                 class="image-front">
-                        </div>
-                    </div>
-                    <span class="selected-investigator-name">${item.investigator.name}</span>
-                    <button type="button" 
-                            class="remove-selected-investigator"
-                            data-index="${item.index}"
-                            title="Удалить сыщика">
-                        ×
-                    </button>
+            return `
+            <div class="selected-investigator-item">
+                <div class="selected-investigator-avatar" onclick="tracker.showImageModal('${item.investigator.image}', '${item.investigator.name}')">
+                    <img src="${imgSrc}" 
+                         alt="${item.investigator.name}" 
+                         style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); cursor: pointer;"
+                         onerror="this.src='${defaultImg}'">
                 </div>
-            `;
-            }));
-
-            previewContainer.innerHTML = `
-            <div style="width: 100%; margin-bottom: 10px; font-weight: bold; color: var(--accent);">
-                Выбранные сыщики (${selectedInvestigators.length}/${this.currentPlayerCount}):
+                <span class="selected-investigator-name">${item.investigator.name}</span>
+                <button type="button" 
+                        class="remove-selected-investigator"
+                        data-index="${item.index}"
+                        title="Удалить сыщика">
+                    ×
+                </button>
             </div>
-            ${previewsHTML.join('')}
         `;
-        } else {
-            previewContainer.innerHTML = '<div style="color: var(--text-dark); font-style: italic;">Сыщики не выбраны</div>';
-        }
-    }
+        }).join('');
 
+        previewContainer.innerHTML = `
+        <div style="width: 100%; margin-bottom: 10px; font-weight: bold; color: var(--accent);">
+            Выбранные сыщики (${selectedInvestigators.length}/${this.currentPlayerCount}):
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            ${previewsHTML}
+        </div>
+    `;
+    } else {
+        previewContainer.innerHTML = '<div style="color: var(--text-dark); font-style: italic;">Сыщики не выбраны</div>';
+    }
+}
+    
     getSelectedInvestigators() {
         const selected = [];
         for (let i = 0; i < this.currentPlayerCount; i++) {
@@ -602,30 +606,36 @@ imageExists(url) {
         });
     }
 
-    async showScenarioPreview(scenarioKey) {
-        const preview = document.getElementById('scenario-preview');
+    // Обновленный метод для показа превью сценария
+async showScenarioPreview(scenarioKey) {
+    const preview = document.getElementById('scenario-preview');
 
-        if (scenarioKey && this.scenarios[scenarioKey]) {
-            const scenario = this.scenarios[scenarioKey];
-            const previewUrl = await this.createImagePreview(scenario.image, scenario.name, 'scenario');
+    if (scenarioKey && this.scenarios[scenarioKey]) {
+        const scenario = this.scenarios[scenarioKey];
+        
+        // Проверяем существование изображения
+        const imgExists = await this.imageExists(scenario.image);
+        const previewUrl = imgExists ? scenario.image : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPtCR0LXQtyDQutCw0YDRgtC40L3QutC4PC90ZXh0Pjwvc3ZnPg==';
 
-            preview.innerHTML = `
-            <div class="scenario-preview-content">
-                <div class="scenario-preview-large" onclick="tracker.showImageModal('${scenario.image}', '${scenario.name}')">
-                    <div class="flippable-image">
-                        <img src="${previewUrl}" alt="${scenario.name}" class="image-front">
-                    </div>
-                </div>
-                <div class="scenario-preview-info">
-                    <strong>${scenario.name}</strong>
-                    <div class="scenario-preview-desc">${scenario.description}</div>
-                </div>
+        preview.innerHTML = `
+        <div class="scenario-preview-content">
+            <div class="scenario-preview-large" onclick="tracker.showImageModal('${scenario.image}', '${scenario.name}')">
+                <img src="${previewUrl}" 
+                     alt="${scenario.name}" 
+                     style="width: 240px; height: 160px; object-fit: cover; border-radius: 12px; border: 3px solid var(--accent); cursor: pointer;"
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQwIiBoZWlnaHQ9IjE2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPtCR0LXQtyDQutCw0YDRgtC40L3QutC4PC90ZXh0Pjwvc3ZnPg=='">
             </div>
+            <div class="scenario-preview-info">
+                <strong>${scenario.name}</strong>
+                <div class="scenario-preview-desc">${scenario.description}</div>
+            </div>
+        </div>
         `;
-        } else {
-            preview.innerHTML = '';
-        }
+    } else {
+        preview.innerHTML = '';
     }
+}
+
 
     showRecordDetails(recordId) {
         const record = this.progress.find(item => item.id === recordId);
