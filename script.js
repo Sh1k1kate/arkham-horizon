@@ -213,7 +213,64 @@ class ArkhamHorizonTracker {
             this.renderInvestigatorFields();
         }
     }
-
+showImageModal(src, alt) {
+    const modal = document.getElementById('image-modal');
+    const modalBody = document.getElementById('image-modal-body');
+    
+    // Создаем путь к обратной стороне
+    const basePath = src.replace(/\.[^/.]+$/, "");
+    const backSideSrc = `${basePath}-1.jpg`;
+    
+    // Сохраняем текущее состояние (показываем лицевую сторону)
+    let showingFront = true;
+    
+    modalBody.innerHTML = `
+    <div class="image-modal-content">
+        <div class="simple-image-container">
+            <img id="modal-image" src="${src}" alt="${alt}" 
+                 style="max-width: 90vw; max-height: 80vh; object-fit: contain; cursor: pointer; border: 2px solid var(--accent); border-radius: 8px;"
+                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
+            <div style="text-align: center; margin-top: 10px; color: var(--accent);">
+                👆 Нажмите на изображение для переворота
+            </div>
+        </div>
+        <h3 class="modal-title" style="text-align: center; margin-top: 15px;">${alt}</h3>
+    </div>
+    `;
+    
+    // Добавляем обработчик клика на изображение
+    const modalImage = document.getElementById('modal-image');
+    
+    // Проверяем, существует ли обратная сторона
+    const checkBackImage = new Image();
+    checkBackImage.onload = () => {
+        // Обратная сторона существует, добавляем обработчик
+        modalImage.addEventListener('click', function() {
+            if (showingFront) {
+                // Переворачиваем на обратную сторону
+                this.src = backSideSrc;
+                showingFront = false;
+            } else {
+                // Возвращаем лицевую сторону
+                this.src = src;
+                showingFront = true;
+            }
+        });
+        modalImage.title = "Нажмите для переворота";
+    };
+    
+    checkBackImage.onerror = () => {
+        // Обратной стороны нет, показываем обычное изображение без переворота
+        modalImage.style.cursor = 'default';
+        modalImage.title = "Обратная сторона отсутствует";
+        document.querySelector('.simple-image-container div').style.display = 'none';
+    };
+    
+    checkBackImage.src = backSideSrc;
+    
+    modal.style.display = 'block';
+    document.body.classList.add('modal-open');
+}
    flipImage(imgElement) {
     // Проверяем, находится ли изображение в модальном окне изображений
     const isInImageModal = imgElement.closest('#image-modal');
