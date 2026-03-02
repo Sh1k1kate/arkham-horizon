@@ -215,41 +215,73 @@ class ArkhamHorizonTracker {
 
     // Единый метод для показа изображений
     async showImageModal(src, alt) {
-        const modal = document.getElementById('image-modal');
-        const modalBody = document.getElementById('image-modal-body');
-
-        // Создаем путь к обратной стороне
-        const basePath = src.replace(/\.[^/.]+$/, "");
-        const backSideSrc = `${basePath}-1.jpg`;
-
-        // Проверяем, существует ли обратная сторона
-        const backSideExists = await this.imageExists(backSideSrc);
-
-        modalBody.innerHTML = `
-        <div class="image-modal-content">
-            <div class="flippable-image modal-image-container" onclick="tracker.flipImage(this)">
-                <div class="image-front">
-                    <img src="${src}" alt="${alt}" 
-                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
-                </div>
-                ${backSideExists ? `
-                <div class="image-back">
-                    <img src="${backSideSrc}" alt="Обратная сторона: ${alt}">
-                </div>
-                ` : `
-                <div class="image-back">
-                    <div class="image-placeholder">Обратная сторона<br>${alt}</div>
-                </div>
-                `}
-                ${backSideExists ? '<div class="flip-indicator">🔄 Нажмите для переворота</div>' : ''}
+    const modal = document.getElementById('image-modal');
+    const modalBody = document.getElementById('image-modal-body');
+    
+    // Создаем путь к обратной стороне
+    const basePath = src.replace(/\.[^/.]+$/, "");
+    const backSideSrc = `${basePath}-1.jpg`;
+    
+    modalBody.innerHTML = `
+    <div class="image-modal-content">
+        <div class="simple-image-container">
+            <img id="modal-image" class="flippable-simple" src="${src}" alt="${alt}"
+                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
+            <div id="flip-instruction" style="text-align: center; margin-top: 10px; color: var(--accent);">
+                👆 Нажмите на изображение для переворота
             </div>
-            <h3 class="modal-title">${alt}</h3>
         </div>
-        `;
-
-        modal.style.display = 'block';
-        document.body.classList.add('modal-open');
-    }
+        <h3 class="modal-title" style="text-align: center; margin-top: 15px;">${alt}</h3>
+    </div>
+    `;
+    
+    const modalImage = document.getElementById('modal-image');
+    const flipInstruction = document.getElementById('flip-instruction');
+    
+    // Проверяем, существует ли обратная сторона
+    const checkBackImage = new Image();
+    checkBackImage.onload = () => {
+        // Обратная сторона существует
+        let showingFront = true;
+        
+        modalImage.addEventListener('click', function() {
+            // Добавляем класс для анимации
+            this.classList.add('flipped');
+            
+            // Ждем половину анимации для смены изображения
+            setTimeout(() => {
+                if (showingFront) {
+                    // Меняем на обратную сторону
+                    this.src = backSideSrc;
+                    showingFront = false;
+                } else {
+                    // Возвращаем лицевую сторону
+                    this.src = src;
+                    showingFront = true;
+                }
+                
+                // Убираем класс анимации
+                this.classList.remove('flipped');
+            }, 150); // Половина времени анимации (300ms / 2)
+        });
+        
+        modalImage.title = "Нажмите для переворота";
+    };
+    
+    checkBackImage.onerror = () => {
+        // Обратной стороны нет
+        modalImage.style.cursor = 'default';
+        modalImage.title = "Обратная сторона отсутствует";
+        if (flipInstruction) {
+            flipInstruction.style.display = 'none';
+        }
+    };
+    
+    checkBackImage.src = backSideSrc;
+    
+    modal.style.display = 'block';
+    document.body.classList.add('modal-open');
+}
 
     // Метод для переворота изображения
     flipImage(imgElement) {
