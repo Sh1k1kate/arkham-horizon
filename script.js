@@ -3,50 +3,50 @@ class ArkhamHorizonTracker {
     constructor() {
         this.progress = [];
         this.investigators = {
-            'agnes': { name: 'Агнес Бейкер', image: null, description: 'Официантка с пробудившимися экстрасенсорными способностями' },
-            'pete': { name: '«Жестянка» Пит', image: null, description: 'Бродяга с верным спутником - вороном' },
-            'calvin': { name: 'Кэлвин Райт', image: null, description: 'Преследуемый прошлыми травмами' },
-            'daniela': { name: 'Даниэла Рейес', image: null, description: 'Механик с техническим складом ума' },
-            'dexter': { name: 'Декстер Дрейк', image: null, description: 'Фокусник, владеющий иллюзиями' },
-            'jenny': { name: 'Дженни Барнс', image: null, description: 'Девушка из высшего общества с боевыми навыками' },
-            'marie': { name: 'Мари Ламбо', image: null, description: 'Певица с гипнотическим голосом' },
-            'michael': { name: 'Майкл МакГлен', image: null, description: 'Гангстер, привыкший решать вопросы силой' },
-            'minh': { name: 'Минь Тхи Фан', image: null, description: 'Секретарь-архивариус с феноменальной памятью' },
-            'norman': { name: 'Норман Уизерс', image: null, description: 'Астроном, открывший ужасающие тайны вселенной' },
-            'rex': { name: 'Рекс Мёрфи', image: null, description: 'Репортёр, ищущий сенсационные разоблачения' },
-            'roland': { name: 'Роланд Бэнкс', image: null, description: 'Федеральный агент с аналитическим складом ума' },
-            'skids': { name: '«Шквал» О\'Тул', image: null, description: 'Бывший заключенный, ищущий искупления' },
-            'tommy': { name: 'Томми Малдун', image: null, description: 'Полицейский-новичок с обострённым чувством справедливости' },
-            'wendy': { name: 'Венди Адамс', image: null, description: 'Бездомная сирота, мастер побегов и уклонений' },
-            'zoey': { name: 'Зои Сэмарас', image: null, description: 'Повар с необычными кулинарными талантами' },
-            'agatha': { name: 'Агата Крейн', image: null, description: 'Парапсихолог, изучающая потусторонние явления' },
-            'carson': { name: 'Карсон Синклер', image: null, description: 'Дворецкий с безупречными манерами и наблюдательностью' },
-            'charley': { name: 'Чарли Кейн', image: null, description: 'Политик, владеющий искусством убеждения' },
-            'diana': { name: 'Диана Стэнли', image: null, description: 'Искупившаяся культистка, борющаяся со своим прошлым' },
-            'mateo': { name: 'Отец Матео', image: null, description: 'Священник, сражающийся с демоническими силами' },
-            'kate': { name: 'Кейт Уинтроп', image: null, description: 'Учёный-исследователь аномальных явлений' },
-            'mark': { name: 'Марк Харриган', image: null, description: 'Солдат с боевым опытом и железной волей' },
-            'patrice': { name: 'Патрис Хэтауэй', image: null, description: 'Скрипачка с мистической связью через музыку' },
-            'preston': { name: 'Престон Фэйрмонт', image: null, description: 'Миллионер, использующий своё состояние в борьбе со злом' },
-            'silas': { name: 'Силас Марш', image: null, description: 'Моряк, повидавший ужасы морских глубин' },
-            'stella': { name: 'Стелла Кларк', image: null, description: 'Почтальон, знающий все тайны Аркхэма' },
-            'winifred': { name: 'Виннифред Хаббамок', image: null, description: 'Авиатриса с жаждой приключений' }
+            'agnes': { name: 'Агнес Бейкер', image: './images/investigators/agnes.jpg', description: 'Официантка с пробудившимися экстрасенсорными способностями' },
+            'pete': { name: '«Жестянка» Пит', image: './images/investigators/pete.jpg', description: 'Бродяга с верным спутником - вороном' },
+            'calvin': { name: 'Кэлвин Райт', image: './images/investigators/calvin.jpg', description: 'Преследуемый прошлыми травмами' },
+            'daniela': { name: 'Даниэла Рейес', image: './images/investigators/daniela.jpg', description: 'Механик с техническим складом ума' },
+            'dexter': { name: 'Декстер Дрейк', image: './images/investigators/dexter.jpg', description: 'Фокусник, владеющий иллюзиями' },
+            'jenny': { name: 'Дженни Барнс', image: './images/investigators/jenny.jpg', description: 'Девушка из высшего общества с боевыми навыками' },
+            'marie': { name: 'Мари Ламбо', image: './images/investigators/marie.jpg', description: 'Певица с гипнотическим голосом' },
+            'michael': { name: 'Майкл МакГлен', image: './images/investigators/michael.jpg', description: 'Гангстер, привыкший решать вопросы силой' },
+            'minh': { name: 'Минь Тхи Фан', image: './images/investigators/minh.jpg', description: 'Секретарь-архивариус с феноменальной памятью' },
+            'norman': { name: 'Норман Уизерс', image: './images/investigators/norman.jpg', description: 'Астроном, открывший ужасающие тайны вселенной' },
+            'rex': { name: 'Рекс Мёрфи', image: './images/investigators/rex.jpg', description: 'Репортёр, ищущий сенсационные разоблачения' },
+            'roland': { name: 'Роланд Бэнкс', image: './images/investigators/roland.jpg', description: 'Федеральный агент с аналитическим складом ума' },
+            'skids': { name: '«Шквал» О\'Тул', image: './images/investigators/skids.jpg', description: 'Бывший заключенный, ищущий искупления' },
+            'tommy': { name: 'Томми Малдун', image: './images/investigators/tommy.jpg', description: 'Полицейский-новичок с обострённым чувством справедливости' },
+            'wendy': { name: 'Венди Адамс', image: './images/investigators/wendy.jpg', description: 'Бездомная сирота, мастер побегов и уклонений' },
+            'zoey': { name: 'Зои Сэмарас', image: './images/investigators/zoey.jpg', description: 'Повар с необычными кулинарными талантами' },
+            'agatha': { name: 'Агата Крейн', image: './images/investigators/agatha.jpg', description: 'Парапсихолог, изучающая потусторонние явления' },
+            'carson': { name: 'Карсон Синклер', image: './images/investigators/carson.jpg', description: 'Дворецкий с безупречными манерами и наблюдательностью' },
+            'charley': { name: 'Чарли Кейн', image: './images/investigators/charley.jpg', description: 'Политик, владеющий искусством убеждения' },
+            'diana': { name: 'Диана Стэнли', image: './images/investigators/diana.jpg', description: 'Искупившаяся культистка, борющаяся со своим прошлым' },
+            'mateo': { name: 'Отец Матео', image: './images/investigators/mateo.jpg', description: 'Священник, сражающийся с демоническими силами' },
+            'kate': { name: 'Кейт Уинтроп', image: './images/investigators/kate.jpg', description: 'Учёный-исследователь аномальных явлений' },
+            'mark': { name: 'Марк Харриган', image: './images/investigators/mark.jpg', description: 'Солдат с боевым опытом и железной волей' },
+            'patrice': { name: 'Патрис Хэтауэй', image: './images/investigators/patrice.jpg', description: 'Скрипачка с мистической связью через музыку' },
+            'preston': { name: 'Престон Фэйрмонт', image: './images/investigators/preston.jpg', description: 'Миллионер, использующий своё состояние в борьбе со злом' },
+            'silas': { name: 'Силас Марш', image: './images/investigators/silas.jpg', description: 'Моряк, повидавший ужасы морских глубин' },
+            'stella': { name: 'Стелла Кларк', image: './images/investigators/stella.jpg', description: 'Почтальон, знающий все тайны Аркхэма' },
+            'winifred': { name: 'Виннифред Хаббамок', image: './images/investigators/winifred.jpg', description: 'Авиатриса с жаждой приключений' }
         };
 
         this.scenarios = {
-            'veil_twilight': { name: 'Завеса сумерек', image: null, description: 'Исследование таинственных исчезновений в старом квартале Аркхэма' },
-            'feast_umordhoth': { name: 'Пир для Умордхота', image: null, description: 'Охота на древнее существо, пробудившееся в подземельях города' },
-            'coming_azathoth': { name: 'Пришествие Азатота', image: null, description: 'Безумный ритуал по призыву спящего божества угрожает уничтожить мир' },
-            'echo_deep': { name: 'Эхо из глубин', image: null, description: 'Загадочные события на побережье намекают на присутствие древних существ' },
-            'silence_tsathoggua': { name: 'Безмолвие Цатхоггуа', image: null, description: 'Расследование странных артефактов, связанных с подземным божеством' },
-            'shots_blind': { name: 'Выстрелы вслепую', image: null, description: 'Опасная конфронтация с тайным культом в тёмных переулках Аркхэма' },
-            'pale_lantern': { name: 'Бледный фонарь', image: null, description: 'Поиск источника призрачного свечения, сводящего горожан с ума' },
-            'children_ithaqua': { name: 'Дети Итакуа', image: null, description: 'Ледяной ужас окутывает город, пробуждая древнее зло' },
-            'dreams_rlyeh': { name: 'Сны о Р\'льехе', image: null, description: 'Кошмары о затонувшем городе начинают проникать в реальность' },
-            'tyrants_destruction': { name: 'Тираны разрушения', image: null, description: 'Битва с могущественными существами из иных измерений' },
-            'revenge_past': { name: 'Возмездие из прошлого', image: null, description: 'Старые грехи возвращаются, чтобы преследовать жителей Аркхэма' },
-            'key_gate': { name: 'Ключ и врата', image: null, description: 'Поиск древнего артефакта, способного открыть врата между мирами' },
-            'summoned_serve': { name: 'Призваны служить', image: null, description: 'Столкновение с культом, пытающимся призвать на службу тёмных существ' }
+            'veil_twilight': { name: 'Завеса сумерек', image: './images/scenarios/veil_twilight.jpg', description: 'Исследование таинственных исчезновений в старом квартале Аркхэма' },
+            'feast_umordhoth': { name: 'Пир для Умордхота', image: './images/scenarios/feast_umordhoth.jpg', description: 'Охота на древнее существо, пробудившееся в подземельях города' },
+            'coming_azathoth': { name: 'Пришествие Азатота', image: './images/scenarios/coming_azathoth.jpg', description: 'Безумный ритуал по призыву спящего божества угрожает уничтожить мир' },
+            'echo_deep': { name: 'Эхо из глубин', image: './images/scenarios/echo_deep.jpg', description: 'Загадочные события на побережье намекают на присутствие древних существ' },
+            'silence_tsathoggua': { name: 'Безмолвие Цатхоггуа', image: './images/scenarios/silence_tsathoggua.jpg', description: 'Расследование странных артефактов, связанных с подземным божеством' },
+            'shots_blind': { name: 'Выстрелы вслепую', image: './images/scenarios/shots_blind.jpg', description: 'Опасная конфронтация с тайным культом в тёмных переулках Аркхэма' },
+            'pale_lantern': { name: 'Бледный фонарь', image: './images/scenarios/pale_lantern.jpg', description: 'Поиск источника призрачного свечения, сводящего горожан с ума' },
+            'children_ithaqua': { name: 'Дети Итакуа', image: './images/scenarios/children_ithaqua.jpg', description: 'Ледяной ужас окутывает город, пробуждая древнее зло' },
+            'dreams_rlyeh': { name: 'Сны о Р\'льехе', image: './images/scenarios/dreams_rlyeh.jpg', description: 'Кошмары о затонувшем городе начинают проникать в реальность' },
+            'tyrants_destruction': { name: 'Тираны разрушения', image: './images/scenarios/tyrants_destruction.jpg', description: 'Битва с могущественными существами из иных измерений' },
+            'revenge_past': { name: 'Возмездие из прошлого', image: './images/scenarios/revenge_past.jpg', description: 'Старые грехи возвращаются, чтобы преследовать жителей Аркхэма' },
+            'key_gate': { name: 'Ключ и врата', image: './images/scenarios/key_gate.jpg', description: 'Поиск древнего артефакта, способного открыть врата между мирами' },
+            'summoned_serve': { name: 'Призваны служить', image: './images/scenarios/summoned_serve.jpg', description: 'Столкновение с культом, пытающимся призвать на службу тёмных существ' }
         };
 
         this.achievements = {
@@ -82,6 +82,7 @@ class ArkhamHorizonTracker {
         this.updateAchievements();
         this.setupEventListeners();
         this.setupModal();
+        this.preloadBackImages();
 
         setTimeout(() => {
             if (this.syncManager.isConfigured()) {
@@ -135,7 +136,6 @@ class ArkhamHorizonTracker {
         document.addEventListener('input', this.handleSearchInput.bind(this));
     }
 
-    // Упрощенная версия без изображений
     renderPlayerCountSelector() {
         const buttons = document.querySelectorAll('.count-btn');
         buttons.forEach(btn => {
@@ -214,7 +214,158 @@ class ArkhamHorizonTracker {
         }
     }
 
-    // Упрощенная версия без изображений для превью
+    flipImage(imgElement) {
+        // Проверяем, находится ли изображение в модальном окне изображений
+        const isInImageModal = imgElement.closest('#image-modal');
+
+        if (!isInImageModal) {
+            return;
+        }
+
+        if (!imgElement.classList.contains('flippable-image')) {
+            return;
+        }
+
+        const isFlipped = imgElement.classList.contains('flipped');
+
+        // Добавляем класс анимации
+        imgElement.classList.add('flipping');
+
+        // Ждем окончания анимации
+        setTimeout(() => {
+            if (isFlipped) {
+                // Возвращаем к исходному изображению
+                imgElement.classList.remove('flipped');
+            } else {
+                // Переворачиваем на обратную сторону
+                imgElement.classList.add('flipped');
+            }
+
+            // Убираем класс анимации
+            imgElement.classList.remove('flipping');
+        }, 300);
+    }
+
+    preloadBackImages() {
+        const allImages = [
+            ...Object.values(this.investigators).map(inv => inv.image),
+            ...Object.values(this.scenarios).map(scenario => scenario.image)
+        ];
+
+        allImages.forEach(src => {
+            const backSideSrc = src.replace(/\.[^/.]+$/, "") + "-1.jpg";
+            const img = new Image();
+            img.src = backSideSrc;
+        });
+    }
+
+    handleGlobalClick(e) {
+        // Обработка кликов на опции сыщиков
+        if (e.target.classList.contains('investigator-option') ||
+            e.target.parentElement.classList.contains('investigator-option')) {
+
+            const option = e.target.classList.contains('investigator-option')
+                ? e.target
+                : e.target.parentElement;
+
+            const index = parseInt(option.dataset.index);
+            const investigatorKey = option.dataset.key;
+            this.selectInvestigator(index, investigatorKey);
+            return;
+        }
+
+        // Обработка удаления выбранных сыщиков
+        if (e.target.classList.contains('remove-selected-investigator')) {
+            const index = parseInt(e.target.dataset.index);
+            this.clearInvestigatorField(index);
+            return;
+        }
+
+        // Обработка кликов на изображения в гексагонах
+        if (e.target.classList.contains('hexagon-image') ||
+            e.target.classList.contains('hexagon-investigator-image') ||
+            e.target.closest('.hexagon-image') ||
+            e.target.closest('.hexagon-investigator-image')) {
+
+            const imgElement = e.target.classList.contains('hexagon-image') ||
+                e.target.classList.contains('hexagon-investigator-image')
+                ? e.target
+                : e.target.closest('.hexagon-image') ||
+                e.target.closest('.hexagon-investigator-image');
+
+            const img = imgElement.querySelector('img');
+            if (img) {
+                this.showImageModal(img.src, img.alt);
+            }
+            e.stopPropagation();
+            return;
+        }
+
+        // Обработка кликов на превью изображения
+        if (e.target.classList.contains('investigator-preview-img') ||
+            e.target.classList.contains('scenario-preview-img') ||
+            e.target.classList.contains('selected-investigator-avatar') ||
+            (e.target.tagName === 'IMG' &&
+                e.target.classList.contains('image-front') &&
+                !e.target.closest('.flippable-image'))) {
+
+            this.showImageModal(e.target.src, e.target.alt);
+            e.stopPropagation();
+            return;
+        }
+
+        // Обработка кликов на гексагоны
+        const hexagon = e.target.closest('.hexagon');
+        if (hexagon && !e.target.closest('.hexagon-image') &&
+            !e.target.closest('.hexagon-investigator-image') &&
+            !e.target.classList.contains('hexagon-delete')) {
+            const recordId = parseInt(hexagon.dataset.id);
+            this.showRecordDetails(recordId);
+            return;
+        }
+
+        // Скрытие всех выпадающих списков
+        if (!e.target.classList.contains('investigator-search')) {
+            this.hideAllDropdowns();
+        }
+    }
+
+    handleKeyboardNavigation(e) {
+        const index = parseInt(e.target.dataset.index);
+        const dropdown = document.getElementById(`investigator-select-${index}`);
+        const options = dropdown.querySelectorAll('.investigator-option');
+
+        if (options.length === 0) return;
+
+        let currentHighlighted = dropdown.querySelector('.investigator-option.highlighted');
+        let currentIndex = currentHighlighted ?
+            Array.from(options).indexOf(currentHighlighted) : -1;
+
+        if (e.key === 'ArrowDown') {
+            currentIndex = (currentIndex + 1) % options.length;
+        } else if (e.key === 'ArrowUp') {
+            currentIndex = currentIndex <= 0 ? options.length - 1 : currentIndex - 1;
+        } else if (e.key === 'Enter' && currentHighlighted) {
+            this.selectInvestigator(index, currentHighlighted.dataset.key);
+            return;
+        }
+
+        options.forEach(opt => opt.classList.remove('highlighted'));
+
+        if (currentIndex >= 0) {
+            options[currentIndex].classList.add('highlighted');
+            options[currentIndex].scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    handleSearchInput(e) {
+        if (e.target.classList.contains('investigator-search')) {
+            const index = parseInt(e.target.dataset.index);
+            const searchTerm = e.target.value.toLowerCase();
+            this.showInvestigatorDropdown(index, searchTerm);
+        }
+    }
+
     showInvestigatorDropdown(index, searchTerm = '') {
         const dropdown = document.getElementById(`investigator-select-${index}`);
         const investigatorsList = Object.entries(this.investigators)
@@ -229,6 +380,7 @@ class ArkhamHorizonTracker {
         } else {
             dropdown.innerHTML = investigatorsList.map(([key, investigator]) => `
                 <div class="investigator-option" data-key="${key}" data-index="${index}">
+                    <img src="${investigator.image}" alt="${investigator.name}" class="investigator-option-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
                     <div class="investigator-option-info">
                         <div class="investigator-option-name">${investigator.name}</div>
                         <div class="investigator-option-desc">${investigator.description}</div>
@@ -269,8 +421,7 @@ class ArkhamHorizonTracker {
         this.updateSelectedInvestigatorsPreview();
     }
 
-    // Упрощенная версия без изображений
-    updateSelectedInvestigatorsPreview() {
+    async updateSelectedInvestigatorsPreview() {
         let previewContainer = document.getElementById('selected-investigators-preview');
 
         if (!previewContainer) {
@@ -293,10 +444,17 @@ class ArkhamHorizonTracker {
         }
 
         if (selectedInvestigators.length > 0) {
-            const previewsHTML = selectedInvestigators.map((item) => `
+            const previewsHTML = await Promise.all(selectedInvestigators.map(async (item) => {
+                const previewUrl = await this.createImagePreview(item.investigator.image, item.investigator.name, 'investigator');
+
+                return `
                 <div class="selected-investigator-item">
-                    <div class="selected-investigator-avatar">
-                        <div class="investigator-placeholder">👤</div>
+                    <div class="selected-investigator-avatar" onclick="tracker.showImageModal('${item.investigator.image}', '${item.investigator.name}')">
+                        <div class="flippable-image">
+                            <img src="${previewUrl}" 
+                                 alt="${item.investigator.name}" 
+                                 class="image-front">
+                        </div>
                     </div>
                     <span class="selected-investigator-name">${item.investigator.name}</span>
                     <button type="button" 
@@ -306,13 +464,14 @@ class ArkhamHorizonTracker {
                         ×
                     </button>
                 </div>
-            `).join('');
+            `;
+            }));
 
             previewContainer.innerHTML = `
             <div style="width: 100%; margin-bottom: 10px; font-weight: bold; color: var(--accent);">
                 Выбранные сыщики (${selectedInvestigators.length}/${this.currentPlayerCount}):
             </div>
-            ${previewsHTML}
+            ${previewsHTML.join('')}
         `;
         } else {
             previewContainer.innerHTML = '<div style="color: var(--text-dark); font-style: italic;">Сыщики не выбраны</div>';
@@ -330,7 +489,41 @@ class ArkhamHorizonTracker {
         return selected;
     }
 
-    // Удален метод createImagePreview
+    createImagePreview(src, alt, type = 'scenario') {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                const width = type === 'scenario' ? 240 : 60;
+                const height = type === 'scenario' ? 160 : 60;
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const sourceWidth = img.width / 2;
+                const sourceX = type === 'scenario' ? 0 : img.width / 2;
+                const sourceY = 0;
+                const sourceHeight = img.height;
+
+                ctx.drawImage(
+                    img,
+                    sourceX, sourceY, sourceWidth, sourceHeight,
+                    0, 0, width, height
+                );
+
+                const previewUrl = canvas.toDataURL('image/jpeg', 0.8);
+                resolve(previewUrl);
+            };
+
+            img.onerror = () => {
+                resolve(src);
+            };
+
+            img.src = src;
+        });
+    }
 
     setupModal() {
         const recordModal = document.getElementById('record-modal');
@@ -375,15 +568,20 @@ class ArkhamHorizonTracker {
         });
     }
 
-    // Упрощенная версия без изображений
-    showScenarioPreview(scenarioKey) {
+    async showScenarioPreview(scenarioKey) {
         const preview = document.getElementById('scenario-preview');
 
         if (scenarioKey && this.scenarios[scenarioKey]) {
             const scenario = this.scenarios[scenarioKey];
+            const previewUrl = await this.createImagePreview(scenario.image, scenario.name, 'scenario');
 
             preview.innerHTML = `
             <div class="scenario-preview-content">
+                <div class="scenario-preview-large" onclick="tracker.showImageModal('${scenario.image}', '${scenario.name}')">
+                    <div class="flippable-image">
+                        <img src="${previewUrl}" alt="${scenario.name}" class="image-front">
+                    </div>
+                </div>
                 <div class="scenario-preview-info">
                     <strong>${scenario.name}</strong>
                     <div class="scenario-preview-desc">${scenario.description}</div>
@@ -395,13 +593,35 @@ class ArkhamHorizonTracker {
         }
     }
 
-    // Упрощенная версия без изображений
     showImageModal(src, alt) {
-        // Просто показываем информацию без изображения
-        this.showNotification('Изображения будут добавлены позже', 'info');
+        const modal = document.getElementById('image-modal');
+        const modalBody = document.getElementById('image-modal-body');
+
+        // Создаем путь к обратной стороне
+        const basePath = src.replace(/\.[^/.]+$/, "");
+        const backSideSrc = `${basePath}-1.jpg`;
+
+        modalBody.innerHTML = `
+    <div class="image-modal-content">
+        <div class="flippable-image modal-image-container" onclick="tracker.flipImage(this)">
+            <div class="image-front">
+                <img src="${src}" alt="${alt}" 
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
+            </div>
+            <div class="image-back">
+                <img src="${backSideSrc}" alt="Обратная сторона: ${alt}" 
+                     onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\"image-placeholder\">Обратная сторона<br>${alt}</div>'">
+            </div>
+            <div class="flip-indicator">🔄 Нажмите для переворота</div>
+        </div>
+        <h3 class="modal-title">${alt}</h3>
+    </div>
+    `;
+
+        modal.style.display = 'block';
+        document.body.classList.add('modal-open');
     }
 
-    // Упрощенная версия без изображений
     showRecordDetails(recordId) {
         const record = this.progress.find(item => item.id === recordId);
         if (!record) return;
@@ -420,9 +640,16 @@ class ArkhamHorizonTracker {
             'other': '❓ Иной исход'
         }[record.result] || '❓ Иной исход';
 
+        // Сыщики в модальном окне
         const investigatorsHTML = investigators.map(investigator => {
             return `
         <div class="detail-value">
+            <div class="detail-image-large" onclick="tracker.showImageModal('${investigator.image}', '${investigator.name}')">
+                <div class="flippable-image">
+                    <img src="${investigator.image}" alt="${investigator.name}" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
+                </div>
+            </div>
             <div>
                 <strong>${investigator.name}</strong>
                 <p class="detail-description">${investigator.description}</p>
@@ -434,8 +661,11 @@ class ArkhamHorizonTracker {
         modalContent.innerHTML = `
     <div class="record-details">
         <div class="detail-header">
-            <div class="detail-header-image-placeholder">
-                <div class="scenario-placeholder">📜</div>
+            <div class="detail-header-image" onclick="tracker.showImageModal('${scenario.image}', '${scenario.name}')">
+                <div class="flippable-image">
+                    <img src="${scenario.image}" alt="${scenario.name}" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg=='">
+                </div>
             </div>
             <div class="detail-overlay">
                 <h2 class="detail-title">${scenario.name}</h2>
@@ -605,7 +835,6 @@ class ArkhamHorizonTracker {
         dateInput.value = today;
     }
 
-    // Упрощенная версия гексагонов без изображений
     async renderHexagonGrid() {
         const container = document.getElementById('hexagon-grid');
         const filteredProgress = this.getFilteredProgress();
@@ -622,11 +851,14 @@ class ArkhamHorizonTracker {
             new Date(b.timestamp) - new Date(a.timestamp)
         );
 
-        const hexagonsHTML = sortedProgress.map((item) => {
+        const hexagonsHTML = await Promise.all(sortedProgress.map(async (item) => {
             const scenario = this.scenarios[item.scenario];
             const investigators = Array.isArray(item.investigator)
                 ? item.investigator.map(key => this.investigators[key])
                 : [this.investigators[item.investigator]];
+
+            const backgroundStyle = scenario.image ?
+                `style="background-image: url('${scenario.image}')"` : '';
 
             const resultText = {
                 'win': 'Победа 🏆',
@@ -636,14 +868,37 @@ class ArkhamHorizonTracker {
 
             let investigatorsHTML = '';
             if (investigators.length === 1) {
+                const previewUrl = await this.createImagePreview(investigators[0].image, investigators[0].name, 'investigator');
+
                 investigatorsHTML = `
-                <div class="hexagon-investigator-placeholder">👤</div>
+                <div class="hexagon-image" onclick="tracker.showImageModal('${investigators[0].image}', '${investigators[0].name}')">
+                    <div class="flippable-image">
+                        <img src="${previewUrl}" 
+                             alt="${investigators[0].name}"
+                             class="image-front">
+                    </div>
+                </div>
                 <div class="hexagon-investigator">${investigators[0].name}</div>
             `;
             } else {
+                const investigatorPreviews = await Promise.all(
+                    investigators.slice(0, 4).map(async (inv) => {
+                        const previewUrl = await this.createImagePreview(inv.image, inv.name, 'investigator');
+                        return `
+                        <div class="hexagon-investigator-image" onclick="tracker.showImageModal('${inv.image}', '${inv.name}')">
+                            <div class="flippable-image">
+                                <img src="${previewUrl}" 
+                                     alt="${inv.name}"
+                                     class="image-front">
+                            </div>
+                        </div>
+                    `;
+                    })
+                );
+
                 investigatorsHTML = `
-                <div class="hexagon-investigators-placeholder">
-                    ${'👤'.repeat(Math.min(investigators.length, 4))}
+                <div class="hexagon-investigators">
+                    ${investigatorPreviews.join('')}
                 </div>
                 <div class="hexagon-investigator-list">
                     ${investigators.map(inv => inv.name).join(', ')}
@@ -653,7 +908,7 @@ class ArkhamHorizonTracker {
 
             return `
             <div class="hexagon ${item.result}" data-id="${item.id}">
-                <div class="hexagon-inner">
+                <div class="hexagon-inner" ${backgroundStyle}>
                     <div class="hexagon-actions">
                         <button class="hexagon-delete" onclick="event.stopPropagation(); tracker.deleteProgress(${item.id})" title="Удалить запись">
                             ×
@@ -679,7 +934,7 @@ class ArkhamHorizonTracker {
                 </div>
             </div>
         `;
-        });
+        }));
 
         container.innerHTML = hexagonsHTML.join('');
     }
@@ -868,7 +1123,6 @@ class ArkhamHorizonTracker {
         }
     }
 
-    // Упрощенная версия таблицы прогресса без изображений
     async showUniversalProgress() {
         const totalCombinations = Object.keys(this.investigators).length * Object.keys(this.scenarios).length;
         const completedCombinations = new Set();
@@ -886,27 +1140,31 @@ class ArkhamHorizonTracker {
 
         const progressPercent = Math.round((completedCombinations.size / totalCombinations) * 100);
 
-        const tableRows = Object.entries(this.investigators).map(([invKey, investigator]) => {
-            const scenarioCells = Object.keys(this.scenarios).map(scenarioKey => {
-                const combination = `${invKey}-${scenarioKey}`;
-                const isCompleted = completedCombinations.has(combination);
-                const scenario = this.scenarios[scenarioKey];
-                return `<td class="scenario-cell ${isCompleted ? 'completed' : 'pending'}"
+        const tableRows = await Promise.all(
+            Object.entries(this.investigators).map(async ([invKey, investigator]) => {
+                const previewUrl = await this.createImagePreview(investigator.image, investigator.name, 'investigator');
+
+                const scenarioCells = Object.keys(this.scenarios).map(scenarioKey => {
+                    const combination = `${invKey}-${scenarioKey}`;
+                    const isCompleted = completedCombinations.has(combination);
+                    const scenario = this.scenarios[scenarioKey];
+                    return `<td class="scenario-cell ${isCompleted ? 'completed' : 'pending'}"
                           title="${scenario.name} - ${investigator.name} (${isCompleted ? 'Пройдено' : 'Не пройдено'})">
                     ${isCompleted ? '✅' : '❌'}
                 </td>`;
-            }).join('');
+                }).join('');
 
-            return `
+                return `
                 <tr>
                     <td class="investigator-cell" title="${investigator.description}">
-                        <div class="investigator-placeholder">👤</div>
+                        <img src="${previewUrl}" alt="${investigator.name}" class="table-investigator-img">
                         ${investigator.name}
                     </td>
                     ${scenarioCells}
                 </tr>
             `;
-        }).join('');
+            })
+        );
 
         const progressHTML = `
         <div class="universal-progress">
@@ -944,7 +1202,7 @@ class ArkhamHorizonTracker {
                         </tr>
                     </thead>
                     <tbody>
-                        ${tableRows}
+                        ${tableRows.join('')}
                     </tbody>
                 </table>
             </div>
@@ -1433,3 +1691,11 @@ let tracker;
 document.addEventListener('DOMContentLoaded', () => {
     tracker = new ArkhamHorizonTracker();
 });
+
+// Обработка ошибок загрузки изображений
+window.addEventListener('error', function (e) {
+    if (e.target.tagName === 'IMG') {
+        console.warn('Изображение не загружено:', e.target.src);
+        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuKEoiBJbWFnZSBub3QgZm91bmQg4oSiPC90ZXh0Pjwvc3ZnPg==';
+    }
+}, true);
