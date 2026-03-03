@@ -4,21 +4,309 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Аркхем Хорайзон - Справочник карт</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg...%3E">
+    <meta name="description" content="Полный справочник карт для игры Ужас Аркхема 3-я редакция">
+    
+    <!-- Favicon с щупальцем и глазом -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='tentacleGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%238b0000' /%3E%3Cstop offset='100%25' style='stop-color:%235a0000' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M50 10 Q30 30 25 50 Q20 70 30 85 Q40 95 55 90 Q70 85 75 70 Q80 55 70 40 Q60 25 50 10' fill='url(%23tentacleGrad)' stroke='%23daa520' stroke-width='3'/%3E%3Ccircle cx='45' cy='40' r='12' fill='%23ffffff' stroke='%23daa520' stroke-width='2'/%3E%3C/svg%3E">
+    
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    
     <style>
-        /* Все необходимые стили для справочника (см. предыдущие ответы) */
+        /* ========== ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ТОЛЬКО ДЛЯ СПРАВОЧНИКА ========== */
+        .help-page {
+            padding-top: 20px;
+        }
+        
+        /* Верхняя панель навигации (как на главной) */
+        .top-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 10px 20px;
+            background: rgba(26, 26, 46, 0.5);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(218, 165, 32, 0.3);
+            backdrop-filter: blur(5px);
+        }
+        
+        .top-action-btn {
+            background: linear-gradient(135deg, var(--secondary-light), var(--secondary));
+            color: var(--text-light);
+            padding: 10px 20px;
+            border: 1px solid var(--accent);
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-family: 'Cinzel', serif;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .top-action-btn:hover {
+            background: var(--accent);
+            color: var(--secondary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        /* Блок поиска и фильтров */
+        .help-controls {
+            background: rgba(26, 26, 46, 0.7);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(218, 165, 32, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .help-search {
+            margin-bottom: 20px;
+        }
+        
+        .help-search-input {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            border: 2px solid rgba(218, 165, 32, 0.3);
+            background: var(--secondary-dark);
+            color: var(--text-light);
+            font-size: 1.1rem;
+            font-family: 'Cinzel', serif;
+        }
+        
+        .help-search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(218, 165, 32, 0.3);
+        }
+        
+        .help-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .help-filter-btn {
+            background: var(--secondary-light);
+            color: var(--text-light);
+            border: 1px solid rgba(218, 165, 32, 0.3);
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            transition: all 0.3s ease;
+        }
+        
+        .help-filter-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+        
+        .help-filter-btn.active {
+            background: var(--accent);
+            color: var(--secondary-dark);
+            border-color: var(--accent-dark);
+        }
+        
+        .cards-count {
+            text-align: center;
+            color: var(--text-dark);
+            margin: 20px 0;
+            font-size: 1.1rem;
+        }
+        
+        .cards-count span {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+        
+        /* Сетка карточек (как в админке) */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+        
+        /* Карточка (стилизована под админ-карточку) */
+        .catalog-card {
+            background: linear-gradient(135deg, var(--secondary-light), var(--secondary));
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(218, 165, 32, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .catalog-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(218, 165, 32, 0.3);
+            border-color: var(--accent);
+        }
+        
+        .catalog-card-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-bottom: 2px solid var(--accent);
+            transition: transform 0.5s ease;
+        }
+        
+        .catalog-card:hover .catalog-card-image {
+            transform: scale(1.05);
+        }
+        
+        .catalog-card-content {
+            padding: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .catalog-card-title {
+            color: var(--accent);
+            font-size: 1rem;
+            font-family: 'MedievalSharp', cursive;
+            margin: 0;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 2.6rem;
+        }
+        
+        .catalog-card-description {
+            color: var(--text-dark);
+            font-size: 0.8rem;
+            line-height: 1.4;
+            margin: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 2.2rem;
+        }
+        
+        .catalog-card-type {
+            display: inline-block;
+            padding: 4px 8px;
+            background: var(--secondary-dark);
+            border-radius: 12px;
+            font-size: 0.7rem;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            align-self: flex-start;
+            margin-top: auto;
+        }
+        
+        /* Сообщение об отсутствии результатов */
+        .no-results-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--text-dark);
+            font-style: italic;
+            padding: 60px 20px;
+            font-size: 1.2rem;
+            background: rgba(15, 15, 26, 0.5);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(218, 165, 32, 0.2);
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 15px;
+            }
+            
+            .catalog-card-image {
+                height: 130px;
+            }
+            
+            .catalog-card-title {
+                font-size: 0.9rem;
+                min-height: 2.4rem;
+            }
+            
+            .catalog-card-description {
+                font-size: 0.75rem;
+                -webkit-line-clamp: 2;
+                min-height: 2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .catalog-card-image {
+                height: 110px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Фон (как на главной) -->
-    <div class="background-elements">...</div>
+    <!-- Фон с атмосферными элементами (скопирован из index.html) -->
+    <div class="background-elements">
+        <div class="tentacle tentacle-1"></div>
+        <div class="tentacle tentacle-2"></div>
+        <div class="tentacle tentacle-3"></div>
+        <div class="tentacle tentacle-4"></div>
+        <div class="eldritch-symbol symbol-1">⚸</div>
+        <div class="eldritch-symbol symbol-2">♆</div>
+        <div class="eldritch-symbol symbol-3">♇</div>
+        <div class="eldritch-symbol symbol-4">⚕</div>
+        <div class="eldritch-symbol symbol-5">⚚</div>
+        <div class="ancient-rune rune-1">ᚠ</div>
+        <div class="ancient-rune rune-2">ᚢ</div>
+        <div class="ancient-rune rune-3">ᚦ</div>
+        <div class="ancient-rune rune-4">ᚨ</div>
+        <div class="ancient-rune rune-5">ᚱ</div>
+        <div class="nebula nebula-1"></div>
+        <div class="nebula nebula-2"></div>
+        <div class="nebula nebula-3"></div>
+        <div class="floating-eye eye-1">👁️</div>
+        <div class="floating-eye eye-2">👁️</div>
+        <div class="floating-eye eye-3">👁️</div>
+        <div class="pulsating-orb orb-1"></div>
+        <div class="pulsating-orb orb-2"></div>
+        <div class="pulsating-orb orb-3"></div>
+        <div class="whispering-shadow shadow-1"></div>
+        <div class="whispering-shadow shadow-2"></div>
+    </div>
 
     <div class="container help-page">
-        <!-- Шапка и верхняя навигация -->
-        <header class="main-header">...</header>
-        <div class="top-actions">...</div>
+        <!-- Заголовок -->
+        <header class="main-header">
+            <div class="title-container">
+                <h1 class="main-title eldritch-text">Справочник исследователя</h1>
+                <p class="subtitle ancient-script">Все карты игры Ужас Аркхэма 3-я редакция</p>
+                <div class="decoration-line"></div>
+                <div class="header-ornament">✦ ⋆ ⋅ ☆ ⋅ ⋆ ✦</div>
+            </div>
+        </header>
+
+        <!-- Верхняя панель навигации (как на главной) -->
+        <div class="top-actions">
+            <a href="index.html" class="top-action-btn">
+                <span>🏠</span> Трекер
+            </a>
+            <a href="admin.html" class="top-action-btn">
+                <span>⚙️</span> Панель администратора
+            </a>
+        </div>
 
         <!-- Поиск и фильтры -->
         <div class="help-controls">
@@ -47,8 +335,18 @@
         </section>
     </div>
 
-    <!-- Модальное окно для изображений -->
-    <div id="image-modal" class="modal">...</div>
+    <!-- Модальное окно для изображений (как в index.html) -->
+    <div id="image-modal" class="modal">
+        <div class="modal-content image-modal-content">
+            <span class="close" onclick="document.getElementById('image-modal').style.display='none'">&times;</span>
+            <div id="image-modal-body" class="modal-body image-modal-body">
+                <!-- Содержимое будет вставлено через JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомления -->
+    <div id="notification-container" class="notification-container"></div>
 
     <script>
         // ================== ПОЛНОСТЬЮ САМОДОСТАТОЧНЫЙ СКРИПТ ==================
@@ -68,7 +366,6 @@
 
             async loadCardData() {
                 try {
-                    // Пытаемся загрузить данные с GitHub (или из локального файла)
                     const response = await fetch('data/cards.json');
                     if (response.ok) {
                         const data = await response.json();
@@ -87,27 +384,12 @@
                             }
                         }
                     } else {
-                        // Если файла нет, используем локальные тестовые данные (можно убрать)
-                        console.warn('Файл data/cards.json не найден, используются тестовые данные');
-                        this.loadLocalData();
+                        console.warn('Файл data/cards.json не найден. Создайте его или добавьте карты через админку.');
+                        // Оставляем пустые массивы
                     }
                 } catch (error) {
                     console.error('Ошибка загрузки данных:', error);
-                    this.loadLocalData();
                 }
-            }
-
-            loadLocalData() {
-                // Здесь можно оставить пустые массивы или добавить тестовые карты
-                this.cards = {
-                    investigators: [],
-                    scenarios: [],
-                    ancient: [],
-                    items: [],
-                    spells: [],
-                    allies: [],
-                    conditions: []
-                };
             }
 
             getTotalCards() {
@@ -124,7 +406,7 @@
                     html += this.cards[category].map(card => this.renderCard(card)).join('');
                 }
 
-                container.innerHTML = html || '<div class="no-results-message">Нет карт для отображения</div>';
+                container.innerHTML = html || '<div class="no-results-message">В картотеке пока нет карт</div>';
 
                 if (countEl) {
                     countEl.innerHTML = `Всего карт: <span>${this.getTotalCards()}</span>`;
@@ -134,16 +416,17 @@
             }
 
             renderCard(card) {
-                const defaultImage = 'data:image/svg+xml...'; // заглушка
+                const defaultImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPtCd0LXRgiDQuNC30L7QsdGA0LDQttC10L3QuNGPPC90ZXh0Pjwvc3ZnPg==';
+                
                 return `
-                <div class="compact-card" data-category="${card.type}" data-name="${card.name.toLowerCase()}">
-                    <div class="compact-card-image" onclick="showImageModal('${card.image}', '${card.name}')">
-                        <img src="${card.image}" alt="${card.name}" onerror="this.src='${defaultImage}'">
-                    </div>
-                    <div class="compact-card-content">
-                        <h3 class="compact-card-title">${card.name}</h3>
-                        <p class="compact-card-description">${card.description || 'Описание отсутствует'}</p>
-                        <span class="compact-card-type">${this.getTypeLabel(card.type)}</span>
+                <div class="catalog-card" data-category="${card.type}" data-name="${card.name.toLowerCase()}">
+                    <img src="${card.image}" alt="${card.name}" class="catalog-card-image"
+                         onclick="showImageModal('${card.image}', '${card.name}')"
+                         onerror="this.src='${defaultImage}'">
+                    <div class="catalog-card-content">
+                        <h3 class="catalog-card-title">${card.name}</h3>
+                        <p class="catalog-card-description">${card.description || 'Описание отсутствует'}</p>
+                        <span class="catalog-card-type">${this.getTypeLabel(card.type)}</span>
                     </div>
                 </div>
                 `;
@@ -165,7 +448,7 @@
             initSearchAndFilters() {
                 const searchInput = document.getElementById('help-search');
                 const filterBtns = document.querySelectorAll('.help-filter-btn');
-                const cards = document.querySelectorAll('.compact-card');
+                const cards = document.querySelectorAll('.catalog-card');
                 const countEl = document.getElementById('cards-count');
 
                 if (!searchInput || !cards.length) return;
@@ -217,10 +500,79 @@
             }
         }
 
-        // Функция для показа изображений (копия из script.js, адаптированная)
+        // Функция для показа изображений в модальном окне (с поддержкой переворота)
         async function showImageModal(src, alt) {
-            // ... (полная реализация из предыдущих ответов)
+            const modal = document.getElementById('image-modal');
+            const modalBody = document.getElementById('image-modal-body');
+            
+            const basePath = src.replace(/\.[^/.]+$/, "");
+            const backSideSrc = `${basePath}-1.jpg`;
+            
+            // Проверяем существование обратной стороны
+            const checkBackImage = new Image();
+            checkBackImage.onload = () => {
+                // Обратная сторона существует
+                modalBody.innerHTML = `
+                <div class="image-modal-content">
+                    <div class="simple-image-container" style="position: relative; width: 100%; height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; perspective: 1000px;">
+                        <div id="flipper" style="position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer;">
+                            <div style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center;">
+                                <img src="${src}" alt="${alt}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);">
+                            </div>
+                            <div style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; transform: rotateY(180deg); display: flex; align-items: center; justify-content: center;">
+                                <img src="${backSideSrc}" alt="${alt} (обратная сторона)" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);">
+                            </div>
+                        </div>
+                        <div style="text-align: center; margin-top: 15px; color: var(--accent);">👆 Нажмите на изображение для переворота</div>
+                    </div>
+                    <h3 style="text-align: center; margin-top: 15px; color: var(--text-light);">${alt}</h3>
+                </div>
+                `;
+                
+                let isFlipped = false;
+                const flipper = document.getElementById('flipper');
+                flipper.addEventListener('click', () => {
+                    isFlipped = !isFlipped;
+                    flipper.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+                });
+            };
+            
+            checkBackImage.onerror = () => {
+                // Обратной стороны нет
+                modalBody.innerHTML = `
+                <div class="image-modal-content">
+                    <div class="simple-image-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70vh;">
+                        <img src="${src}" alt="${alt}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);">
+                        <div style="text-align: center; margin-top: 15px; color: var(--text-dark);">ℹ️ Обратная сторона отсутствует</div>
+                    </div>
+                    <h3 style="text-align: center; margin-top: 15px; color: var(--text-light);">${alt}</h3>
+                </div>
+                `;
+            };
+            
+            checkBackImage.src = backSideSrc;
+            
+            modal.style.display = 'block';
+            document.body.classList.add('modal-open');
         }
+
+        // Закрытие модального окна по клику вне его
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('image-modal');
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
+        });
+
+        // Закрытие по Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('image-modal');
+                modal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
+        });
 
         // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', async () => {
