@@ -356,6 +356,12 @@
                 <button class="help-filter-btn" data-category="ally">Союзники</button>
                 <button class="help-filter-btn" data-category="condition">Состояния</button>
             </div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
+    <div class="cards-count" id="cards-count">Загружается...</div>
+    <button class="control-btn secondary" id="refresh-cards" style="padding: 8px 15px;">
+        🔄 Обновить
+    </button>
+</div>
             <div class="cards-count" id="cards-count">Загружается...</div>
         </div>
 
@@ -399,7 +405,7 @@
 
             async loadCardData() {
                 try {
-                    const response = await fetch('data/cards.json');
+                     const response = await fetch('data/cards.json?t=' + Date.now());
                     if (response.ok) {
                         const data = await response.json();
                         // Преобразуем в единый формат с type
@@ -642,6 +648,11 @@
             const ref = new CardReference();
             await ref.loadCardData();
             ref.renderCards();
+        });
+        document.getElementById('refresh-cards').addEventListener('click', async () => {
+        const ref = new CardReference();
+        await ref.loadCardData();
+        ref.renderCards();
         });
     </script>
 </body>
