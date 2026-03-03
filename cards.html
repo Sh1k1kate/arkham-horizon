@@ -288,91 +288,31 @@
                 };
             }
 
-            // Загрузка данных о картах
-            async loadCardData() {
-                // Сыщики
-                this.cards.investigators = [
-                    { name: 'Агнес Бейкер', image: './images/investigators/agnes.jpg', description: 'Официантка с экстрасенсорными способностями', type: 'investigator' },
-                    { name: '«Жестянка» Пит', image: './images/investigators/pete.jpg', description: 'Бродяга с верным вороном', type: 'investigator' },
-                    { name: 'Кэлвин Райт', image: './images/investigators/calvin.jpg', description: 'Преследуемый прошлыми травмами', type: 'investigator' },
-                    { name: 'Даниэла Рейес', image: './images/investigators/daniela.jpg', description: 'Механик с техническим складом ума', type: 'investigator' },
-                    { name: 'Декстер Дрейк', image: './images/investigators/dexter.jpg', description: 'Фокусник, владеющий иллюзиями', type: 'investigator' },
-                    { name: 'Дженни Барнс', image: './images/investigators/jenny.jpg', description: 'Девушка из высшего общества', type: 'investigator' },
-                    { name: 'Мари Ламбо', image: './images/investigators/marie.jpg', description: 'Певица с гипнотическим голосом', type: 'investigator' },
-                    { name: 'Майкл МакГлен', image: './images/investigators/michael.jpg', description: 'Гангстер, решающий вопросы силой', type: 'investigator' },
-                    { name: 'Минь Тхи Фан', image: './images/investigators/minh.jpg', description: 'Секретарь с феноменальной памятью', type: 'investigator' },
-                    { name: 'Норман Уизерс', image: './images/investigators/norman.jpg', description: 'Астроном, открывший тайны вселенной', type: 'investigator' },
-                    { name: 'Рекс Мёрфи', image: './images/investigators/rex.jpg', description: 'Репортёр, ищущий сенсации', type: 'investigator' },
-                    { name: 'Роланд Бэнкс', image: './images/investigators/roland.jpg', description: 'Федеральный агент', type: 'investigator' },
-                    { name: '«Шквал» О\'Тул', image: './images/investigators/skids.jpg', description: 'Бывший заключенный', type: 'investigator' },
-                    { name: 'Томми Малдун', image: './images/investigators/tommy.jpg', description: 'Полицейский-новичок', type: 'investigator' },
-                    { name: 'Венди Адамс', image: './images/investigators/wendy.jpg', description: 'Бездомная сирота', type: 'investigator' },
-                    { name: 'Зои Сэмарас', image: './images/investigators/zoey.jpg', description: 'Повар с необычными талантами', type: 'investigator' },
-                    { name: 'Агата Крейн', image: './images/investigators/agatha.jpg', description: 'Парапсихолог', type: 'investigator' },
-                    { name: 'Карсон Синклер', image: './images/investigators/carson.jpg', description: 'Дворецкий с манерами', type: 'investigator' },
-                    { name: 'Чарли Кейн', image: './images/investigators/charley.jpg', description: 'Политик', type: 'investigator' },
-                    { name: 'Диана Стэнли', image: './images/investigators/diana.jpg', description: 'Искупившаяся культистка', type: 'investigator' },
-                    { name: 'Отец Матео', image: './images/investigators/mateo.jpg', description: 'Священник', type: 'investigator' },
-                    { name: 'Кейт Уинтроп', image: './images/investigators/kate.jpg', description: 'Учёный-исследователь', type: 'investigator' },
-                    { name: 'Марк Харриган', image: './images/investigators/mark.jpg', description: 'Солдат с железной волей', type: 'investigator' },
-                    { name: 'Патрис Хэтауэй', image: './images/investigators/patrice.jpg', description: 'Скрипачка', type: 'investigator' },
-                    { name: 'Престон Фэйрмонт', image: './images/investigators/preston.jpg', description: 'Миллионер', type: 'investigator' },
-                    { name: 'Силас Марш', image: './images/investigators/silas.jpg', description: 'Моряк', type: 'investigator' },
-                    { name: 'Стелла Кларк', image: './images/investigators/stella.jpg', description: 'Почтальон', type: 'investigator' },
-                    { name: 'Виннифред Хаббамок', image: './images/investigators/winifred.jpg', description: 'Авиатриса', type: 'investigator' }
-                ];
-
-                // Сценарии
-                this.cards.scenarios = [
-                    { name: 'Завеса сумерек', image: './images/scenarios/veil_twilight.jpg', description: 'Таинственные исчезновения в старом квартале', type: 'scenario' },
-                    { name: 'Пир для Умордхота', image: './images/scenarios/feast_umordhoth.jpg', description: 'Охота на древнее существо', type: 'scenario' },
-                    { name: 'Пришествие Азатота', image: './images/scenarios/coming_azathoth.jpg', description: 'Ритуал по призыву спящего божества', type: 'scenario' },
-                    { name: 'Эхо из глубин', image: './images/scenarios/echo_deep.jpg', description: 'События на побережье', type: 'scenario' },
-                    { name: 'Безмолвие Цатхоггуа', image: './images/scenarios/silence_tsathoggua.jpg', description: 'Странные артефакты', type: 'scenario' },
-                    { name: 'Выстрелы вслепую', image: './images/scenarios/shots_blind.jpg', description: 'Конфронтация с культом', type: 'scenario' },
-                    { name: 'Бледный фонарь', image: './images/scenarios/pale_lantern.jpg', description: 'Призрачное свечение', type: 'scenario' },
-                    { name: 'Дети Итакуа', image: './images/scenarios/children_ithaqua.jpg', description: 'Ледяной ужас', type: 'scenario' },
-                    { name: 'Сны о Р\'льехе', image: './images/scenarios/dreams_rlyeh.jpg', description: 'Кошмары о затонувшем городе', type: 'scenario' },
-                    { name: 'Тираны разрушения', image: './images/scenarios/tyrants_destruction.jpg', description: 'Существа из иных измерений', type: 'scenario' },
-                    { name: 'Возмездие из прошлого', image: './images/scenarios/revenge_past.jpg', description: 'Старые грехи возвращаются', type: 'scenario' },
-                    { name: 'Ключ и врата', image: './images/scenarios/key_gate.jpg', description: 'Поиск древнего артефакта', type: 'scenario' },
-                    { name: 'Призваны служить', image: './images/scenarios/summoned_serve.jpg', description: 'Призыв тёмных существ', type: 'scenario' }
-                ];
-
-                // Древние
-                this.cards.ancient = [
-                    { name: 'Азатот', image: './images/ancient/azathoth.jpg', description: 'Слепой бог-ид, правящий в центре вселенной', type: 'ancient' },
-                    { name: 'Ктулху', image: './images/ancient/cthulhu.jpg', description: 'Великий Древний, спящий в Р\'льехе', type: 'ancient' },
-                    { name: 'Йог-Сотот', image: './images/ancient/yog_sothoth.jpg', description: 'Врата и ключ', type: 'ancient' },
-                    { name: 'Шуб-Ниггурат', image: './images/ancient/shub.jpg', description: 'Черный козел с тысячью детенышей', type: 'ancient' },
-                    { name: 'Хастур', image: './images/ancient/hastur.jpg', description: 'Король в желтом', type: 'ancient' },
-                    { name: 'Ньярлатхотеп', image: './images/ancient/nyarlathotep.jpg', description: 'Ползучий хаос, вестник Древних', type: 'ancient' }
-                ];
-
-                // Предметы
-                this.cards.items = [
-                    { name: 'Том Эльтдаун', image: './images/items/tome.jpg', description: 'Древний фолиант с запретными знаниями', type: 'item' },
-                    { name: 'Серебряный ключ', image: './images/items/key.jpg', description: 'Открывает врата между мирами', type: 'item' },
-                    { name: 'Знак Древних', image: './images/items/sign.jpg', description: 'Защитный символ', type: 'item' },
-                    { name: 'Святая вода', image: './images/items/holy_water.jpg', description: 'Освященная вода', type: 'item' },
-                    { name: 'Крест', image: './images/items/cross.jpg', description: 'Религиозный символ', type: 'item' },
-                    { name: 'Древний пистолет', image: './images/items/gun.jpg', description: 'Старинное огнестрельное оружие', type: 'item' },
-                    { name: 'Защитный амулет', image: './images/items/amulet.jpg', description: 'Оберегает от темных чар', type: 'item' },
-                    { name: 'Фонарь', image: './images/items/lantern.jpg', description: 'Освещает путь во тьме', type: 'item' }
-                ];
-
-                // Заклинания
-                this.cards.spells = [
-                    { name: 'Призыв', image: './images/spells/summon.jpg', description: 'Призвать существо из иных миров', type: 'spell' },
-                    { name: 'Изгнание', image: './images/spells/banish.jpg', description: 'Изгнать враждебное существо', type: 'spell' },
-                    { name: 'Предвидение', image: './images/spells/foresight.jpg', description: 'Заглянуть в будущее', type: 'spell' },
-                    { name: 'Щит разума', image: './images/spells/shield.jpg', description: 'Защищает от психических атак', type: 'spell' },
-                    { name: 'Проклятие', image: './images/spells/curse.jpg', description: 'Насылает проклятие', type: 'spell' },
-                    { name: 'Исцеление', image: './images/spells/heal.jpg', description: 'Восстанавливает рассудок', type: 'spell' },
-                    { name: 'Телепортация', image: './images/spells/teleport.jpg', description: 'Мгновенное перемещение', type: 'spell' }
-                ];
-            }
-
+           // Замените метод loadCardData в CardReference на этот:
+async loadCardData() {
+    try {
+        // Пытаемся загрузить из localStorage (для GitHub Pages)
+        const savedData = localStorage.getItem('arkham_cards');
+        if (savedData) {
+            const data = JSON.parse(savedData);
+            this.cards = {
+                investigators: (data.investigators || []).map(c => ({...c, type: 'investigator'})),
+                scenarios: (data.scenarios || []).map(c => ({...c, type: 'scenario'})),
+                ancient: (data.ancient || []).map(c => ({...c, type: 'ancient'})),
+                items: (data.items || []).map(c => ({...c, type: 'item'})),
+                spells: (data.spells || []).map(c => ({...c, type: 'spell'})),
+                allies: (data.allies || []).map(c => ({...c, type: 'ally'})),
+                conditions: (data.conditions || []).map(c => ({...c, type: 'condition'}))
+            };
+        } else {
+            // Если нет сохраненных данных, используем локальные
+            this.loadLocalData();
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+        this.loadLocalData();
+    }
+}
             // Получить общее количество карт
             getTotalCards() {
                 let total = 0;
@@ -584,6 +524,7 @@
             await reference.loadCardData();
             reference.renderCards();
         });
+        
     </script>
 </body>
 </html>
