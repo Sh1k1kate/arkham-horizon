@@ -276,6 +276,26 @@
     <div id="notification-container" class="notification-container"></div>
 
     <script>
+        // В начало скрипта cards.html добавьте:
+let githubSync = null;
+
+// Проверяем настройки GitHub при загрузке
+document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem('github_token');
+    const owner = localStorage.getItem('github_owner');
+    const repo = localStorage.getItem('github_repo');
+    
+    if (token && owner && repo) {
+        githubSync = new GitHubSyncManager();
+        githubSync.token = token;
+        githubSync.owner = owner;
+        githubSync.repo = repo;
+    }
+    
+    const reference = new CardReference();
+    await reference.loadCardData();
+    reference.renderCards();
+});
         // Класс для управления справочником
         class CardReference {
             constructor() {
