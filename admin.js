@@ -11,28 +11,71 @@ class CardAdmin {
             conditions: []
         };
         this.currentCategory = 'investigator';
+        this.githubSync = null;
+        this.currentImage = null;
         this.init();
     }
 
     async init() {
+        // Инициализируем GitHub синхронизатор
+        this.githubSync = new GitHubSyncManager(this);
+        
+        // Проверяем подключение к GitHub
+        this.updateGitHubStatus();
+        
+        // Загружаем данные
         await this.loadData();
+        
         this.setupEventListeners();
         this.renderCardsList();
         this.updateCardsCount();
     }
 
+    updateGitHubStatus() {
+        const statusEl = document.getElementById('github-connection-status');
+        const infoEl = document.getElementById('github-info');
+        
+        if (this.githubSync && this.githubSync.isConfigured()) {
+            statusEl.className = 'connected';
+            statusEl.innerHTML = '● Подключено';
+            infoEl.textContent = `${this.githubSync.owner}/${this.githubSync.repo}`;
+        } else {
+            statusEl.className = 'disconnected';
+            statusEl.innerHTML = '● Не подключено';
+            infoEl.textContent = '';
+        }
+    }
+
     async loadData() {
         try {
-            const response = await fetch('data/cards.json');
-            if (response.ok) {
-                this.data = await response.json();
+            if (this.githubSync && this.githubSync.isConfigured()) {
+                // Загружаем с GitHub
+                const response = await this.githubSync.githubRequest(
+                    `/repos/${this.githubSync.owner}/${this.githubSync.repo}/contents/data/cards.json`
+                );
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const content = this.githubSync.decodeBase64(data.content);
+                    this.data = JSON.parse(content);
+                    this.showNotification('Данные загружены с GitHub', 'success');
+                } else {
+                    // Файл не найден, создаем пустую структуру
+                    this.data = this.getEmptyData();
+                }
             } else {
-                // Если файла нет, создаем пустую структуру
-                this.data = this.getEmptyData();
+                // Пытаемся загрузить из localStorage
+                const savedData = localStorage.getItem('arkham_cards');
+                if (savedData) {
+                    this.data = JSON.parse(savedData);
+                } else {
+                    this.data = this.getEmptyData();
+                }
             }
         } catch (error) {
             console.error('Ошибка загрузки данных:', error);
             this.data = this.getEmptyData();
+            this.showNotification('Ошибка загрузки данных', 'error');
         }
     }
 
@@ -46,6 +89,89 @@ class CardAdmin {
             allies: [],
             conditions: []
         };
+    }
+
+    async saveData() {
+        try {
+            if (this.githubSync && this.githubSync.isConfigured()) {
+                // Сохраняем на GitHub
+                await this.saveToGitHub();
+            } else {
+                // Сохраняем в localStorage
+                localStorage.setItem('arkham_cards', JSON.stringify(this.data));
+                this.showNotification('Данные сохранены локально', 'success');
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения:', error);
+            this.showNotification('Ошибка сохранения данных', 'error');
+        }
+    }
+
+    async saveToGitHub() {
+        const content = this.githubSync.encodeBase64(JSON.stringify(this.data, null, 2));
+        
+        // Проверяем существование файла
+        const response = await this.githubSync.githubRequest(
+            `/repos/${this.githubSync.owner}/${this.githubSync.repo}/contents/data/cards.json`
+        );
+        
+        const body = {
+            message: `🃏 Обновление картотеки: ${new Date().toLocaleString('ru-RU')}`,
+            content: content
+        };
+        
+        if (response.ok) {
+            const data = await response.json();
+            body.sha = data.sha;
+        }
+        
+        const saveResponse = await this.githubSync.githubRequest(
+            `/repos/${this.githubSync.owner}/${this.githubSync.repo}/contents/data/cards.json`,
+            {
+                method: 'PUT',
+                body: JSON.stringify(body)
+            }
+        );
+        
+        if (saveResponse.ok) {
+            this.showNotification('✅ Данные сохранены на GitHub', 'success');
+        } else {
+            throw new Error('Ошибка сохранения на GitHub');
+        }
+    }
+
+    async saveImageToGitHub(imageData, path) {
+        try {
+            const content = imageData; // уже base64
+            
+            // Проверяем существование файла
+            const response = await this.githubSync.githubRequest(
+                `/repos/${this.githubSync.owner}/${this.githubSync.repo}/contents/${path}`
+            );
+            
+            const body = {
+                message: `🖼️ Добавление изображения: ${path}`,
+                content: content
+            };
+            
+            if (response.ok) {
+                const data = await response.json();
+                body.sha = data.sha;
+            }
+            
+            const saveResponse = await this.githubSync.githubRequest(
+                `/repos/${this.githubSync.owner}/${this.githubSync.repo}/contents/${path}`,
+                {
+                    method: 'PUT',
+                    body: JSON.stringify(body)
+                }
+            );
+            
+            return saveResponse.ok;
+        } catch (error) {
+            console.error('Ошибка сохранения изображения:', error);
+            return false;
+        }
     }
 
     setupEventListeners() {
@@ -83,23 +209,117 @@ class CardAdmin {
             this.exportJSON();
         });
 
-        // Выбор файла для загрузки
-        document.getElementById('file-input').addEventListener('change', (e) => {
-            this.handleFileSelect(e.target.files[0]);
+        // Импорт из трекера
+        document.getElementById('import-from-tracker').addEventListener('click', () => {
+            this.importFromTracker();
         });
+
+        // Настройка GitHub
+        document.getElementById('setup-github').addEventListener('click', () => {
+            this.setupGitHub();
+        });
+
+        // Синхронизация с GitHub
+        document.getElementById('sync-github').addEventListener('click', () => {
+            this.syncWithGitHub();
+        });
+    }
+
+    async setupGitHub() {
+        const modalHTML = `
+            <div class="sync-setup-modal">
+                <h3>⚙️ Настройка GitHub для картотеки</h3>
+                <div class="setup-instructions">
+                    <p><strong>Как получить GitHub Token:</strong></p>
+                    <ol>
+                        <li>Зайдите на <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Tokens</a></li>
+                        <li>Нажмите "Generate new token" → "Generate new token (classic)"</li>
+                        <li>Введите название: "Arkham Cards Admin"</li>
+                        <li>Выберите права: <strong>repo</strong> (полный доступ)</li>
+                        <li>Скопируйте токен (начинается с ghp_)</li>
+                    </ol>
+                </div>
+                <div class="setup-form">
+                    <div class="form-group">
+                        <label>GitHub Token:</label>
+                        <input type="password" id="github-token" class="form-control" value="${this.githubSync?.token || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Username:</label>
+                        <input type="text" id="github-owner" class="form-control" value="${this.githubSync?.owner || 'sh1k1kate'}">
+                    </div>
+                    <div class="form-group">
+                        <label>Repository:</label>
+                        <input type="text" id="github-repo" class="form-control" value="${this.githubSync?.repo || 'arkham-horizon'}">
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Создаем модальное окно
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 500px;">
+                <span class="close">&times;</span>
+                <div class="modal-body">${modalHTML}</div>
+                <div style="padding: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="control-btn" id="save-github">Сохранить</button>
+                    <button class="control-btn secondary" id="cancel-github">Отмена</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        modal.style.display = 'block';
+
+        modal.querySelector('.close').onclick = () => modal.remove();
+        document.getElementById('cancel-github').onclick = () => modal.remove();
+
+        document.getElementById('save-github').onclick = async () => {
+            const token = document.getElementById('github-token').value;
+            const owner = document.getElementById('github-owner').value;
+            const repo = document.getElementById('github-repo').value;
+
+            localStorage.setItem('github_token', token);
+            localStorage.setItem('github_owner', owner);
+            localStorage.setItem('github_repo', repo);
+
+            this.githubSync = new GitHubSyncManager(this);
+            this.githubSync.token = token;
+            this.githubSync.owner = owner;
+            this.githubSync.repo = repo;
+
+            this.updateGitHubStatus();
+            await this.loadData();
+            this.renderCardsList();
+            this.updateCardsCount();
+
+            modal.remove();
+            this.showNotification('Настройки GitHub сохранены', 'success');
+        };
+    }
+
+    async syncWithGitHub() {
+        if (!this.githubSync || !this.githubSync.isConfigured()) {
+            this.showNotification('Сначала настройте GitHub', 'error');
+            return;
+        }
+
+        await this.loadData();
+        this.renderCardsList();
+        this.updateCardsCount();
     }
 
     setupDragAndDrop() {
         const dropArea = document.getElementById('drop-area');
         
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
+            dropArea.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
         });
-
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
 
         ['dragenter', 'dragover'].forEach(eventName => {
             dropArea.addEventListener(eventName, () => {
@@ -121,6 +341,10 @@ class CardAdmin {
         dropArea.addEventListener('click', () => {
             document.getElementById('file-input').click();
         });
+
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            this.handleFileSelect(e.target.files[0]);
+        });
     }
 
     async handleFileSelect(file) {
@@ -139,10 +363,10 @@ class CardAdmin {
             const preview = document.getElementById('image-preview');
             preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
             
-            // Сохраняем данные изображения для последующей загрузки
+            // Сохраняем base64 данные (убираем префикс)
             this.currentImage = {
                 name: file.name,
-                data: e.target.result.split(',')[1], // base64 данные
+                data: e.target.result.split(',')[1],
                 type: file.type
             };
         };
@@ -161,36 +385,62 @@ class CardAdmin {
             return;
         }
 
-        // Создаем карточку
-        const card = {
-            id: cardId,
-            name: name,
-            description: description,
-            expansion: expansion,
-            type: category,
-            image: `./images/${category}s/${cardId}.jpg`
-        };
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '⏳ Сохранение...';
 
-        // Добавляем дополнительные поля в зависимости от категории
-        const extraFields = this.getExtraFields();
-        Object.assign(card, extraFields);
+        // Показываем прогресс
+        document.getElementById('upload-progress').style.display = 'block';
 
-        // Добавляем в соответствующую категорию
-        const categoryKey = this.getCategoryKey(category);
-        this.data[categoryKey].push(card);
+        try {
+            // Создаем карточку
+            const card = {
+                id: cardId,
+                name: name,
+                description: description,
+                expansion: expansion,
+                type: category,
+                image: `./images/${category}s/${cardId}.jpg`
+            };
 
-        // Сохраняем изображение
-        if (this.currentImage) {
-            await this.saveImage(this.currentImage.data, `images/${category}s/${cardId}.jpg`);
+            // Добавляем в соответствующую категорию
+            const categoryKey = this.getCategoryKey(category);
+            this.data[categoryKey].push(card);
+
+            // Сохраняем изображение, если есть
+            if (this.currentImage && this.githubSync && this.githubSync.isConfigured()) {
+                document.getElementById('progress-text').textContent = 'Загрузка изображения...';
+                document.getElementById('progress-fill').style.width = '50%';
+                
+                const imagePath = `images/${category}s/${cardId}.jpg`;
+                await this.saveImageToGitHub(this.currentImage.data, imagePath);
+            }
+
+            // Сохраняем JSON
+            document.getElementById('progress-text').textContent = 'Сохранение данных...';
+            document.getElementById('progress-fill').style.width = '80%';
+            await this.saveData();
+
+            document.getElementById('progress-fill').style.width = '100%';
+            document.getElementById('progress-text').textContent = 'Готово!';
+
+            this.showNotification(`Карта "${name}" успешно добавлена!`, 'success');
+            
+            setTimeout(() => {
+                document.getElementById('upload-progress').style.display = 'none';
+                document.getElementById('progress-fill').style.width = '0%';
+            }, 1000);
+            
+            this.clearForm();
+            this.renderCardsList();
+            this.updateCardsCount();
+
+        } catch (error) {
+            this.showNotification('Ошибка при сохранении: ' + error.message, 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '💾 Сохранить карту';
         }
-
-        // Сохраняем JSON
-        await this.saveData();
-
-        this.showNotification(`Карта "${name}" успешно добавлена!`, 'success');
-        this.clearForm();
-        this.renderCardsList();
-        this.updateCardsCount();
     }
 
     getCategoryKey(category) {
@@ -212,27 +462,6 @@ class CardAdmin {
             .replace(/\s+/g, '_')
             .replace(/[ьъ]/g, '')
             .substring(0, 30);
-    }
-
-    getExtraFields() {
-        // Здесь можно добавить специфические поля для разных категорий
-        return {};
-    }
-
-    async saveImage(base64Data, path) {
-        // В реальном проекте здесь должен быть запрос к серверу
-        // Для GitHub Pages это сохранится в localStorage
-        const savedImages = JSON.parse(localStorage.getItem('arkham_images') || '{}');
-        savedImages[path] = base64Data;
-        localStorage.setItem('arkham_images', JSON.stringify(savedImages));
-    }
-
-    async saveData() {
-        // Сохраняем в localStorage для GitHub Pages
-        localStorage.setItem('arkham_cards', JSON.stringify(this.data));
-        
-        // Для реального сервера здесь был бы fetch POST
-        this.showNotification('Данные сохранены локально. Для сохранения на сервере нужен бэкенд.', 'info');
     }
 
     renderCardsList() {
@@ -268,7 +497,7 @@ class CardAdmin {
         document.getElementById('cards-count').textContent = total;
     }
 
-    deleteCard(cardId) {
+    async deleteCard(cardId) {
         if (!confirm('Удалить эту карту?')) return;
 
         for (let category in this.data) {
@@ -279,7 +508,7 @@ class CardAdmin {
             }
         }
 
-        this.saveData();
+        await this.saveData();
         this.renderCardsList();
         this.updateCardsCount();
         this.showNotification('Карта удалена', 'success');
@@ -314,10 +543,11 @@ class CardAdmin {
     clearForm() {
         document.getElementById('card-form').reset();
         document.getElementById('image-preview').innerHTML = '<span style="color: var(--text-dark);">Предпросмотр</span>';
+        document.getElementById('upload-progress').style.display = 'none';
         this.currentImage = null;
     }
 
-    batchUpload() {
+    async batchUpload() {
         try {
             const jsonText = document.getElementById('batch-json').value;
             const newData = JSON.parse(jsonText);
@@ -329,7 +559,7 @@ class CardAdmin {
                 }
             }
             
-            this.saveData();
+            await this.saveData();
             this.renderCardsList();
             this.updateCardsCount();
             this.showNotification('Данные загружены успешно!', 'success');
@@ -349,6 +579,39 @@ class CardAdmin {
         a.click();
         
         URL.revokeObjectURL(url);
+    }
+
+    importFromTracker() {
+        // Импортируем сыщиков и сценарии из трекера
+        if (window.tracker) {
+            const investigators = Object.entries(window.tracker.investigators).map(([id, data]) => ({
+                id: id,
+                name: data.name,
+                description: data.description,
+                image: data.image,
+                type: 'investigator',
+                expansion: 'Базовый набор'
+            }));
+            
+            const scenarios = Object.entries(window.tracker.scenarios).map(([id, data]) => ({
+                id: id,
+                name: data.name,
+                description: data.description,
+                image: data.image,
+                type: 'scenario',
+                expansion: 'Базовый набор'
+            }));
+            
+            this.data.investigators = investigators;
+            this.data.scenarios = scenarios;
+            
+            this.saveData();
+            this.renderCardsList();
+            this.updateCardsCount();
+            this.showNotification('Данные импортированы из трекера', 'success');
+        } else {
+            this.showNotification('Трекер не найден', 'error');
+        }
     }
 
     showNotification(message, type = 'info') {
