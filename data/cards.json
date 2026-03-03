@@ -1,0 +1,339 @@
+{
+  "investigators": [
+    {
+      "id": "agnes",
+      "name": "Агнес Бейкер",
+      "description": "Официантка с пробудившимися экстрасенсорными способностями",
+      "image": "./images/investigators/agnes.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "pete",
+      "name": "«Жестянка» Пит",
+      "description": "Бродяга с верным спутником - вороном",
+      "image": "./images/investigators/pete.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "calvin",
+      "name": "Кэлвин Райт",
+      "description": "Преследуемый прошлыми травмами",
+      "image": "./images/investigators/calvin.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "daniela",
+      "name": "Даниэла Рейес",
+      "description": "Механик с техническим складом ума",
+      "image": "./images/investigators/daniela.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "dexter",
+      "name": "Декстер Дрейк",
+      "description": "Фокусник, владеющий иллюзиями",
+      "image": "./images/investigators/dexter.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "jenny",
+      "name": "Дженни Барнс",
+      "description": "Девушка из высшего общества с боевыми навыками",
+      "image": "./images/investigators/jenny.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "marie",
+      "name": "Мари Ламбо",
+      "description": "Певица с гипнотическим голосом",
+      "image": "./images/investigators/marie.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "michael",
+      "name": "Майкл МакГлен",
+      "description": "Гангстер, привыкший решать вопросы силой",
+      "image": "./images/investigators/michael.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "minh",
+      "name": "Минь Тхи Фан",
+      "description": "Секретарь-архивариус с феноменальной памятью",
+      "image": "./images/investigators/minh.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "norman",
+      "name": "Норман Уизерс",
+      "description": "Астроном, открывший ужасающие тайны вселенной",
+      "image": "./images/investigators/norman.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "rex",
+      "name": "Рекс Мёрфи",
+      "description": "Репортёр, ищущий сенсационные разоблачения",
+      "image": "./images/investigators/rex.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "roland",
+      "name": "Роланд Бэнкс",
+      "description": "Федеральный агент с аналитическим складом ума",
+      "image": "./images/investigators/roland.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "skids",
+      "name": "«Шквал» О'Тул",
+      "description": "Бывший заключенный, ищущий искупления",
+      "image": "./images/investigators/skids.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "tommy",
+      "name": "Томми Малдун",
+      "description": "Полицейский-новичок с обострённым чувством справедливости",
+      "image": "./images/investigators/tommy.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "wendy",
+      "name": "Венди Адамс",
+      "description": "Бездомная сирота, мастер побегов и уклонений",
+      "image": "./images/investigators/wendy.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "zoey",
+      "name": "Зои Сэмарас",
+      "description": "Повар с необычными кулинарными талантами",
+      "image": "./images/investigators/zoey.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "agatha",
+      "name": "Агата Крейн",
+      "description": "Парапсихолог, изучающая потусторонние явления",
+      "image": "./images/investigators/agatha.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "carson",
+      "name": "Карсон Синклер",
+      "description": "Дворецкий с безупречными манерами и наблюдательностью",
+      "image": "./images/investigators/carson.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "charley",
+      "name": "Чарли Кейн",
+      "description": "Политик, владеющий искусством убеждения",
+      "image": "./images/investigators/charley.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "diana",
+      "name": "Диана Стэнли",
+      "description": "Искупившаяся культистка, борющаяся со своим прошлым",
+      "image": "./images/investigators/diana.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "mateo",
+      "name": "Отец Матео",
+      "description": "Священник, сражающийся с демоническими силами",
+      "image": "./images/investigators/mateo.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "kate",
+      "name": "Кейт Уинтроп",
+      "description": "Учёный-исследователь аномальных явлений",
+      "image": "./images/investigators/kate.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "mark",
+      "name": "Марк Харриган",
+      "description": "Солдат с боевым опытом и железной волей",
+      "image": "./images/investigators/mark.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "patrice",
+      "name": "Патрис Хэтауэй",
+      "description": "Скрипачка с мистической связью через музыку",
+      "image": "./images/investigators/patrice.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "preston",
+      "name": "Престон Фэйрмонт",
+      "description": "Миллионер, использующий своё состояние в борьбе со злом",
+      "image": "./images/investigators/preston.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "silas",
+      "name": "Силас Марш",
+      "description": "Моряк, повидавший ужасы морских глубин",
+      "image": "./images/investigators/silas.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "stella",
+      "name": "Стелла Кларк",
+      "description": "Почтальон, знающий все тайны Аркхэма",
+      "image": "./images/investigators/stella.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "winifred",
+      "name": "Виннифред Хаббамок",
+      "description": "Авиатриса с жаждой приключений",
+      "image": "./images/investigators/winifred.jpg",
+      "type": "investigator",
+      "expansion": "Базовый набор"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "veil_twilight",
+      "name": "Завеса сумерек",
+      "description": "Исследование таинственных исчезновений в старом квартале Аркхэма",
+      "image": "./images/scenarios/veil_twilight.jpg",
+      "type": "scenario",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "feast_umordhoth",
+      "name": "Пир для Умордхота",
+      "description": "Охота на древнее существо, пробудившееся в подземельях города",
+      "image": "./images/scenarios/feast_umordhoth.jpg",
+      "type": "scenario",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "coming_azathoth",
+      "name": "Пришествие Азатота",
+      "description": "Безумный ритуал по призыву спящего божества угрожает уничтожить мир",
+      "image": "./images/scenarios/coming_azathoth.jpg",
+      "type": "scenario",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "echo_deep",
+      "name": "Эхо из глубин",
+      "description": "Загадочные события на побережье намекают на присутствие древних существ",
+      "image": "./images/scenarios/echo_deep.jpg",
+      "type": "scenario",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "silence_tsathoggua",
+      "name": "Безмолвие Цатхоггуа",
+      "description": "Расследование странных артефактов, связанных с подземным божеством",
+      "image": "./images/scenarios/silence_tsathoggua.jpg",
+      "type": "scenario",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "shots_blind",
+      "name": "Выстрелы вслепую",
+      "description": "Опасная конфронтация с тайным культом в тёмных переулках Аркхэма",
+      "image": "./images/scenarios/shots_blind.jpg",
+      "type": "scenario",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "pale_lantern",
+      "name": "Бледный фонарь",
+      "description": "Поиск источника призрачного свечения, сводящего горожан с ума",
+      "image": "./images/scenarios/pale_lantern.jpg",
+      "type": "scenario",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "children_ithaqua",
+      "name": "Дети Итакуа",
+      "description": "Ледяной ужас окутывает город, пробуждая древнее зло",
+      "image": "./images/scenarios/children_ithaqua.jpg",
+      "type": "scenario",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "dreams_rlyeh",
+      "name": "Сны о Р'льехе",
+      "description": "Кошмары о затонувшем городе начинают проникать в реальность",
+      "image": "./images/scenarios/dreams_rlyeh.jpg",
+      "type": "scenario",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "tyrants_destruction",
+      "name": "Тираны разрушения",
+      "description": "Битва с могущественными существами из иных измерений",
+      "image": "./images/scenarios/tyrants_destruction.jpg",
+      "type": "scenario",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "revenge_past",
+      "name": "Возмездие из прошлого",
+      "description": "Старые грехи возвращаются, чтобы преследовать жителей Аркхэма",
+      "image": "./images/scenarios/revenge_past.jpg",
+      "type": "scenario",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "key_gate",
+      "name": "Ключ и врата",
+      "description": "Поиск древнего артефакта, способного открыть врата между мирами",
+      "image": "./images/scenarios/key_gate.jpg",
+      "type": "scenario",
+      "expansion": "Базовый набор"
+    },
+    {
+      "id": "summoned_serve",
+      "name": "Призваны служить",
+      "description": "Столкновение с культом, пытающимся призвать на службу тёмных существ",
+      "image": "./images/scenarios/summoned_serve.jpg",
+      "type": "scenario",
+      "expansion": "Базовый набор"
+    }
+  ],
+  "ancient": [],
+  "items": [],
+  "spells": [],
+  "allies": [],
+  "conditions": []
+}
