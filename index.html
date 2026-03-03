@@ -7,16 +7,52 @@
     <meta name="description" content="Трекер для настольной игры Ужас Аркхема с гексагональной сеткой записей">
     <meta name="keywords" content="Ужас Аркхема, Arkham Horror, трекер, настольная игра, гексагоны">
     
-    <!-- Favicon с гексагоном и вашей иконкой (с фоном) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%238b0000' /%3E%3Cstop offset='100%25' style='stop-color:%235a0000' /%3E%3C/linearGradient%3E%3Cpattern id='image' patternUnits='userSpaceOnUse' width='80' height='80' x='10' y='10'%3E%3Cimage href='icon.png' x='0' y='0' width='80' height='80' preserveAspectRatio='xMidYMid slice' /%3E%3C/pattern%3E%3C/defs%3E%3Cpolygon points='50,5 90,25 90,75 50,95 10,75 10,25' fill='url(%23bg)' stroke='%23daa520' stroke-width='4'/%3E%3Cpolygon points='50,10 85,28 85,72 50,90 15,72 15,28' fill='url(%23image)' stroke='%23daa520' stroke-width='2'/%3E%3C/svg%3E">
-    <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%238b0000' /%3E%3Cstop offset='100%25' style='stop-color:%235a0000' /%3E%3C/linearGradient%3E%3Cpattern id='image' patternUnits='userSpaceOnUse' width='80' height='80' x='10' y='10'%3E%3Cimage href='icon.png' x='0' y='0' width='80' height='80' preserveAspectRatio='xMidYMid slice' /%3E%3C/pattern%3E%3C/defs%3E%3Cpolygon points='50,5 90,25 90,75 50,95 10,75 10,25' fill='url(%23bg)' stroke='%23daa520' stroke-width='4'/%3E%3Cpolygon points='50,10 85,28 85,72 50,90 15,72 15,28' fill='url(%23image)' stroke='%23daa520' stroke-width='2'/%3E%3C/svg%3E">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%238b0000' /%3E%3Cstop offset='100%25' style='stop-color:%235a0000' /%3E%3C/linearGradient%3E%3Cpattern id='image' patternUnits='userSpaceOnUse' width='80' height='80' x='10' y='10'%3E%3Cimage href='icon.png' x='0' y='0' width='80' height='80' preserveAspectRatio='xMidYMid slice' /%3E%3C/pattern%3E%3C/defs%3E%3Cpolygon points='50,5 90,25 90,75 50,95 10,75 10,25' fill='url(%23bg)' stroke='%23daa520' stroke-width='4'/%3E%3Cpolygon points='50,10 85,28 85,72 50,90 15,72 15,28' fill='url(%23image)' stroke='%23daa520' stroke-width='2'/%3E%3C/svg%3E">
+    <!-- Favicon с щупальцем и глазом -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='tentacleGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%238b0000' /%3E%3Cstop offset='100%25' style='stop-color:%235a0000' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M50 10 Q30 30 25 50 Q20 70 30 85 Q40 95 55 90 Q70 85 75 70 Q80 55 70 40 Q60 25 50 10' fill='url(%23tentacleGrad)' stroke='%23daa520' stroke-width='3'/%3E%3Ccircle cx='45' cy='40' r='12' fill='%23ffffff' stroke='%23daa520' stroke-width='2'/%3E%3Ccircle cx='45' cy='40' r='6' fill='%23000000'/%3E%3Ccircle cx='42' cy='37' r='2' fill='%23ffffff'/%3E%3C/svg%3E">
+    <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='tentacleGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%238b0000' /%3E%3Cstop offset='100%25' style='stop-color:%235a0000' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M50 10 Q30 30 25 50 Q20 70 30 85 Q40 95 55 90 Q70 85 75 70 Q80 55 70 40 Q60 25 50 10' fill='url(%23tentacleGrad)' stroke='%23daa520' stroke-width='3'/%3E%3Ccircle cx='45' cy='40' r='12' fill='%23ffffff' stroke='%23daa520' stroke-width='2'/%3E%3Ccircle cx='45' cy='40' r='6' fill='%23000000'/%3E%3Ccircle cx='42' cy='37' r='2' fill='%23ffffff'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='tentacleGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%238b0000' /%3E%3Cstop offset='100%25' style='stop-color:%235a0000' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M50 10 Q30 30 25 50 Q20 70 30 85 Q40 95 55 90 Q70 85 75 70 Q80 55 70 40 Q60 25 50 10' fill='url(%23tentacleGrad)' stroke='%23daa520' stroke-width='3'/%3E%3Ccircle cx='45' cy='40' r='12' fill='%23ffffff' stroke='%23daa520' stroke-width='2'/%3E%3Ccircle cx='45' cy='40' r='6' fill='%23000000'/%3E%3Ccircle cx='42' cy='37' r='2' fill='%23ffffff'/%3E%3C/svg%3E">
     
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Дополнительные стили для верхней панели навигации -->
+    <style>
+        .top-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 10px 20px;
+            background: rgba(26, 26, 46, 0.5);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(218, 165, 32, 0.3);
+            backdrop-filter: blur(5px);
+        }
+        
+        .top-action-btn {
+            background: linear-gradient(135deg, var(--secondary-light), var(--secondary));
+            color: var(--text-light);
+            padding: 10px 20px;
+            border: 1px solid var(--accent);
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-family: 'Cinzel', serif;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .top-action-btn:hover {
+            background: var(--accent);
+            color: var(--secondary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+    </style>
 </head>
 <body>
-    <!-- Фон с атмосферными элементами -->
+    <!-- Фон с атмосферными элементами (полностью скопирован из исходного index.html) -->
     <div class="background-elements">
         <div class="tentacle tentacle-1"></div>
         <div class="tentacle tentacle-2"></div>
@@ -52,7 +88,7 @@
     </div>
 
     <div class="container">
-        <!-- Заголовок -->
+        <!-- Заголовок (без изменений) -->
         <header class="main-header">
             <div class="title-container">
                 <h1 class="main-title eldritch-text">Аркхем Хорайзон</h1>
@@ -62,7 +98,17 @@
             </div>
         </header>
 
-        <!-- Статистика -->
+        <!-- Новая верхняя панель с кнопками навигации -->
+        <div class="top-actions">
+            <a href="cards.html" class="top-action-btn">
+                <span>📚</span> Справочник карт
+            </a>
+            <a href="admin.html" class="top-action-btn">
+                <span>⚙️</span> Панель администратора
+            </a>
+        </div>
+
+        <!-- Статистика (без изменений) -->
         <section class="stats-section">
             <h2 class="section-title eldritch-text">📊 Статистика исследований</h2>
             <div class="stats-grid" id="stats-container">
@@ -70,7 +116,7 @@
             </div>
         </section>
 
-        <!-- Достижения -->
+        <!-- Достижения (без изменений) -->
         <section class="achievements-section">
             <h2 class="section-title eldritch-text">🏆 Достижения древних</h2>
             <div class="achievements-grid" id="achievements-container">
@@ -83,41 +129,15 @@
             <div class="panel-header">
                 <h2 class="section-title eldritch-text">🔮 Панель архивариуса</h2>
                 <div class="control-buttons">
+                    <!-- Кнопки синхронизации (без изменений) -->
                     <button id="setup-sync" class="control-btn btn-hover-effect">⚙️ Настроить синхронизацию</button>
                     <button id="manual-sync" class="control-btn btn-hover-effect">🔄 Загрузить из облака</button>
                     <button id="sync-status" class="control-btn btn-hover-effect">📡 Статус</button>
                     <button id="create-sync-file" class="control-btn btn-hover-effect">📁 Создать файл</button>
-                    <a href="cards.html" class="control-btn btn-hover-effect" style="text-decoration: none;">📚 Справочник карт</a>
-                    <a href="admin.html" class="control-btn btn-hover-effect" style="text-decoration: none;">⚙️ Управление картами</a>
                 </div>
             </div>
 
-            <!-- Фильтры -->
-            <div class="filters">
-                <div class="filter-group">
-                    <label for="filter-investigator" class="filter-label">🔍 Сыщик:</label>
-                    <select id="filter-investigator" class="filter-select focus-ring">
-                        <option value="all">Все исследователи</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="filter-scenario" class="filter-label">📖 Сюжет:</label>
-                    <select id="filter-scenario" class="filter-select focus-ring">
-                        <option value="all">Все сюжеты</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="filter-result" class="filter-label">🎯 Результат:</label>
-                    <select id="filter-result" class="filter-select focus-ring">
-                        <option value="all">Все исходы</option>
-                        <option value="win">Только победы</option>
-                        <option value="loss">Только поражения</option>
-                    </select>
-                </div>
-                <button id="reset-filters" class="control-btn secondary btn-hover-effect">🔄 Сбросить фильтры</button>
-            </div>
-
-            <!-- Форма добавления записи -->
+            <!-- Форма добавления записи (теперь выше фильтров) -->
             <div class="add-record-form">
                 <h3 class="form-title eldritch-text">➕ Записать новое расследование</h3>
                 <form id="progress-form" class="progress-form">
@@ -173,6 +193,31 @@
 
                     <button type="submit" class="submit-btn btn-hover-effect glow-effect">✨ Запечатать в архивах</button>
                 </form>
+            </div>
+
+            <!-- Фильтры (теперь после формы) -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="filter-investigator" class="filter-label">🔍 Сыщик:</label>
+                    <select id="filter-investigator" class="filter-select focus-ring">
+                        <option value="all">Все исследователи</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-scenario" class="filter-label">📖 Сюжет:</label>
+                    <select id="filter-scenario" class="filter-select focus-ring">
+                        <option value="all">Все сюжеты</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-result" class="filter-label">🎯 Результат:</label>
+                    <select id="filter-result" class="filter-select focus-ring">
+                        <option value="all">Все исходы</option>
+                        <option value="win">Только победы</option>
+                        <option value="loss">Только поражения</option>
+                    </select>
+                </div>
+                <button id="reset-filters" class="control-btn secondary btn-hover-effect">🔄 Сбросить фильтры</button>
             </div>
 
             <!-- Гексагональная сетка записей -->
