@@ -125,7 +125,7 @@
             font-size: 1.3rem;
         }
         
-        /* Сетка карточек (как в админке) */
+        /* Сетка карточек */
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -133,7 +133,7 @@
             padding: 20px 0;
         }
         
-        /* Карточка (стилизована под админ-карточку) */
+        /* Карточка */
         .catalog-card {
             background: linear-gradient(135deg, var(--secondary-light), var(--secondary));
             border-radius: 12px;
@@ -164,19 +164,48 @@
             transform: scale(1.05);
         }
         
+        /* Блок с текстом + фон-рубашка */
         .catalog-card-content {
+            position: relative;
             padding: 12px;
-            flex: 1;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: var(--secondary-dark); /* запасной фон, если картинка не загрузится */
+            border-top: 2px solid var(--accent);
+            z-index: 1;
+            min-height: 120px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            justify-content: flex-end;
+        }
+        
+        /* Затемняющая подложка для читаемости текста */
+        .catalog-card-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        /* Текст поверх затемнения */
+        .catalog-card-title,
+        .catalog-card-description,
+        .catalog-card-type {
+            position: relative;
+            z-index: 2;
         }
         
         .catalog-card-title {
             color: var(--accent);
             font-size: 1rem;
             font-family: 'MedievalSharp', cursive;
-            margin: 0;
+            margin: 0 0 4px 0;
             line-height: 1.3;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -186,10 +215,10 @@
         }
         
         .catalog-card-description {
-            color: var(--text-dark);
+            color: var(--text-light);
             font-size: 0.8rem;
             line-height: 1.4;
-            margin: 0;
+            margin: 0 0 6px 0;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -240,8 +269,12 @@
             
             .catalog-card-description {
                 font-size: 0.75rem;
-                -webkit-line-clamp: 2;
                 min-height: 2rem;
+            }
+            
+            .catalog-card-content {
+                min-height: 100px;
+                padding: 8px;
             }
         }
         
@@ -298,7 +331,7 @@
             </div>
         </header>
 
-        <!-- Верхняя панель навигации (как на главной) -->
+        <!-- Верхняя панель навигации -->
         <div class="top-actions">
             <a href="index.html" class="top-action-btn">
                 <span>🏠</span> Трекер
@@ -335,7 +368,7 @@
         </section>
     </div>
 
-    <!-- Модальное окно для изображений (как в index.html) -->
+    <!-- Модальное окно для изображений -->
     <div id="image-modal" class="modal">
         <div class="modal-content image-modal-content">
             <span class="close" onclick="document.getElementById('image-modal').style.display='none'">&times;</span>
@@ -418,14 +451,44 @@
             renderCard(card) {
                 const defaultImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPtCd0LXRgiDQuNC30L7QsdGA0LDQttC10L3QuNGPPC90ZXh0Pjwvc3ZnPg==';
                 
+                // Определяем путь к рубашке для блока с текстом в зависимости от типа карты
+                let backImagePath = '';
+                switch (card.type) {
+                    case 'investigator':
+                        backImagePath = './images/investigators/investigator.jpg';
+                        break;
+                    case 'scenario':
+                        backImagePath = './images/scenarios/scenario.jpg';
+                        break;
+                    case 'ancient':
+                        backImagePath = './images/ancient/ancient.jpg';
+                        break;
+                    case 'item':
+                        backImagePath = './images/items/item.jpg';
+                        break;
+                    case 'spell':
+                        backImagePath = './images/spells/spell.jpg';
+                        break;
+                    case 'ally':
+                        backImagePath = './images/allies/ally.jpg';
+                        break;
+                    case 'condition':
+                        backImagePath = './images/conditions/condition.jpg';
+                        break;
+                    default:
+                        backImagePath = '';
+                }
+
+                const backgroundStyle = backImagePath ? `style="background-image: url('${backImagePath}');"` : '';
+
                 return `
                 <div class="catalog-card" data-category="${card.type}" data-name="${card.name.toLowerCase()}">
                     <img src="${card.image}" alt="${card.name}" class="catalog-card-image"
                          onclick="showImageModal('${card.image}', '${card.name}')"
                          onerror="this.src='${defaultImage}'">
-                    <div class="catalog-card-content">
+                    <div class="catalog-card-content" ${backgroundStyle}>
                         <h3 class="catalog-card-title">${card.name}</h3>
-                        <p class="catalog-card-description">${card.description || 'Описание отсутствует'}</p>
+                        <p class="catalog-card-description">${card.description || ''}</p>
                         <span class="catalog-card-type">${this.getTypeLabel(card.type)}</span>
                     </div>
                 </div>
