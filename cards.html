@@ -490,7 +490,7 @@
                 return `
                 <div class="catalog-card" data-category="${card.type}" data-name="${card.name.toLowerCase()}">
                     <img src="${card.image}" alt="${card.name}" class="catalog-card-image"
-                         onclick="showImageModal('${card.image}', '${card.name}')"
+                         onclick="showImageModal('${card.image}', '${card.name}', '${card.type}')"
                          onerror="this.src='${defaultImage}'">
                     <div class="catalog-card-content" ${backgroundStyle}>
                         <h3 class="catalog-card-title">${card.name}</h3>
@@ -569,61 +569,90 @@
             }
         }
 
-        // Функция для показа изображений в модальном окне (с поддержкой переворота)
-        async function showImageModal(src, alt) {
-            const modal = document.getElementById('image-modal');
-            const modalBody = document.getElementById('image-modal-body');
-            
-            const basePath = src.replace(/\.[^/.]+$/, "");
-            const backSideSrc = `${basePath}-1.jpg`;
-            
-            // Проверяем существование обратной стороны
-            const checkBackImage = new Image();
-            checkBackImage.onload = () => {
-                // Обратная сторона существует
-                modalBody.innerHTML = `
-                <div class="image-modal-content">
-                    <div class="simple-image-container" style="position: relative; width: 100%; height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; perspective: 1000px;">
-                        <div id="flipper" style="position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer;">
-                            <div style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center;">
-                                <img src="${src}" alt="${alt}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);">
-                            </div>
-                            <div style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; transform: rotateY(180deg); display: flex; align-items: center; justify-content: center;">
-                                <img src="${backSideSrc}" alt="${alt} (обратная сторона)" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);">
-                            </div>
-                        </div>
-                        <div style="text-align: center; margin-top: 15px; color: var(--accent);">👆 Нажмите на изображение для переворота</div>
-                    </div>
-                    <h3 style="text-align: center; margin-top: 15px; color: var(--text-light);">${alt}</h3>
-                </div>
-                `;
-                
-                let isFlipped = false;
-                const flipper = document.getElementById('flipper');
-                flipper.addEventListener('click', () => {
-                    isFlipped = !isFlipped;
-                    flipper.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
-                });
+       async function showImageModal(src, alt, type) {
+    const modal = document.getElementById('image-modal');
+    const modalBody = document.getElementById('image-modal-body');
+    
+    const basePath = src.replace(/\.[^/.]+$/, "");
+    const backSideSrc = `${basePath}-1.jpg`;
+    
+    // Путь к типовой рубашке
+    const typeBackSrc = {
+        investigator: './images/investigators/investigator.jpg',
+        scenario: './images/scenarios/scenario.jpg',
+        ancient: './images/ancient/ancient.jpg',
+        item: './images/items/item.jpg',
+        spell: './images/spells/spell.jpg',
+        ally: './images/allies/ally.jpg',
+        condition: './images/conditions/condition.jpg'
+    }[type] || null;
+    
+    // Проверяем существование индивидуальной оборотной стороны
+    const checkBackImage = new Image();
+    checkBackImage.onload = () => {
+        // Есть индивидуальная оборотка
+        showModalWithFlip(src, backSideSrc, alt);
+    };
+    
+    checkBackImage.onerror = () => {
+        // Нет индивидуальной – пробуем типовую
+        if (typeBackSrc) {
+            const checkTypeImage = new Image();
+            checkTypeImage.onload = () => {
+                showModalWithFlip(src, typeBackSrc, alt + ' (типовая рубашка)');
             };
-            
-            checkBackImage.onerror = () => {
-                // Обратной стороны нет
-                modalBody.innerHTML = `
-                <div class="image-modal-content">
-                    <div class="simple-image-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70vh;">
-                        <img src="${src}" alt="${alt}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);">
-                        <div style="text-align: center; margin-top: 15px; color: var(--text-dark);">ℹ️ Обратная сторона отсутствует</div>
-                    </div>
-                    <h3 style="text-align: center; margin-top: 15px; color: var(--text-light);">${alt}</h3>
-                </div>
-                `;
+            checkTypeImage.onerror = () => {
+                showModalWithoutFlip(src, alt);
             };
-            
-            checkBackImage.src = backSideSrc;
-            
-            modal.style.display = 'block';
-            document.body.classList.add('modal-open');
+            checkTypeImage.src = typeBackSrc;
+        } else {
+            showModalWithoutFlip(src, alt);
         }
+    };
+    
+    checkBackImage.src = backSideSrc;
+    
+    function showModalWithFlip(frontSrc, backSrc, title) {
+        modalBody.innerHTML = `
+        <div class="image-modal-content">
+            <div class="simple-image-container" style="position: relative; width: 100%; height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; perspective: 1000px;">
+                <div id="flipper" style="position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer;">
+                    <div style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center;">
+                        <img src="${frontSrc}" alt="${alt}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);">
+                    </div>
+                    <div style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; transform: rotateY(180deg); display: flex; align-items: center; justify-content: center;">
+                        <img src="${backSrc}" alt="${alt} (оборот)" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);">
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 15px; color: var(--accent);">👆 Нажмите на изображение для переворота</div>
+            </div>
+            <h3 style="text-align: center; margin-top: 15px; color: var(--text-light);">${title}</h3>
+        </div>
+        `;
+        
+        let isFlipped = false;
+        const flipper = document.getElementById('flipper');
+        flipper.addEventListener('click', () => {
+            isFlipped = !isFlipped;
+            flipper.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+        });
+    }
+    
+    function showModalWithoutFlip(src, alt) {
+        modalBody.innerHTML = `
+        <div class="image-modal-content">
+            <div class="simple-image-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70vh;">
+                <img src="${src}" alt="${alt}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);">
+                <div style="text-align: center; margin-top: 15px; color: var(--text-dark);">ℹ️ Оборотная сторона отсутствует</div>
+            </div>
+            <h3 style="text-align: center; margin-top: 15px; color: var(--text-light);">${alt}</h3>
+        </div>
+        `;
+    }
+    
+    modal.style.display = 'block';
+    document.body.classList.add('modal-open');
+}
 
         // Закрытие модального окна по клику вне его
         window.addEventListener('click', (e) => {
