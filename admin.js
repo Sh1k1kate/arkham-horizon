@@ -13,12 +13,39 @@ class CardAdmin {
         this.currentCategory = 'investigator';
         this.githubSync = null;
         this.currentImage = null;
+        
+        // Привязываем методы к экземпляру класса
+        this.setupEventListeners = this.setupEventListeners.bind(this);
+        this.addCard = this.addCard.bind(this);
+        this.renderCardsList = this.renderCardsList.bind(this);
+        this.updateCardsCount = this.updateCardsCount.bind(this);
+        this.deleteCard = this.deleteCard.bind(this);
+        this.editCard = this.editCard.bind(this);
+        this.clearForm = this.clearForm.bind(this);
+        this.batchUpload = this.batchUpload.bind(this);
+        this.exportJSON = this.exportJSON.bind(this);
+        this.importFromTracker = this.importFromTracker.bind(this);
+        this.setupGitHub = this.setupGitHub.bind(this);
+        this.syncWithGitHub = this.syncWithGitHub.bind(this);
+        this.handleFileSelect = this.handleFileSelect.bind(this);
+        
         this.init();
     }
 
     async init() {
+        console.log('Admin panel initializing...');
+        
         // Инициализируем GitHub синхронизатор
-        this.githubSync = new GitHubSyncManager(this);
+        const token = localStorage.getItem('github_token');
+        const owner = localStorage.getItem('github_owner');
+        const repo = localStorage.getItem('github_repo');
+        
+        if (token && owner && repo) {
+            this.githubSync = new GitHubSyncManager(this);
+            this.githubSync.token = token;
+            this.githubSync.owner = owner;
+            this.githubSync.repo = repo;
+        }
         
         // Проверяем подключение к GitHub
         this.updateGitHubStatus();
@@ -34,6 +61,8 @@ class CardAdmin {
     updateGitHubStatus() {
         const statusEl = document.getElementById('github-connection-status');
         const infoEl = document.getElementById('github-info');
+        
+        if (!statusEl || !infoEl) return;
         
         if (this.githubSync && this.githubSync.isConfigured()) {
             statusEl.className = 'connected';
@@ -175,8 +204,11 @@ class CardAdmin {
     }
 
     setupEventListeners() {
+        console.log('Setting up event listeners...');
+        
         // Переключение вкладок
-        document.querySelectorAll('.admin-tab').forEach(tab => {
+        const tabs = document.querySelectorAll('.admin-tab');
+        tabs.forEach(tab => {
             tab.addEventListener('click', (e) => {
                 document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
                 e.target.classList.add('active');
@@ -186,43 +218,415 @@ class CardAdmin {
         });
 
         // Форма добавления карты
-        document.getElementById('card-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.addCard();
-        });
+        const form = document.getElementById('card-form');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.addCard();
+            });
+        }
 
         // Drag & drop для изображений
         this.setupDragAndDrop();
 
         // Очистка формы
-        document.getElementById('clear-form').addEventListener('click', () => {
-            this.clearForm();
-        });
+        const clearBtn = document.getElementById('clear-form');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                this.clearForm();
+            });
+        }
 
         // Пакетная загрузка
-        document.getElementById('batch-upload').addEventListener('click', () => {
-            this.batchUpload();
-        });
+        const batchBtn = document.getElementById('batch-upload');
+        if (batchBtn) {
+            batchBtn.addEventListener('click', () => {
+                this.batchUpload();
+            });
+        }
 
         // Экспорт JSON
-        document.getElementById('export-json').addEventListener('click', () => {
-            this.exportJSON();
-        });
+        const exportBtn = document.getElementById('export-json');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                this.exportJSON();
+            });
+        }
 
         // Импорт из трекера
-        document.getElementById('import-from-tracker').addEventListener('click', () => {
-            this.importFromTracker();
-        });
+        const importBtn = document.getElementById('import-from-tracker');
+        if (importBtn) {
+            importBtn.addEventListener('click', () => {
+                this.importFromTracker();
+            });
+        }
 
         // Настройка GitHub
-        document.getElementById('setup-github').addEventListener('click', () => {
-            this.setupGitHub();
-        });
+        const setupBtn = document.getElementById('setup-github');
+        if (setupBtn) {
+            setupBtn.addEventListener('click', () => {
+                this.setupGitHub();
+            });
+        }
 
         // Синхронизация с GitHub
-        document.getElementById('sync-github').addEventListener('click', () => {
-            this.syncWithGitHub();
+        const syncBtn = document.getElementById('sync-github');
+        if (syncBtn) {
+            syncBtn.addEventListener('click', () => {
+                this.syncWithGitHub();
+            });
+        }
+    }
+
+    setupDragAndDrop() {
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-input');
+        
+        if (!dropArea || !fileInput) return;
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
         });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => {
+                dropArea.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => {
+                dropArea.classList.remove('dragover');
+            });
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            const file = e.dataTransfer.files[0];
+            this.handleFileSelect(file);
+        });
+
+        dropArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            this.handleFileSelect(e.target.files[0]);
+        });
+    }
+
+    async handleFileSelect(file) {
+        if (!file || !file.type.startsWith('image/')) {
+            this.showNotification('Пожалуйста, выберите изображение', 'error');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            this.showNotification('Файл слишком большой (макс. 5 МБ)', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const preview = document.getElementById('image-preview');
+            if (preview) {
+                preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 100%; max-height: 100%;">`;
+            }
+            
+            // Сохраняем base64 данные (убираем префикс)
+            this.currentImage = {
+                name: file.name,
+                data: e.target.result.split(',')[1],
+                type: file.type
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async addCard() {
+        const nameInput = document.getElementById('card-name');
+        const descInput = document.getElementById('card-description');
+        const expansionInput = document.getElementById('card-expansion');
+        const idInput = document.getElementById('card-id');
+        const categorySelect = document.getElementById('card-category');
+        
+        if (!nameInput || !categorySelect) return;
+        
+        const name = nameInput.value;
+        const description = descInput ? descInput.value : '';
+        const expansion = expansionInput ? expansionInput.value : '';
+        const cardId = idInput.value || this.generateId(name);
+        const category = categorySelect.value;
+
+        if (!name) {
+            this.showNotification('Введите название карты', 'error');
+            return;
+        }
+
+        const submitBtn = document.getElementById('submit-btn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Сохранение...';
+        }
+
+        // Показываем прогресс
+        const progressDiv = document.getElementById('upload-progress');
+        if (progressDiv) progressDiv.style.display = 'block';
+
+        try {
+            // Создаем карточку
+            const card = {
+                id: cardId,
+                name: name,
+                description: description,
+                expansion: expansion,
+                type: category,
+                image: `./images/${category}s/${cardId}.jpg`
+            };
+
+            // Добавляем в соответствующую категорию
+            const categoryKey = this.getCategoryKey(category);
+            this.data[categoryKey].push(card);
+
+            // Сохраняем изображение, если есть
+            if (this.currentImage && this.githubSync && this.githubSync.isConfigured()) {
+                const progressText = document.getElementById('progress-text');
+                const progressFill = document.getElementById('progress-fill');
+                
+                if (progressText) progressText.textContent = 'Загрузка изображения...';
+                if (progressFill) progressFill.style.width = '50%';
+                
+                const imagePath = `images/${category}s/${cardId}.jpg`;
+                await this.saveImageToGitHub(this.currentImage.data, imagePath);
+            }
+
+            // Сохраняем JSON
+            const progressText = document.getElementById('progress-text');
+            const progressFill = document.getElementById('progress-fill');
+            
+            if (progressText) progressText.textContent = 'Сохранение данных...';
+            if (progressFill) progressFill.style.width = '80%';
+            await this.saveData();
+
+            if (progressFill) progressFill.style.width = '100%';
+            if (progressText) progressText.textContent = 'Готово!';
+
+            this.showNotification(`Карта "${name}" успешно добавлена!`, 'success');
+            
+            setTimeout(() => {
+                if (progressDiv) progressDiv.style.display = 'none';
+                if (progressFill) progressFill.style.width = '0%';
+            }, 1000);
+            
+            this.clearForm();
+            this.renderCardsList();
+            this.updateCardsCount();
+
+        } catch (error) {
+            this.showNotification('Ошибка при сохранении: ' + error.message, 'error');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '💾 Сохранить карту';
+            }
+        }
+    }
+
+    getCategoryKey(category) {
+        const map = {
+            'investigator': 'investigators',
+            'scenario': 'scenarios',
+            'ancient': 'ancient',
+            'item': 'items',
+            'spell': 'spells',
+            'ally': 'allies',
+            'condition': 'conditions'
+        };
+        return map[category] || category + 's';
+    }
+
+    generateId(name) {
+        return name.toLowerCase()
+            .replace(/[^a-zа-яё\s]/gi, '')
+            .replace(/\s+/g, '_')
+            .replace(/[ьъ]/g, '')
+            .substring(0, 30);
+    }
+
+    renderCardsList() {
+        const container = document.getElementById('cards-list');
+        if (!container) return;
+        
+        const categoryKey = this.getCategoryKey(this.currentCategory);
+        const cards = this.data[categoryKey] || [];
+
+        if (cards.length === 0) {
+            container.innerHTML = '<div class="no-results-message">Нет карт в этой категории</div>';
+            return;
+        }
+
+        container.innerHTML = cards.map(card => `
+            <div class="admin-card">
+                <img src="${card.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPtCd0LXRgiBpbWFnZTwvdGV4dD48L3N2Zz4='}" 
+                     alt="${card.name}" 
+                     class="admin-card-image"
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPtCd0LXRgiBpbWFnZTwvdGV4dD48L3N2Zz4='">
+                <div class="admin-card-info">
+                    <div class="admin-card-title">${card.name}</div>
+                    <div class="admin-card-type">${card.expansion || 'Без дополнения'}</div>
+                </div>
+                <div class="admin-card-actions">
+                    <button class="admin-btn" onclick="admin.editCard('${card.id}')">✏️</button>
+                    <button class="admin-btn delete" onclick="admin.deleteCard('${card.id}')">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    updateCardsCount() {
+        const countEl = document.getElementById('cards-count');
+        if (!countEl) return;
+        
+        const total = Object.values(this.data).reduce((sum, arr) => sum + arr.length, 0);
+        countEl.textContent = total;
+    }
+
+    async deleteCard(cardId) {
+        if (!confirm('Удалить эту карту?')) return;
+
+        for (let category in this.data) {
+            const index = this.data[category].findIndex(c => c.id === cardId);
+            if (index !== -1) {
+                this.data[category].splice(index, 1);
+                break;
+            }
+        }
+
+        await this.saveData();
+        this.renderCardsList();
+        this.updateCardsCount();
+        this.showNotification('Карта удалена', 'success');
+    }
+
+    editCard(cardId) {
+        // Находим карту
+        let card = null;
+        for (let category in this.data) {
+            card = this.data[category].find(c => c.id === cardId);
+            if (card) break;
+        }
+
+        if (!card) return;
+
+        // Заполняем форму
+        const nameInput = document.getElementById('card-name');
+        const descInput = document.getElementById('card-description');
+        const expansionInput = document.getElementById('card-expansion');
+        const idInput = document.getElementById('card-id');
+        const categorySelect = document.getElementById('card-category');
+        const preview = document.getElementById('image-preview');
+        
+        if (nameInput) nameInput.value = card.name;
+        if (descInput) descInput.value = card.description || '';
+        if (expansionInput) expansionInput.value = card.expansion || '';
+        if (idInput) idInput.value = card.id;
+        
+        // Устанавливаем категорию
+        if (categorySelect) {
+            const category = card.type || 'investigator';
+            categorySelect.value = category;
+        }
+        
+        // Показываем превью
+        if (preview) {
+            preview.innerHTML = `<img src="${card.image}" alt="${card.name}" style="max-width: 100%; max-height: 100%;">`;
+        }
+    }
+
+    clearForm() {
+        const form = document.getElementById('card-form');
+        if (form) form.reset();
+        
+        const preview = document.getElementById('image-preview');
+        if (preview) {
+            preview.innerHTML = '<span style="color: var(--text-dark);">Предпросмотр</span>';
+        }
+        
+        const progressDiv = document.getElementById('upload-progress');
+        if (progressDiv) progressDiv.style.display = 'none';
+        
+        this.currentImage = null;
+    }
+
+    async batchUpload() {
+        try {
+            const jsonText = document.getElementById('batch-json');
+            if (!jsonText) return;
+            
+            const newData = JSON.parse(jsonText.value);
+            
+            // Объединяем с существующими данными
+            for (let category in newData) {
+                if (this.data[category]) {
+                    this.data[category] = [...this.data[category], ...newData[category]];
+                }
+            }
+            
+            await this.saveData();
+            this.renderCardsList();
+            this.updateCardsCount();
+            this.showNotification('Данные загружены успешно!', 'success');
+        } catch (error) {
+            this.showNotification('Ошибка в JSON: ' + error.message, 'error');
+        }
+    }
+
+    exportJSON() {
+        const jsonString = JSON.stringify(this.data, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'arkham_cards_backup.json';
+        a.click();
+        
+        URL.revokeObjectURL(url);
+    }
+
+    importFromTracker() {
+        // Импортируем сыщиков и сценарии из трекера
+        if (window.tracker) {
+            const investigators = Object.entries(window.tracker.investigators).map(([id, data]) => ({
+                id: id,
+                name: data.name,
+                description: data.description,
+                image: data.image,
+                type: 'investigator',
+                expansion: 'Базовый набор'
+            }));
+            
+            const scenarios = Object.entries(window.tracker.scenarios).map(([id, data]) => ({
+                id: id,
+                name: data.name,
+                description: data.description,
+                image: data.image,
+                type: 'scenario',
+                expansion: 'Базовый набор'
+            }));
+            
+            this.data.investigators = investigators;
+            this.data.scenarios = scenarios;
+            
+            this.saveData();
+            this.renderCardsList();
+            this.updateCardsCount();
+            this.showNotification('Данные импортированы из трекера', 'success');
+        } else {
+            this.showNotification('Трекер не найден', 'error');
+        }
     }
 
     async setupGitHub() {
@@ -309,309 +713,7 @@ class CardAdmin {
         await this.loadData();
         this.renderCardsList();
         this.updateCardsCount();
-    }
-
-    setupDragAndDrop() {
-        const dropArea = document.getElementById('drop-area');
-        
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            });
-        });
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => {
-                dropArea.classList.add('dragover');
-            });
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => {
-                dropArea.classList.remove('dragover');
-            });
-        });
-
-        dropArea.addEventListener('drop', (e) => {
-            const file = e.dataTransfer.files[0];
-            this.handleFileSelect(file);
-        });
-
-        dropArea.addEventListener('click', () => {
-            document.getElementById('file-input').click();
-        });
-
-        document.getElementById('file-input').addEventListener('change', (e) => {
-            this.handleFileSelect(e.target.files[0]);
-        });
-    }
-
-    async handleFileSelect(file) {
-        if (!file || !file.type.startsWith('image/')) {
-            this.showNotification('Пожалуйста, выберите изображение', 'error');
-            return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-            this.showNotification('Файл слишком большой (макс. 5 МБ)', 'error');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const preview = document.getElementById('image-preview');
-            preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-            
-            // Сохраняем base64 данные (убираем префикс)
-            this.currentImage = {
-                name: file.name,
-                data: e.target.result.split(',')[1],
-                type: file.type
-            };
-        };
-        reader.readAsDataURL(file);
-    }
-
-    async addCard() {
-        const name = document.getElementById('card-name').value;
-        const description = document.getElementById('card-description').value;
-        const expansion = document.getElementById('card-expansion').value;
-        const cardId = document.getElementById('card-id').value || this.generateId(name);
-        const category = document.getElementById('card-category').value;
-
-        if (!name) {
-            this.showNotification('Введите название карты', 'error');
-            return;
-        }
-
-        const submitBtn = document.getElementById('submit-btn');
-        submitBtn.disabled = true;
-        submitBtn.textContent = '⏳ Сохранение...';
-
-        // Показываем прогресс
-        document.getElementById('upload-progress').style.display = 'block';
-
-        try {
-            // Создаем карточку
-            const card = {
-                id: cardId,
-                name: name,
-                description: description,
-                expansion: expansion,
-                type: category,
-                image: `./images/${category}s/${cardId}.jpg`
-            };
-
-            // Добавляем в соответствующую категорию
-            const categoryKey = this.getCategoryKey(category);
-            this.data[categoryKey].push(card);
-
-            // Сохраняем изображение, если есть
-            if (this.currentImage && this.githubSync && this.githubSync.isConfigured()) {
-                document.getElementById('progress-text').textContent = 'Загрузка изображения...';
-                document.getElementById('progress-fill').style.width = '50%';
-                
-                const imagePath = `images/${category}s/${cardId}.jpg`;
-                await this.saveImageToGitHub(this.currentImage.data, imagePath);
-            }
-
-            // Сохраняем JSON
-            document.getElementById('progress-text').textContent = 'Сохранение данных...';
-            document.getElementById('progress-fill').style.width = '80%';
-            await this.saveData();
-
-            document.getElementById('progress-fill').style.width = '100%';
-            document.getElementById('progress-text').textContent = 'Готово!';
-
-            this.showNotification(`Карта "${name}" успешно добавлена!`, 'success');
-            
-            setTimeout(() => {
-                document.getElementById('upload-progress').style.display = 'none';
-                document.getElementById('progress-fill').style.width = '0%';
-            }, 1000);
-            
-            this.clearForm();
-            this.renderCardsList();
-            this.updateCardsCount();
-
-        } catch (error) {
-            this.showNotification('Ошибка при сохранении: ' + error.message, 'error');
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = '💾 Сохранить карту';
-        }
-    }
-
-    getCategoryKey(category) {
-        const map = {
-            'investigator': 'investigators',
-            'scenario': 'scenarios',
-            'ancient': 'ancient',
-            'item': 'items',
-            'spell': 'spells',
-            'ally': 'allies',
-            'condition': 'conditions'
-        };
-        return map[category] || category + 's';
-    }
-
-    generateId(name) {
-        return name.toLowerCase()
-            .replace(/[^a-zа-яё\s]/gi, '')
-            .replace(/\s+/g, '_')
-            .replace(/[ьъ]/g, '')
-            .substring(0, 30);
-    }
-
-    renderCardsList() {
-        const container = document.getElementById('cards-list');
-        const categoryKey = this.getCategoryKey(this.currentCategory);
-        const cards = this.data[categoryKey] || [];
-
-        if (cards.length === 0) {
-            container.innerHTML = '<div class="no-results-message">Нет карт в этой категории</div>';
-            return;
-        }
-
-        container.innerHTML = cards.map(card => `
-            <div class="admin-card">
-                <img src="${card.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPtCd0LXRgiBpbWFnZTwvdGV4dD48L3N2Zz4='}" 
-                     alt="${card.name}" 
-                     class="admin-card-image"
-                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPtCd0LXRgiBpbWFnZTwvdGV4dD48L3N2Zz4='">
-                <div class="admin-card-info">
-                    <div class="admin-card-title">${card.name}</div>
-                    <div class="admin-card-type">${card.expansion || 'Без дополнения'}</div>
-                </div>
-                <div class="admin-card-actions">
-                    <button class="admin-btn" onclick="admin.editCard('${card.id}')">✏️</button>
-                    <button class="admin-btn delete" onclick="admin.deleteCard('${card.id}')">🗑️</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    updateCardsCount() {
-        const total = Object.values(this.data).reduce((sum, arr) => sum + arr.length, 0);
-        document.getElementById('cards-count').textContent = total;
-    }
-
-    async deleteCard(cardId) {
-        if (!confirm('Удалить эту карту?')) return;
-
-        for (let category in this.data) {
-            const index = this.data[category].findIndex(c => c.id === cardId);
-            if (index !== -1) {
-                this.data[category].splice(index, 1);
-                break;
-            }
-        }
-
-        await this.saveData();
-        this.renderCardsList();
-        this.updateCardsCount();
-        this.showNotification('Карта удалена', 'success');
-    }
-
-    editCard(cardId) {
-        // Находим карту
-        let card = null;
-        for (let category in this.data) {
-            card = this.data[category].find(c => c.id === cardId);
-            if (card) break;
-        }
-
-        if (!card) return;
-
-        // Заполняем форму
-        document.getElementById('card-name').value = card.name;
-        document.getElementById('card-description').value = card.description || '';
-        document.getElementById('card-expansion').value = card.expansion || '';
-        document.getElementById('card-id').value = card.id;
-        
-        // Устанавливаем категорию
-        const categorySelect = document.getElementById('card-category');
-        const category = card.type || 'investigator';
-        categorySelect.value = category;
-        
-        // Показываем превью
-        const preview = document.getElementById('image-preview');
-        preview.innerHTML = `<img src="${card.image}" alt="${card.name}">`;
-    }
-
-    clearForm() {
-        document.getElementById('card-form').reset();
-        document.getElementById('image-preview').innerHTML = '<span style="color: var(--text-dark);">Предпросмотр</span>';
-        document.getElementById('upload-progress').style.display = 'none';
-        this.currentImage = null;
-    }
-
-    async batchUpload() {
-        try {
-            const jsonText = document.getElementById('batch-json').value;
-            const newData = JSON.parse(jsonText);
-            
-            // Объединяем с существующими данными
-            for (let category in newData) {
-                if (this.data[category]) {
-                    this.data[category] = [...this.data[category], ...newData[category]];
-                }
-            }
-            
-            await this.saveData();
-            this.renderCardsList();
-            this.updateCardsCount();
-            this.showNotification('Данные загружены успешно!', 'success');
-        } catch (error) {
-            this.showNotification('Ошибка в JSON: ' + error.message, 'error');
-        }
-    }
-
-    exportJSON() {
-        const jsonString = JSON.stringify(this.data, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'arkham_cards_backup.json';
-        a.click();
-        
-        URL.revokeObjectURL(url);
-    }
-
-    importFromTracker() {
-        // Импортируем сыщиков и сценарии из трекера
-        if (window.tracker) {
-            const investigators = Object.entries(window.tracker.investigators).map(([id, data]) => ({
-                id: id,
-                name: data.name,
-                description: data.description,
-                image: data.image,
-                type: 'investigator',
-                expansion: 'Базовый набор'
-            }));
-            
-            const scenarios = Object.entries(window.tracker.scenarios).map(([id, data]) => ({
-                id: id,
-                name: data.name,
-                description: data.description,
-                image: data.image,
-                type: 'scenario',
-                expansion: 'Базовый набор'
-            }));
-            
-            this.data.investigators = investigators;
-            this.data.scenarios = scenarios;
-            
-            this.saveData();
-            this.renderCardsList();
-            this.updateCardsCount();
-            this.showNotification('Данные импортированы из трекера', 'success');
-        } else {
-            this.showNotification('Трекер не найден', 'error');
-        }
+        this.showNotification('Синхронизация завершена', 'success');
     }
 
     showNotification(message, type = 'info') {
@@ -626,5 +728,13 @@ class CardAdmin {
     }
 }
 
-// Инициализация
-const admin = new CardAdmin();
+// Глобальная переменная для доступа из кнопок
+let admin;
+
+// Инициализация после загрузки страницы
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, creating admin...');
+    admin = new CardAdmin();
+    // Делаем admin глобальным для доступа из onclick
+    window.admin = admin;
+});
